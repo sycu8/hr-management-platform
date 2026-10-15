@@ -7,6 +7,7 @@ import health from './routes/health.ts'
 import me from './routes/me.ts'
 import payroll from './routes/payroll.ts'
 import trips from './routes/trips.ts'
+import dashboard from './routes/dashboard.ts'
 
 export type AppVariables = {
   user: AuthUser
@@ -33,6 +34,7 @@ export function createApp() {
   api.route('/employees', employees)
   api.route('/trips', trips)
   api.route('/payroll', payroll)
+  api.route('/dashboard', dashboard)
 
   app.route('/api', api)
 

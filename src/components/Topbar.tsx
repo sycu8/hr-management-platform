@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { fetchMe, type MeUser } from '../lib/api'
+import { ApiError, fetchMe, type MeUser } from '../lib/api'
 import { pageTitle } from '../lib/nav'
 
 type TopbarProps = {
@@ -10,7 +10,15 @@ type TopbarProps = {
 type MeState =
   | { status: 'loading' }
   | { status: 'ok'; user: MeUser }
-  | { status: 'empty' }
+  | { status: 'empty'; detail?: string }
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: 'Quản trị',
+  hr: 'Nhân sự',
+  manager: 'Quản lý',
+  finance: 'Tài chính',
+  employee: 'Nhân viên',
+}
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { pathname } = useLocation()
@@ -23,8 +31,13 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       .then((user) => {
         if (!cancelled) setMe({ status: 'ok', user })
       })
-      .catch(() => {
-        if (!cancelled) setMe({ status: 'empty' })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        const detail =
+          err instanceof ApiError
+            ? err.message
+            : 'Chưa đăng nhập / cấu hình Access'
+        setMe({ status: 'empty', detail })
       })
     return () => {
       cancelled = true
@@ -58,18 +71,19 @@ function UserStatus({ me }: { me: MeState }) {
 
   if (me.status === 'empty') {
     return (
-      <div className="user-chip empty" role="status">
-        Chưa đăng nhập / cấu hình Access
+      <div className="user-chip empty" role="status" title={me.detail}>
+        {me.detail || 'Chưa đăng nhập / cấu hình Access'}
       </div>
     )
   }
 
   const { user } = me
+  const role = ROLE_LABEL[user.role] ?? user.role
 
   return (
     <div className="user-chip" title={user.email}>
       <span className="user-name">{user.displayName}</span>
-      {user.role ? <span className="user-meta">{user.role}</span> : null}
+      <span className="user-meta">{role}</span>
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { createMiddleware } from 'hono/factory'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import type { AppRole, Env } from '../env.ts'
 import { unauthorized } from '../lib/http.ts'
+import { newId } from '../lib/ids.ts'
 
 export type AuthUser = {
   id: string
@@ -24,7 +25,6 @@ type UserRow = {
   is_active: number
 }
 
-/** Cloudflare Access properties on ExecutionContext when an Access app matched. */
 type AccessContext = {
   aud: string | string[]
   getIdentity: () => Promise<{
@@ -39,7 +39,9 @@ type ExecutionContextWithAccess = ExecutionContext & {
 }
 
 const ACCESS_ASSERTION_HEADER = 'CF-Access-Jwt-Assertion'
+const ACCESS_EMAIL_HEADER = 'CF-Access-Authenticated-User-Email'
 const DEV_AUTH_EMAIL_HEADER = 'DEV_AUTH_EMAIL'
+const DEFAULT_ORG_ID = 'org_demo'
 
 const jwksByDomain = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
@@ -104,11 +106,52 @@ async function lookupUserByEmail(
   }
 }
 
-/** Preferred path: Workers Access runtime (`ctx.access`). */
-async function emailFromAccessContext(
+/** First Access login: create an org user so API/data work without manual seed. */
+async function ensureUser(
+  db: D1Database,
+  email: string,
+  displayName?: string | null,
+): Promise<AuthUser> {
+  const existing = await lookupUserByEmail(db, email)
+  if (existing) return existing
+
+  const id = newId()
+  const name =
+    displayName?.trim() ||
+    email.split('@')[0]?.replace(/[._]/g, ' ') ||
+    email
+
+  await db
+    .prepare(
+      `INSERT INTO users (
+         id, organization_id, email, display_name, role, employee_id, is_active, last_login_at
+       ) VALUES (?, ?, ?, ?, 'employee', NULL, 1, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`,
+    )
+    .bind(id, DEFAULT_ORG_ID, email.toLowerCase(), name)
+    .run()
+
+  const created = await lookupUserByEmail(db, email)
+  if (!created) throw new Error('Failed to provision Access user')
+  return created
+}
+
+async function touchLastLogin(db: D1Database, userId: string): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE users
+       SET last_login_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+       WHERE id = ?`,
+    )
+    .bind(userId)
+    .run()
+}
+
+type ResolvedIdentity = { email: string; displayName?: string | null }
+
+async function identityFromAccessContext(
   ctx: ExecutionContextWithAccess,
   env: Env,
-): Promise<string | null> {
+): Promise<ResolvedIdentity | null> {
   if (!ctx.access) return null
   if (
     !isPlaceholderAccessConfig(env) &&
@@ -117,17 +160,16 @@ async function emailFromAccessContext(
     throw new Error('Access AUD mismatch')
   }
   const identity = await ctx.access.getIdentity()
-  return identity.email?.trim() || null
+  const email = identity.email?.trim()
+  if (!email) return null
+  return { email, displayName: identity.name }
 }
 
-/** Fallback: verify `CF-Access-Jwt-Assertion` with team JWKS. */
-async function emailFromAccessJwt(
+async function identityFromAccessJwt(
   token: string,
   env: Env,
-): Promise<string | null> {
-  if (isPlaceholderAccessConfig(env)) {
-    return null
-  }
+): Promise<ResolvedIdentity | null> {
+  if (isPlaceholderAccessConfig(env)) return null
 
   const { jwks, normalized } = getAccessJwks(env.ACCESS_TEAM_DOMAIN)
   const { payload } = await jwtVerify(token, jwks, {
@@ -139,8 +181,14 @@ async function emailFromAccessJwt(
     (typeof payload.email === 'string' && payload.email) ||
     (typeof payload.common_name === 'string' && payload.common_name) ||
     null
+  if (!email) return null
 
-  return email?.trim() || null
+  const name =
+    (typeof payload.name === 'string' && payload.name) ||
+    (typeof payload.given_name === 'string' && payload.given_name) ||
+    null
+
+  return { email: email.trim(), displayName: name }
 }
 
 function resolveDevEmail(c: {
@@ -154,51 +202,68 @@ function resolveDevEmail(c: {
 }
 
 /**
- * Authenticate via Cloudflare Access (`ctx.access` → JWT), or local DEV_AUTH.
- * Role/organization always come from the `users` table — never from the client.
+ * Authenticate via Cloudflare Access (`ctx.access` → JWT → Access email header),
+ * or local DEV_AUTH. Auto-provisions unknown Access emails into org_demo.
+ * Role always comes from the `users` table after provision — never from the client.
  */
 export const requireAuth = createMiddleware<{
   Bindings: Env
   Variables: { user: AuthUser }
 }>(async (c, next) => {
-  let email: string | null = null
+  let identity: ResolvedIdentity | null = null
 
   try {
-    email = await emailFromAccessContext(
+    identity = await identityFromAccessContext(
       c.executionCtx as ExecutionContextWithAccess,
       c.env,
     )
-  } catch {
+  } catch (err) {
+    console.error('access_context_failed', err)
     return unauthorized(c, 'Invalid Access identity')
   }
 
-  if (!email) {
+  if (!identity) {
     const assertion = c.req.header(ACCESS_ASSERTION_HEADER)
     if (assertion) {
       try {
-        email = await emailFromAccessJwt(assertion, c.env)
-      } catch {
+        identity = await identityFromAccessJwt(assertion, c.env)
+      } catch (err) {
+        console.error('access_jwt_failed', err)
         return unauthorized(c, 'Invalid Access token')
-      }
-      if (!email) {
-        return unauthorized(c, 'Access token missing email claim')
-      }
-    } else {
-      email = resolveDevEmail(c)
-      if (!email) {
-        return unauthorized(c, 'Authentication required')
       }
     }
   }
 
-  const user = await lookupUserByEmail(c.env.DB, email)
-  if (!user) {
-    return unauthorized(c, 'User not provisioned')
+  // Trusted only when Access already presented an assertion (or ctx.access above).
+  if (!identity) {
+    const accessEmail = c.req.header(ACCESS_EMAIL_HEADER)?.trim()
+    const assertion = c.req.header(ACCESS_ASSERTION_HEADER)
+    if (accessEmail && assertion) {
+      identity = { email: accessEmail }
+    }
   }
+
+  if (!identity) {
+    const devEmail = resolveDevEmail(c)
+    if (!devEmail) {
+      return unauthorized(c, 'Authentication required')
+    }
+    identity = { email: devEmail }
+  }
+
+  let user: AuthUser
+  try {
+    user = await ensureUser(c.env.DB, identity.email, identity.displayName)
+  } catch (err) {
+    console.error('ensure_user_failed', err)
+    return unauthorized(c, 'User provisioning failed')
+  }
+
   if (!user.isActive) {
     return unauthorized(c, 'User inactive')
   }
 
+  c.executionCtx.waitUntil(touchLastLogin(c.env.DB, user.id))
   c.set('user', user)
   await next()
 })

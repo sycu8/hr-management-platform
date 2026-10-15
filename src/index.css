@@ -329,3 +329,9 @@ textarea {
     animation: none !important;
   }
 }
+
+.dept-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.dept-list li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.dept-list li:last-child{border-bottom:0}.dept-list strong{font-variant-numeric:tabular-nums}
+
+
+.table-wrap{overflow:auto}.data{width:100%;border-collapse:collapse}.data th,.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}.data th{font-size:12px;color:var(--muted);font-weight:600}.mono{font-family:var(--mono);font-size:12px}
+
