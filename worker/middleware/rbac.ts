@@ -33,44 +33,78 @@ const ALL_MODULES: ModuleKey[] = [
   'sys',
 ]
 
-export async function getPermissionLevel(
+export type ModuleLevelMap = Partial<Record<ModuleKey, PermissionLevel>>
+
+/** One DB read of capabilities → per-module max levels (account_type=user). */
+export async function loadCapabilityModuleLevels(
   db: D1Database,
-  user: AuthUser,
-  moduleKey: ModuleKey,
-): Promise<PermissionLevel> {
-  // Super admin always full access (even while viewing-as, SA retains elevated writes —
-  // view-as is for perspective; mutations still allowed for SA).
-  if (user.accountType === 'super_admin') return 2
-
-  // When viewing-as, use target account permissions for reads/writes scope checks.
-  const accountType: AccountType = user.accountType
-
-  if (accountType === 'admin') {
-    // HR Admin: full edit on business modules.
-    // System nav (users / security / exports) at level 1 — data-source
-    // integrations remain Super Admin only (enforced on those routes).
-    if (moduleKey === 'sys') return 1
-    return 2
-  }
-
-  // user: capabilities table
-  if (moduleKey === 'dash') return 1
-
+  userId: string,
+): Promise<ModuleLevelMap> {
   const { results } = await db
     .prepare(
       `SELECT capability, level FROM user_capabilities WHERE user_id = ?`,
     )
-    .bind(user.effectiveUserId)
+    .bind(userId)
     .all<{ capability: Capability; level: number }>()
 
-  let level: PermissionLevel = 0
+  const map: ModuleLevelMap = {}
   for (const row of results ?? []) {
     const mod = CAPABILITY_TO_MODULE[row.capability]
-    if (mod === moduleKey) {
-      level = Math.max(level, row.level as PermissionLevel) as PermissionLevel
-    }
+    if (!mod) continue
+    const next = row.level as PermissionLevel
+    map[mod] = Math.max(map[mod] ?? 0, next) as PermissionLevel
   }
-  return level
+  return map
+}
+
+function levelFromAccount(
+  user: AuthUser,
+  moduleKey: ModuleKey,
+  caps: ModuleLevelMap | null,
+): PermissionLevel {
+  if (user.accountType === 'super_admin') return 2
+
+  if (user.accountType === 'admin') {
+    if (moduleKey === 'sys') return 1
+    return 2
+  }
+
+  // account_type=user
+  if (moduleKey === 'dash') return 1
+  return (caps?.[moduleKey] ?? 0) as PermissionLevel
+}
+
+export async function getPermissionLevel(
+  db: D1Database,
+  user: AuthUser,
+  moduleKey: ModuleKey,
+  caps?: ModuleLevelMap,
+): Promise<PermissionLevel> {
+  if (user.accountType === 'super_admin' || user.accountType === 'admin') {
+    return levelFromAccount(user, moduleKey, null)
+  }
+  if (moduleKey === 'dash') return 1
+
+  const map =
+    caps ?? (await loadCapabilityModuleLevels(db, user.effectiveUserId))
+  return levelFromAccount(user, moduleKey, map)
+}
+
+/** All module levels in one capability query (for /me and search). */
+export async function getAllModuleLevels(
+  db: D1Database,
+  user: AuthUser,
+): Promise<Record<ModuleKey, PermissionLevel>> {
+  const caps =
+    user.accountType === 'user'
+      ? await loadCapabilityModuleLevels(db, user.effectiveUserId)
+      : null
+
+  const out = {} as Record<ModuleKey, PermissionLevel>
+  for (const mod of ALL_MODULES) {
+    out[mod] = levelFromAccount(user, mod, caps)
+  }
+  return out
 }
 
 export function requireModule(moduleKey: ModuleKey, minLevel: PermissionLevel) {
@@ -211,10 +245,6 @@ export async function listAllowedModules(
   db: D1Database,
   user: AuthUser,
 ): Promise<ModuleKey[]> {
-  const allowed: ModuleKey[] = []
-  for (const mod of ALL_MODULES) {
-    const level = await getPermissionLevel(db, user, mod)
-    if (level > 0) allowed.push(mod)
-  }
-  return allowed
+  const levels = await getAllModuleLevels(db, user)
+  return ALL_MODULES.filter((mod) => levels[mod] > 0)
 }

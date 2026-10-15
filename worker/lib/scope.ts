@@ -77,3 +77,17 @@ export function employeeIdInClause(
     binds: scope.ids,
   }
 }
+
+/**
+ * Push employee scope into SQL (avoids fetch-all-then-filter).
+ * `empty: true` → caller should return [] without querying.
+ */
+export function scopeSqlClause(
+  scope: EmployeeScope,
+  column: string,
+): { empty: boolean; sql: string; binds: string[] } {
+  if (scope.mode === 'none') return { empty: true, sql: '', binds: [] }
+  if (scope.mode === 'all') return { empty: false, sql: '', binds: [] }
+  const clause = employeeIdInClause(column, scope)
+  return { empty: false, sql: clause.sql, binds: clause.binds }
+}
