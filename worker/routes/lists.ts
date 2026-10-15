@@ -167,6 +167,20 @@ lists.get('/cycles', requireModule('perf', 1), async (c) => {
   return json(c, { items: results ?? [] })
 })
 
+lists.get('/exports', requireModule('sys', 1), async (c) => {
+  const user = c.get('user')
+  const { results } = await c.env.DB.prepare(
+    `SELECT id, kind, status, r2_key, requested_by, created_at, completed_at
+     FROM export_jobs
+     WHERE organization_id = ?
+     ORDER BY created_at DESC
+     LIMIT 100`,
+  )
+    .bind(user.organizationId)
+    .all()
+  return json(c, { items: results ?? [] })
+})
+
 lists.get('/earnings', requireModule('pay', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
@@ -185,16 +199,25 @@ lists.get('/earnings', requireModule('pay', 1), async (c) => {
 
 lists.get('/documents', requireModule('emp', 1), async (c) => {
   const user = c.get('user')
+  const type = c.req.query('type')
   const { results } = await c.env.DB.prepare(
-    `SELECT d.id, d.type_name, d.file_name, d.issued_on, d.expires_on,
+    type
+      ? `SELECT d.id, d.type_name, d.file_name, d.issued_on, d.expires_on,
             e.full_name AS employee_name, e.code AS employee_code
-     FROM documents d
-     JOIN employees e ON e.id = d.employee_id
-     WHERE d.organization_id = ?
-     ORDER BY d.expires_on IS NULL, d.expires_on
-     LIMIT 200`,
+         FROM documents d
+         JOIN employees e ON e.id = d.employee_id
+         WHERE d.organization_id = ? AND d.type_name = ?
+         ORDER BY d.expires_on IS NULL, d.expires_on
+         LIMIT 200`
+      : `SELECT d.id, d.type_name, d.file_name, d.issued_on, d.expires_on,
+            e.full_name AS employee_name, e.code AS employee_code
+         FROM documents d
+         JOIN employees e ON e.id = d.employee_id
+         WHERE d.organization_id = ?
+         ORDER BY d.expires_on IS NULL, d.expires_on
+         LIMIT 200`,
   )
-    .bind(user.organizationId)
+    .bind(...(type ? [user.organizationId, type] : [user.organizationId]))
     .all()
   return json(c, { items: results ?? [] })
 })

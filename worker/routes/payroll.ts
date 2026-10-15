@@ -61,4 +61,38 @@ payroll.get('/runs', requireModule('pay', 1), async (c) => {
   })
 })
 
+payroll.get('/payslips', requireModule('pay', 1), async (c) => {
+  const user = c.get('user')
+  const ym = c.req.query('ym')
+  const limit = Math.min(Number(c.req.query('limit') ?? 100) || 100, 300)
+
+  const employeeFilter =
+    user.accountType === 'user' && user.employeeId ? user.employeeId : null
+
+  const { results } = await c.env.DB.prepare(
+    `SELECT i.id, i.gross, i.employee_insurance, i.pit, i.net, i.employer_insurance,
+            i.snapshot_json, r.year_month, r.status AS run_status,
+            e.code AS employee_code, e.full_name AS employee_name, e.department
+     FROM payroll_items i
+     JOIN payroll_runs r ON r.id = i.payroll_run_id
+     JOIN employees e ON e.id = i.employee_id
+     WHERE r.organization_id = ?
+       AND (? IS NULL OR r.year_month = ?)
+       AND (? IS NULL OR i.employee_id = ?)
+     ORDER BY r.year_month DESC, e.code
+     LIMIT ?`,
+  )
+    .bind(
+      user.organizationId,
+      ym ?? null,
+      ym ?? null,
+      employeeFilter,
+      employeeFilter,
+      limit,
+    )
+    .all()
+
+  return json(c, { items: results ?? [], ym: ym ?? null })
+})
+
 export default payroll

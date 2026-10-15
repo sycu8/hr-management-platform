@@ -176,15 +176,15 @@ const employees = [
   ['e12','NV012','Trịnh Mỹ Duyên','my.duyen@orangecloud.vn','0901 234 512','Nữ','1999-06-03','Hà Đông, Hà Nội','Kế toán','Kế toán viên',0,'e8',11000000,0,'left','2023-01-09','2026-08-15','Xác định thời hạn 24 tháng','2025-01-09','2027-01-08','["Excel nâng cao"]'],
   // Expansion
   ['e13','NV013','Nguyễn Hoàng Nam','hoang.nam@orangecloud.vn','0912 345 601','Nam','1984-06-21','Quận 1, TP. Hồ Chí Minh','Ban giám đốc','Phó tổng giám đốc',3,'e5',72000000,2,'active','2017-03-15',null,'Không xác định thời hạn','2020-03-15',null,'["Lãnh đạo","Vận hành","Chiến lược"]'],
-  ['e14','NV014','Phan Thị Lan','thi.lan@orangecloud.vn','0912 345 602','Nữ','1995-02-08','Cầu Giấy, Hà Nội','Kinh doanh','Chuyên viên kinh doanh',0,'e4',15000000,0,'active','2024-05-02',null,'Xác định thời hạn 24 tháng','2024-05-02','2026-05-01','["Bán hàng B2B","CRM"]'],
+  ['e14','NV014','Phan Thị Lan','thi.lan@orangecloud.vn','0912 345 602','Nữ','1995-02-08','Cầu Giấy, Hà Nội','Kinh doanh','Chuyên viên kinh doanh',0,'e4',15000000,0,'active','2024-05-02',null,'Xác định thời hạn 24 tháng','2024-05-02','2026-11-20','["Bán hàng B2B","CRM"]'],
   ['e15','NV015','Vũ Minh Tuấn','minh.tuan@orangecloud.vn','0912 345 603','Nam','1992-11-19','Tây Hồ, Hà Nội','Kinh doanh','Chuyên viên kinh doanh cao cấp',1,'e4',21000000,1,'active','2021-09-01',null,'Không xác định thời hạn','2024-09-01',null,'["Bán hàng B2B","Đàm phán","CRM"]'],
   ['e16','NV016','Lương Thị Huyền','thi.huyen@orangecloud.vn','0912 345 604','Nữ','1990-04-25','Quận 3, TP. Hồ Chí Minh','Kinh doanh','Trưởng nhóm kinh doanh miền Nam',1,'e4',26000000,1,'active','2020-01-20',null,'Không xác định thời hạn','2023-01-20',null,'["Bán hàng B2B","Quản lý nhóm","Giao tiếp"]'],
   ['e17','NV017','Đinh Công Thành','cong.thanh@orangecloud.vn','0912 345 605','Nam','1994-08-12','Nam Từ Liêm, Hà Nội','Kỹ thuật','Kỹ sư backend',1,'e7',24000000,0,'active','2022-04-11',null,'Không xác định thời hạn','2025-04-11',null,'["Node.js","PostgreSQL","API"]'],
-  ['e18','NV018','Mai Thu Trang','thu.trang@orangecloud.vn','0912 345 606','Nữ','1996-01-30','Thanh Xuân, Hà Nội','Kỹ thuật','Kỹ sư QA',0,'e7',16000000,0,'active','2023-10-02',null,'Xác định thời hạn 36 tháng','2023-10-02','2026-10-01','["QA","Automation","Selenium"]'],
+  ['e18','NV018','Mai Thu Trang','thu.trang@orangecloud.vn','0912 345 606','Nữ','1996-01-30','Thanh Xuân, Hà Nội','Kỹ thuật','Kỹ sư QA',0,'e7',16000000,0,'active','2023-10-02',null,'Xác định thời hạn 36 tháng','2023-10-02','2026-11-30','["QA","Automation","Selenium"]'],
   ['e19','NV019','Hồ Văn Khoa','van.khoa@orangecloud.vn','0912 345 607','Nam','1989-09-03','Quận 7, TP. Hồ Chí Minh','Kỹ thuật','Kỹ sư DevOps',1,'e7',27000000,2,'active','2019-07-08',null,'Không xác định thời hạn','2022-07-08',null,'["DevOps","Kubernetes","Cloud"]'],
   ['e20','NV020','Trần Bảo Châu','bao.chau@orangecloud.vn','0912 345 608','Nữ','1993-12-17','Đống Đa, Hà Nội','Nhân sự','Chuyên viên C&B',1,'e3',19000000,1,'active','2021-11-01',null,'Không xác định thời hạn','2024-11-01',null,'["C&B","Luật lao động","Excel nâng cao"]'],
   ['e21','NV021','Nguyễn Đức Anh','duc.anh@orangecloud.vn','0912 345 609','Nam','1997-03-09','Hà Đông, Hà Nội','Kế toán','Kế toán viên',0,'e8',14000000,0,'active','2025-09-01',null,'Xác định thời hạn 24 tháng','2025-12-01','2027-11-30','["Kế toán","Excel"]'],
-  ['e22','NV022','Lê Quang Huy','quang.huy@orangecloud.vn','0912 345 610','Nam','1995-07-14','Ba Đình, Hà Nội','Marketing','Chuyên viên content',0,'e10',14500000,0,'active','2024-08-19',null,'Xác định thời hạn 24 tháng','2024-08-19','2026-08-18','["Content","Copywriting","Social"]'],
+  ['e22','NV022','Lê Quang Huy','quang.huy@orangecloud.vn','0912 345 610','Nam','1995-07-14','Ba Đình, Hà Nội','Marketing','Chuyên viên content',0,'e10',14500000,0,'active','2024-08-19',null,'Xác định thời hạn 24 tháng','2024-08-19','2026-12-20','["Content","Copywriting","Social"]'],
   ['e23','NV023','Phạm Khánh Linh','khanh.linh@orangecloud.vn','0912 345 611','Nữ','1991-05-28','Quận Bình Thạnh, TP. Hồ Chí Minh','Marketing','Chuyên viên performance',1,'e10',20000000,1,'active','2022-02-14',null,'Không xác định thời hạn','2025-02-14',null,'["Performance ads","Analytics","SEO"]'],
   ['e24','NV024','Đặng Quốc Việt','quoc.viet@orangecloud.vn','0912 345 612','Nam','1987-10-11','Cầu Giấy, Hà Nội','Customer Success','Trưởng phòng Customer Success',2,'e5',36000000,1,'active','2018-06-01',null,'Không xác định thời hạn','2021-06-01',null,'["CSM","Quản lý nhóm","Giao tiếp","SaaS"]'],
   ['e25','NV025','Bùi Thanh Nga','thanh.nga@orangecloud.vn','0912 345 613','Nữ','1994-09-22','Hai Bà Trưng, Hà Nội','Customer Success','Chuyên viên CS',1,'e24',18000000,0,'active','2022-07-05',null,'Không xác định thời hạn','2025-07-05',null,'["CSM","Giao tiếp","CRM"]'],
@@ -195,6 +195,11 @@ const employees = [
   ['e30','NV030','Lý Thị Kim Oanh','kim.oanh@orangecloud.vn','0912 345 618','Nữ','1999-04-18','Hoàng Mai, Hà Nội','Nhân sự','Chuyên viên hành chính nhân sự',0,'e3',12500000,0,'active','2025-03-10',null,'Xác định thời hạn 36 tháng','2025-03-10','2028-03-09','["Hành chính","Giao tiếp"]'],
   ['e31','NV031','Đỗ Thành Đạt','thanh.dat@orangecloud.vn','0912 345 619','Nam','1993-01-26','Quận 2, TP. Hồ Chí Minh','Kinh doanh','Chuyên viên pre-sales',1,'e4',22000000,0,'active','2022-09-12',null,'Không xác định thời hạn','2025-09-12',null,'["Pre-sales","Demo sản phẩm","Giao tiếp"]'],
   ['e32','NV032','Võ Thị Mỹ Hạnh','my.hanh@orangecloud.vn','0912 345 620','Nữ','1985-11-09','Ba Đình, Hà Nội','Ban giám đốc','Trợ lý tổng giám đốc',1,'e5',25000000,1,'active','2019-05-06',null,'Không xác định thời hạn','2022-05-06',null,'["Điều phối","Giao tiếp","Quản trị văn phòng"]'],
+  // Extra headcount for 6-month hire/exit charts + contract alerts
+  ['e33','NV033','Phùng Đức Mạnh','duc.manh@orangecloud.vn','0912 345 621','Nam','1994-03-02','Cầu Giấy, Hà Nội','Kỹ thuật','Kỹ sư mobile',1,'e7',21000000,0,'left','2023-04-10','2026-09-30','Không xác định thời hạn','2026-04-10',null,'["Flutter","Mobile"]'],
+  ['e34','NV034','Chu Thị Hồng','thi.hong@orangecloud.vn','0912 345 622','Nữ','1997-08-19','Hai Bà Trưng, Hà Nội','Kinh doanh','Chuyên viên kinh doanh',0,'e4',14800000,0,'active','2026-05-12',null,'Xác định thời hạn 24 tháng','2026-05-12','2028-05-11','["Bán hàng B2B","CRM"]'],
+  ['e35','NV035','Tạ Minh Khôi','minh.khoi@orangecloud.vn','0912 345 623','Nam','2001-01-11','Nam Từ Liêm, Hà Nội','Kỹ thuật','Kỹ sư phần mềm',0,'e7',11500000,0,'active','2026-09-15',null,'Thử việc','2026-09-15','2026-12-14','["TypeScript","Node.js"]'],
+  ['e36','NV036','Đoàn Thị Phương','thi.phuong@orangecloud.vn','0912 345 624','Nữ','1990-05-25','Quận 1, TP. Hồ Chí Minh','Customer Success','Chuyên viên CS',0,'e24',14000000,1,'left','2022-08-01','2026-07-15','Không xác định thời hạn','2025-08-01',null,'["CSM","Support"]'],
 ]
 
 push(`
@@ -249,6 +254,14 @@ const events = [
   ['ee23','e13','2017-03-15','join','Gia nhập — Ban giám đốc'],
   ['ee24','e10','2019-04-08','join','Gia nhập — Marketing'],
   ['ee25','e6','2022-11-07','join','Gia nhập — Marketing'],
+  ['ee26','e33','2023-04-10','join','Gia nhập — Mobile'],
+  ['ee27','e33','2026-09-30','leave','Nghỉ việc — chuyển startup'],
+  ['ee28','e34','2026-05-12','join','Tuyển mới — Kinh doanh'],
+  ['ee29','e35','2026-09-15','join','Nhận việc thử việc 3 tháng'],
+  ['ee30','e36','2022-08-01','join','Gia nhập — CS'],
+  ['ee31','e36','2026-07-15','leave','Nghỉ việc theo thỏa thuận'],
+  ['ee32','e14','2026-10-01','contract','Cảnh báo: HĐ xác định thời hạn hết hạn 20/11/2026'],
+  ['ee33','e11','2026-10-10','probation','Nhắc đánh giá thử việc — hết hạn 31/10/2026'],
 ]
 push(`INSERT OR REPLACE INTO employment_events (id, organization_id, employee_id, event_date, event_type, detail, created_by) VALUES`)
 push(
@@ -288,6 +301,30 @@ for (const e of employees.filter((x) => x[14] === 'active').slice(0, 20)) {
 // a few more variety
 docs.push(['doc_bh_e3', 'e3', 'Sổ BHXH', 'bhxh_e3.pdf', 'application/pdf', 120000, 'org_demo/docs/e3/bhxh.pdf', '2019-10-01', null])
 docs.push(['doc_deg_e7', 'e7', 'Bằng cấp', 'bang_dai_hoc_e7.pdf', 'application/pdf', 890000, 'org_demo/docs/e7/degree.pdf', '2013-06-20', null])
+for (const eid of ['e1', 'e4', 'e5', 'e8', 'e10', 'e13', 'e20', 'e24', 'e29']) {
+  docs.push([
+    `doc_bh_${eid}`,
+    eid,
+    'Sổ BHXH',
+    `bhxh_${eid}.pdf`,
+    'application/pdf',
+    110000 + eid.charCodeAt(1) * 100,
+    `org_demo/docs/${eid}/bhxh.pdf`,
+    '2020-01-01',
+    null,
+  ])
+  docs.push([
+    `doc_gksk_${eid}`,
+    eid,
+    'Giấy khám sức khỏe',
+    `gksk_${eid}.pdf`,
+    'application/pdf',
+    85000,
+    `org_demo/docs/${eid}/health.pdf`,
+    '2026-01-15',
+    '2027-01-14',
+  ])
+}
 
 push(`INSERT OR REPLACE INTO documents (id, organization_id, employee_id, type_name, file_name, content_type, size_bytes, r2_key, issued_on, expires_on, uploaded_by) VALUES`)
 push(
@@ -333,6 +370,14 @@ const leaveAdj = [
   ['la_e7', 'e7', 2026, 1, 'Phép chuyển từ 2025'],
   ['la_e4', 'e4', 2026, 2, 'Thâm niên'],
   ['la_e24', 'e24', 2026, 2, 'Thâm niên'],
+  ['la_e8', 'e8', 2026, 1, 'Thâm niên'],
+  ['la_e10', 'e10', 2026, 2, 'Thâm niên'],
+  ['la_e13', 'e13', 2026, 3, 'Thâm niên lãnh đạo'],
+  ['la_e16', 'e16', 2026, 1, 'Thâm niên'],
+  ['la_e17', 'e17', 2026, 1, 'Phép chuyển năm'],
+  ['la_e20', 'e20', 2026, 1, 'Thâm niên'],
+  ['la_e29', 'e29', 2026, 2, 'Thâm niên'],
+  ['la_e32', 'e32', 2026, 2, 'Thâm niên'],
 ]
 push(`INSERT OR REPLACE INTO leave_adjustments (id, organization_id, employee_id, year, days, reason, created_by) VALUES`)
 push(
@@ -390,6 +435,15 @@ const leaves = [
   ['l40', 'e4', 'annual', '2026-10-08', '2026-10-09', 2, 'approved', 'Nghỉ phép', 'e5', '2026-10-01T10:00:00Z'],
   ['l41', 'e8', 'sick', '2026-09-25', '2026-09-25', 1, 'approved', 'Khám bệnh', 'e29', '2026-09-25T07:50:00Z'],
   ['l42', 'e26', 'annual', '2026-10-01', '2026-10-02', 2, 'approved', 'Nghỉ phép', 'e24', '2026-09-20T09:00:00Z'],
+  // Pending / upcoming for dashboard alerts (as of mid-Oct 2026)
+  ['l43', 'e34', 'annual', '2026-10-22', '2026-10-23', 2, 'pending', 'Nghỉ phép đăng ký mới', null, null],
+  ['l44', 'e20', 'annual', '2026-10-27', '2026-10-28', 2, 'pending', 'Việc gia đình', null, null],
+  ['l45', 'e30', 'sick', '2026-10-15', '2026-10-15', 1, 'pending', 'Khám bệnh trong ngày', null, null],
+  ['l46', 'e9', 'annual', '2026-10-16', '2026-10-17', 2, 'approved', 'Nghỉ phép tuần này', 'e3', '2026-10-10T09:00:00Z'],
+  ['l47', 'e25', 'annual', '2026-10-20', '2026-10-21', 2, 'approved', 'Nghỉ phép đã duyệt', 'e24', '2026-10-08T10:00:00Z'],
+  ['l48', 'e6', 'annual', '2026-10-29', '2026-10-30', 2, 'approved', 'Nghỉ cuối tháng', 'e10', '2026-10-12T11:00:00Z'],
+  ['l49', 'e35', 'annual', '2026-11-02', '2026-11-03', 2, 'pending', 'NV thử việc xin nghỉ', null, null],
+  ['l50', 'e19', 'special', '2026-10-24', '2026-10-24', 1, 'approved', 'Việc riêng đặc biệt', 'e7', '2026-10-14T09:00:00Z'],
   ...handoffLeaves,
 ]
 
@@ -448,7 +502,7 @@ for (const [emp, from, to] of tripRanges) {
   for (const d of eachDate(from, to)) travelDaysByEmp.get(emp).add(d)
 }
 
-// Golden check-ins Oct 12
+// Golden check-ins Oct 12 (+ presence sample for “today” 2026-10-15)
 const goldenCheckins = {
   e1: { in: '08:04', out: '' },
   e3: { in: '07:52', out: '' },
@@ -459,15 +513,39 @@ const goldenCheckins = {
   e9: { in: '08:09', out: '' },
   e11: { in: '08:12', out: '' },
 }
+const todayPresence = {
+  e1: { in: '08:05', out: null },
+  e2: { in: '08:12', out: null },
+  e3: { in: '07:55', out: null },
+  e4: { in: '08:22', out: null },
+  e5: { in: '08:18', out: null },
+  e7: { in: '08:02', out: null },
+  e8: { in: '07:59', out: null },
+  e10: { in: '08:11', out: null },
+  e11: { in: '08:28', out: null },
+  e13: { in: '08:40', out: null },
+  e14: { in: '08:07', out: null },
+  e15: { in: '08:15', out: null },
+  e16: { in: '08:33', out: null },
+  e17: { in: '07:50', out: null },
+  e18: { in: '08:09', out: null },
+  e19: { in: '08:01', out: null },
+  e20: { in: '08:14', out: null },
+  e21: { in: '08:06', out: null },
+  e23: { in: '08:25', out: null },
+  e24: { in: '08:03', out: null },
+  e26: { in: '08:19', out: null },
+  e27: { in: '08:08', out: null },
+  e29: { in: '07:57', out: null },
+  e31: { in: '08:16', out: null },
+  e32: { in: '08:10', out: null },
+  e34: { in: '08:21', out: null },
+  e35: { in: '08:35', out: null },
+}
+const ATT_END = '2026-10-15'
 
-// --- attendance punches Sep + Oct (through 2026-10-12) ---
+// --- attendance punches Sep + Oct (through today) ---
 const punchRows = []
-const activeForAtt = employees.filter((e) => {
-  const status = e[14]
-  const left = e[16]
-  // include left employees only for days before left_on
-  return true
-})
 
 let punchIdx = 1
 for (const e of employees) {
@@ -475,7 +553,7 @@ for (const e of employees) {
   const joined = e[15]
   const left = e[16]
   const status = e[14]
-  const days = workdays('2026-09-01', '2026-10-12')
+  const days = workdays('2026-09-01', ATT_END)
   for (const d of days) {
     if (d < joined) continue
     if (left && d > left) continue
@@ -484,20 +562,24 @@ for (const e of employees) {
     if (travelDaysByEmp.get(id)?.has(d)) continue
 
     let pin, pout, source
-    if (d === '2026-10-12' && goldenCheckins[id]) {
+    if (d === '2026-10-15' && todayPresence[id]) {
+      pin = todayPresence[id].in
+      pout = todayPresence[id].out
+      source = 'app'
+    } else if (d === '2026-10-12' && goldenCheckins[id]) {
       pin = goldenCheckins[id].in
       pout = goldenCheckins[id].out || null
       source = 'app'
+    } else if (d === '2026-10-15') {
+      // absent / WFH / leave — skip punch so presence rate < 100%
+      continue
     } else {
       const seed = punchIdx + id.charCodeAt(1)
       pin = timeVar(seed, 8, 0, 28)
-      // occasional late
       if (seed % 19 === 0) pin = '09:' + pad(10 + (seed % 40))
       pout = timeVar(seed + 7, 17, 30, 40)
       if (seed % 23 === 0) pout = '18:' + pad(seed % 50)
-      // mix sources
       source = seed % 5 === 0 ? 'import' : 'app'
-      // incomplete day rare
       if (d === '2026-10-12' && !goldenCheckins[id] && seed % 11 === 0) {
         pout = null
       }
@@ -960,15 +1042,89 @@ push(
 )
 
 push(`
--- Closed payroll runs for Aug/Sep 2026 (handoff payClosed). Company Sep totals in
--- shared/fixtures/golden.ts apply to e1–e12 only; items not expanded for full headcount.
+-- Closed payroll runs Aug/Sep + draft Oct 2026. Sep company totals match golden e1–e12 cohort;
+-- payroll_items cover all active staff for payslip UI (golden rows locked for e1/e4/e5/e11).
 INSERT OR REPLACE INTO payroll_runs (
   id, organization_id, year_month, status, policy_version_id, totals_json, closed_by, closed_at, created_at
 ) VALUES
- ('pr_2026_08',${esc(ORG)},'2026-08','closed','paypol_v1',${esc(JSON.stringify({ note: 'Closed sample Aug 2026 (e1–e12 cohort)', headcount: 12 }))},'u_pay','2026-09-03T10:00:00Z','2026-08-28T02:00:00Z'),
- ('pr_2026_09',${esc(ORG)},'2026-09','closed','paypol_v1',${esc(JSON.stringify({ note: 'Closed sample Sep 2026 — golden e1–e12 cohort', headcount: 12, gross: 375420909, pit: 11978109, net: 333853800 }))},'u_pay','2026-10-02T10:00:00Z','2026-09-28T02:00:00Z');
+ ('pr_2026_08',${esc(ORG)},'2026-08','closed','paypol_v1',${esc(JSON.stringify({ note: 'Closed sample Aug 2026', headcount: 30 }))},'u_pay','2026-09-03T10:00:00Z','2026-08-28T02:00:00Z'),
+ ('pr_2026_09',${esc(ORG)},'2026-09','closed','paypol_v1',${esc(JSON.stringify({ note: 'Closed sample Sep 2026 — golden e1–e12 cohort totals', headcount: 31, gross: 375420909, pit: 11978109, net: 333853800 }))},'u_pay','2026-10-02T10:00:00Z','2026-09-28T02:00:00Z'),
+ ('pr_2026_10',${esc(ORG)},'2026-10','draft','paypol_v1',${esc(JSON.stringify({ note: 'Draft Oct 2026 — chưa chốt', headcount: 33 }))},NULL,NULL,'2026-10-14T02:00:00Z');
 `)
-count('payroll_runs', 2)
+count('payroll_runs', 3)
+
+const CAP = 20 * 2340000
+const BH_EMP_RATE = 0.105
+const BH_ER_RATE = 0.215
+const goldenPaySep = {
+  e1: { gross: 24730000, bhEmp: 1890000, pit: 20500, net: 22819500, er: 3870000 },
+  e4: { gross: 64184545, bhEmp: 4725000, pit: 2665909, net: 56793636, er: 9675000 },
+  e5: { gross: 86530000, bhEmp: 4914000, pit: 7097200, net: 74518800, er: 10059000 },
+  e11: { gross: 12730000, bhEmp: 0, pit: 0, net: 12730000, er: 0 },
+}
+function approxPay(base, probation) {
+  const meal = 730000
+  const gross = base + meal
+  if (probation) {
+    return { gross, bhEmp: 0, pit: 0, net: gross, er: 0 }
+  }
+  const capped = Math.min(base, CAP)
+  const bhEmp = Math.round(capped * BH_EMP_RATE)
+  const er = Math.round(capped * BH_ER_RATE)
+  const taxable = Math.max(0, gross - bhEmp - 15500000)
+  let pit = 0
+  let remain = taxable
+  const brackets = [
+    [10000000, 0.05],
+    [20000000, 0.1],
+    [30000000, 0.15],
+    [40000000, 0.2],
+    [1e15, 0.25],
+  ]
+  for (const [w, r] of brackets) {
+    const slice = Math.min(remain, w)
+    if (slice <= 0) break
+    pit += Math.round(slice * r)
+    remain -= slice
+  }
+  return { gross, bhEmp, pit, net: gross - bhEmp - pit, er }
+}
+const payItemRows = []
+let pi = 1
+for (const run of [
+  { id: 'pr_2026_08', ym: '2026-08', useGolden: false },
+  { id: 'pr_2026_09', ym: '2026-09', useGolden: true },
+]) {
+  for (const e of employees) {
+    const [id, , name, , , , , , dept, title, , , base, , status, joined, left, ctype] = e
+    if (status === 'left' && left && left < `${run.ym}-01`) continue
+    if (joined > `${run.ym}-28`) continue
+    if (status === 'left' && left && left.slice(0, 7) === run.ym && left < `${run.ym}-15`) continue
+    const probation = ctype === 'Thử việc'
+    const g =
+      run.useGolden && goldenPaySep[id]
+        ? goldenPaySep[id]
+        : approxPay(base, probation)
+    const snap = {
+      ym: run.ym,
+      code: e[1],
+      name,
+      department: dept,
+      title,
+      base,
+      paidDays: 22,
+      stdDays: 22,
+    }
+    payItemRows.push(
+      ` ('pi${pi++}',${esc(run.id)},${esc(id)},${esc(JSON.stringify(snap))},${g.gross},${g.bhEmp},${g.pit},${g.net},${g.er})`,
+    )
+    count('payroll_items')
+  }
+}
+push(`INSERT OR REPLACE INTO payroll_items (
+  id, payroll_run_id, employee_id, snapshot_json, gross, employee_insurance, pit, net, employer_insurance
+) VALUES`)
+push(payItemRows.join(',\n') + ';\n')
 
 // --- recruiting ---
 const jobs = [
@@ -1014,6 +1170,13 @@ const candidateExtras = {
     recruitment:
       'Ứng viên Frontend mạnh React/TypeScript. Phỏng vấn vòng 1 tốt; chờ vòng kỹ thuật.',
   },
+  c2: {
+    linkedin: 'https://www.linkedin.com/in/demo-myanh-tran',
+    facebook: 'https://facebook.com/demo.myanh',
+    cv: 'https://example.com/cv/myanh.pdf',
+    cvName: 'CV_TranMyAnh.pdf',
+    recruitment: 'Sàng lọc CV — phù hợp React; xếp lịch screen call.',
+  },
   c3: {
     linkedin: 'https://www.linkedin.com/in/demo-thinh-ld',
     facebook: 'https://facebook.com/demo.thinh.ld',
@@ -1027,6 +1190,27 @@ const candidateExtras = {
     cv: 'https://example.com/cv/quan-hm.pdf',
     cvName: 'CV_HoangMinhQuan.pdf',
     recruitment: 'SaaS 2 năm — phù hợp Product Ops. Lịch PV 16/10.',
+  },
+  c6: {
+    linkedin: null,
+    facebook: 'https://facebook.com/demo.lananh',
+    cv: 'https://example.com/cv/lananh.pdf',
+    cvName: 'CV_DoLanAnh.pdf',
+    recruitment: 'CS ngân hàng — cần kiểm tra tiếng Anh và CRM.',
+  },
+  c9: {
+    linkedin: 'https://www.linkedin.com/in/demo-vy-bk',
+    facebook: null,
+    cv: 'https://example.com/cv/vy-bk.pdf',
+    cvName: 'CV_BuiKhanhVy.pdf',
+    recruitment: 'Hồ sơ mới — chưa screen.',
+  },
+  c10: {
+    linkedin: null,
+    facebook: null,
+    cv: 'https://example.com/cv/bac-mx.pdf',
+    cvName: 'CV_MaiXuanBac.pdf',
+    recruitment: 'Giới thiệu nội bộ từ e15 — ưu tiên screen tuần này.',
   },
 }
 push(`INSERT OR REPLACE INTO candidates (
@@ -1073,9 +1257,10 @@ push(`INSERT OR REPLACE INTO onboarding_plans (
  ('ob1',${esc(ORG)},'c3',NULL,${esc('Lê Đức Thịnh')},${esc('Kỹ sư Frontend')},${esc('Kỹ thuật')},'2026-11-03',${esc(ob1Tasks)},'2027-02-03','in_progress',NULL,${esc(obReqs)}),
  ('ob2',${esc(ORG)},NULL,'e11',${esc('Lý Hải Nam')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-07-10',${esc(ob2Tasks)},'2026-10-10','due_convert',${esc('Hết 3 tháng TV — nhắc chuyển hồ sơ NV chính thức')},${esc(obReqs)}),
  ('ob3',${esc(ORG)},NULL,'e21',${esc('Nguyễn Đức Anh')},${esc('Kế toán viên')},${esc('Kế toán')},'2025-09-01',${esc(ob3Tasks)},'2025-12-01','converted',${esc('Đã chuyển hồ sơ nhân viên chính thức')},${esc(obReqs)}),
- ('ob4',${esc(ORG)},'c_h13',NULL,${esc('Cao Thị Nhàn')},${esc('Chuyên viên hành chính')},${esc('Nhân sự')},'2026-10-19',${esc(onboardingNhanTasks)},'2027-01-19','in_progress',NULL,${esc(obReqs)});
+ ('ob4',${esc(ORG)},'c_h13',NULL,${esc('Cao Thị Nhàn')},${esc('Chuyên viên hành chính')},${esc('Nhân sự')},'2026-10-19',${esc(onboardingNhanTasks)},'2027-01-19','in_progress',NULL,${esc(obReqs)}),
+ ('ob5',${esc(ORG)},NULL,'e35',${esc('Tạ Minh Khôi')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-09-15',${esc(ob2Tasks)},'2026-12-14','in_progress',${esc('Đang thử việc — buddy e17')},${esc(obReqs)});
 `)
-count('onboarding_plans', 4)
+count('onboarding_plans', 5)
 
 // --- performance ---
 push(`INSERT OR REPLACE INTO review_cycles (id, organization_id, name, start_date, end_date, status) VALUES
@@ -1403,21 +1588,6 @@ const notifs = [
   ['no4', 'email', 'thu.ha@orangecloud.vn', 'Ứng viên chuyển offer', 'Pipeline Frontend: Lê Đức Thịnh ở giai đoạn offer — cần duyệt lương đề xuất.', 'pending'],
   ['no5', 'email', 'minh.anh@orangecloud.vn', 'Quyết toán CT-2026-0001 đã hoàn tất', 'Số tiền quyết toán: 6.990.000 ₫. Tạm ứng 6.000.000 ₫ — chênh lệch sẽ chi cùng kỳ lương.', 'sent'],
 ]
-push(`INSERT OR REPLACE INTO notification_outbox (
-  id, organization_id, channel, recipient, subject, body_text, body_html, status, error, sent_at
-) VALUES`)
-push(
-  notifs
-    .map(([id, ch, to, sub, body, status]) => {
-      count('notification_outbox')
-      const sent = status === 'sent' ? "'2026-09-19T11:05:00Z'" : 'NULL'
-      return ` (${esc(id)},${esc(ORG)},${esc(ch)},${esc(to)},${esc(sub)},${esc(body)},NULL,${esc(status)},NULL,${sent})`
-    })
-    .join(',\n') + ';\n',
-)
-
-// Mark pending count correctly — 4 pending + 1 sent
-// Fix no5 status already sent
 
 const dataSources = [
   ['ds1', 'Máy chấm công vân tay', 'Chấm công', 'Đồng bộ giờ vào ra từ thiết bị tại văn phòng.', 0],
@@ -1439,13 +1609,51 @@ push(
     .join(',\n') + ';\n',
 )
 
+const exportJobs = [
+  ['ej1', 'employees_csv', 'done', 'exports/org_demo/employees_2026-10.csv', 'u_hr_admin', '2026-10-01T08:00:00Z', '2026-10-01T08:00:12Z'],
+  ['ej2', 'payroll_sep', 'done', 'exports/org_demo/payroll_2026-09.xlsx', 'u_pay', '2026-10-02T11:00:00Z', '2026-10-02T11:00:45Z'],
+  ['ej3', 'leave_q3', 'done', 'exports/org_demo/leave_q3_2026.csv', 'u_hr_admin', '2026-10-05T09:30:00Z', '2026-10-05T09:30:08Z'],
+  ['ej4', 'trips_ytd', 'pending', null, 'u_hr_admin', '2026-10-15T02:00:00Z', null],
+  ['ej5', 'bhxh_tang_giam', 'failed', null, 'u_pay', '2026-10-10T14:00:00Z', '2026-10-10T14:00:20Z'],
+]
+push(`INSERT OR REPLACE INTO export_jobs (
+  id, organization_id, kind, status, r2_key, requested_by, created_at, completed_at
+) VALUES`)
+push(
+  exportJobs
+    .map(([id, kind, status, key, by, created, done]) => {
+      count('export_jobs')
+      return ` (${esc(id)},${esc(ORG)},${esc(kind)},${esc(status)},${key ? esc(key) : 'NULL'},${esc(by)},${esc(created)},${done ? esc(done) : 'NULL'})`
+    })
+    .join(',\n') + ';\n',
+)
+
+const moreNotifs = [
+  ['no6', 'email', 'thu.ha@orangecloud.vn', 'HĐ sắp hết hạn (90 ngày)', '3 nhân viên có HĐ hết hạn trong 90 ngày: e14, e18, e26. Vào Hồ sơ công việc để xử lý.', 'pending'],
+  ['no7', 'email', 'gia.huy@orangecloud.vn', 'Nhắc chuyển chính thức sau thử việc', 'Lý Hải Nam (e11) hết thử việc 31/10 — cần đánh giá và chuyển hồ sơ NV.', 'pending'],
+  ['no8', 'email', 'phuong.linh@orangecloud.vn', 'Bảng lương tháng 10 (draft)', 'Kỳ lương 2026-10 đang ở trạng thái draft — chờ chốt công.', 'pending'],
+]
+push(`INSERT OR REPLACE INTO notification_outbox (
+  id, organization_id, channel, recipient, subject, body_text, body_html, status, error, sent_at
+) VALUES`)
+push(
+  [...notifs, ...moreNotifs]
+    .map(([id, ch, to, sub, body, status]) => {
+      count('notification_outbox')
+      const sent = status === 'sent' ? "'2026-09-19T11:05:00Z'" : 'NULL'
+      return ` (${esc(id)},${esc(ORG)},${esc(ch)},${esc(to)},${esc(sub)},${esc(body)},NULL,${esc(status)},NULL,${sent})`
+    })
+    .join(',\n') + ';\n',
+)
+
 push(`INSERT OR REPLACE INTO app_meta(key, value) VALUES
  ('seeded_demo', 'true'),
  ('seeded_demo_brand', 'Orange Cloud'),
- ('seeded_demo_at', '2026-10-12T09:00:00Z'),
- ('seeded_handoff_supplement', 'true');
+ ('seeded_demo_at', '2026-10-15T07:00:00Z'),
+ ('seeded_handoff_supplement', 'true'),
+ ('seeded_ops_enrichment', 'true');
 `)
-count('app_meta', 4)
+count('app_meta', 5)
 
 push(`
 -- =============================================================================

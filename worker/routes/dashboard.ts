@@ -230,6 +230,41 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
     .bind(org, today, today)
     .all<{ name: string; when_at: string; detail: string }>()
 
+  const { results: upcomingTrips } = await c.env.DB.prepare(
+    `SELECT code AS name, start_at AS when_at,
+            destination || ' · ' || purpose AS detail
+     FROM trips
+     WHERE organization_id = ? AND status NOT IN ('rj','ok','draft')
+       AND start_at >= ? AND start_at <= date(?, '+21 days')
+     ORDER BY start_at
+     LIMIT 6`,
+  )
+    .bind(org, today, today)
+    .all<{ name: string; when_at: string; detail: string }>()
+
+  const { results: contractsSoon } = await c.env.DB.prepare(
+    `SELECT full_name AS name, code, contract_end AS when_at, title AS detail
+     FROM employees
+     WHERE organization_id = ? AND status = 'active'
+       AND contract_end IS NOT NULL
+       AND contract_end >= ? AND contract_end <= ?
+     ORDER BY contract_end
+     LIMIT 8`,
+  )
+    .bind(org, today, horizonIso)
+    .all<{ name: string; code: string; when_at: string; detail: string }>()
+
+  const { results: presenceTrend } = await c.env.DB.prepare(
+    `SELECT work_date AS ym, COUNT(DISTINCT employee_id) AS n
+     FROM attendance_punches
+     WHERE organization_id = ?
+       AND work_date >= date(?, '-13 days') AND work_date <= ?
+     GROUP BY work_date
+     ORDER BY work_date`,
+  )
+    .bind(org, today, today)
+    .all<MonthRow>()
+
   const activeCount = Number(active?.n ?? 0)
   const leftCount = Number(left?.n ?? 0)
   const totalEver = activeCount + leftCount
@@ -303,6 +338,12 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
         when: String(a.when_at).slice(0, 10),
         detail: `Công tác: ${a.detail}`,
       })),
+      ...(contractsSoon ?? []).map((a) => ({
+        kind: 'contract' as const,
+        title: `${a.name} (${a.code})`,
+        when: a.when_at,
+        detail: `HĐ hết hạn — ${a.detail}`,
+      })),
       ...(Number(onboardingDue?.n ?? 0) > 0
         ? [
             {
@@ -314,10 +355,29 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
           ]
         : []),
     ],
-    upcoming: (upcomingLeave ?? []).map((u) => ({
-      title: u.name,
-      when: u.when_at,
-      detail: u.detail,
+    upcoming: [
+      ...(upcomingLeave ?? []).map((u) => ({
+        kind: 'leave' as const,
+        title: u.name,
+        when: u.when_at,
+        detail: u.detail,
+      })),
+      ...(upcomingTrips ?? []).map((u) => ({
+        kind: 'trip' as const,
+        title: u.name,
+        when: String(u.when_at).slice(0, 10),
+        detail: u.detail,
+      })),
+    ].sort((a, b) => a.when.localeCompare(b.when)),
+    presenceTrend: (presenceTrend ?? []).map((r) => ({
+      month: r.ym,
+      value: Number(r.n),
+    })),
+    contractsEnding: (contractsSoon ?? []).map((c) => ({
+      name: c.name,
+      code: c.code,
+      end: c.when_at,
+      title: c.detail,
     })),
   })
 })

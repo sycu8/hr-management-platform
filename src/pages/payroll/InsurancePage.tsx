@@ -14,7 +14,7 @@ export function InsurancePage() {
   return (
     <DataTablePage<Doc>
       title="Bảo hiểm XH/YT"
-      endpoint="/api/lists/documents"
+      endpoint="/api/lists/documents?type=Sổ BHXH"
       columns={[
         { key: 'employee_code', header: 'Mã', render: (r) => r.employee_code, className: 'mono' },
         { key: 'employee_name', header: 'Nhân viên', render: (r) => r.employee_name },

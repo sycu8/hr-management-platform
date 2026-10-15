@@ -39,7 +39,14 @@ type DashboardSummary = {
     when: string
     detail: string
   }[]
-  upcoming: { title: string; when: string; detail: string }[]
+  upcoming: { kind?: string; title: string; when: string; detail: string }[]
+  presenceTrend?: { month: string; value: number }[]
+  contractsEnding?: {
+    name: string
+    code: string
+    end: string
+    title: string
+  }[]
 }
 
 const LEAVE_STATUS: Record<string, string> = {
