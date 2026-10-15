@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  BarChart,
+  DonutChart,
+  DualBarChart,
+  FunnelChart,
+  HBarChart,
+} from '../../components/charts'
 import { fetchJson } from '../../lib/api'
+
+type Point = { label: string; value: number }
+type Series = { month: string; value: number }
 
 type DashboardSummary = {
   activeEmployees: number
@@ -7,7 +18,45 @@ type DashboardSummary = {
   turnover12mPct: number
   presenceToday: number | null
   openTasks: number
-  byDepartment: { department: string; count: number }[]
+  openJobs: number
+  pipelineCandidates: number
+  onboardingDue: number
+  contractsEnding90d: number
+  pendingLeave: number
+  pendingTrips: number
+  byDepartment: Point[]
+  headcountTrend: Series[]
+  hiresByMonth: Series[]
+  exitsByMonth: Series[]
+  leaveDaysByMonth: Series[]
+  leaveByType: Point[]
+  leaveByStatus: Point[]
+  candidateFunnel: Point[]
+  tripsByStatus: Point[]
+  alerts: {
+    kind: string
+    title: string
+    when: string
+    detail: string
+  }[]
+  upcoming: { title: string; when: string; detail: string }[]
+}
+
+const LEAVE_STATUS: Record<string, string> = {
+  pending: 'Chờ duyệt',
+  approved: 'Đã duyệt',
+  rejected: 'Từ chối',
+  cancelled: 'Hủy',
+}
+
+const TRIP_STATUS: Record<string, string> = {
+  draft: 'Nháp',
+  pm: 'Chờ QL',
+  ph: 'Chờ HR',
+  ap: 'Đã duyệt',
+  st: 'Quyết toán',
+  ok: 'Hoàn tất',
+  rj: 'Từ chối',
 }
 
 type LoadState =
@@ -49,69 +98,169 @@ export function DashboardPage() {
   }
 
   const { data } = state
+  const presencePct =
+    data.presenceToday != null && data.activeEmployees > 0
+      ? Math.round((data.presenceToday / data.activeEmployees) * 100)
+      : null
 
   return (
-    <div className="stack">
+    <div className="stack dash">
+      <div className="dash-intro">
+        <div>
+          <h1 className="dash-title">Tổng quan nhân sự</h1>
+          <p className="muted">
+            Số liệu vận hành realtime — headcount, tuyển dụng, nghỉ phép &amp;
+            công tác.
+          </p>
+        </div>
+      </div>
+
       <div className="grid g4">
         <div className="tile">
           <div className="v">{data.activeEmployees}</div>
-          <div className="muted small">Nhân sự đang làm việc</div>
+          <div className="muted small">Đang làm việc</div>
         </div>
         <div className="tile">
           <div className="v">
             {data.presenceToday == null ? '—' : data.presenceToday}
+            {presencePct != null ? (
+              <span className="tile-sub">{presencePct}%</span>
+            ) : null}
           </div>
           <div className="muted small">Hiện diện hôm nay</div>
         </div>
         <div className="tile">
           <div className="v">{data.turnover12mPct}%</div>
-          <div className="muted small">Tỷ lệ nghỉ việc (demo)</div>
+          <div className="muted small">Tỷ lệ nghỉ việc (tích lũy)</div>
         </div>
-        <div className="tile">
+        <div className="tile warn-tile">
           <div className="v">{data.openTasks}</div>
           <div className="muted small">Việc cần xử lý</div>
         </div>
       </div>
 
+      <div className="grid g4 kpi-row">
+        <Link to="/recruitment/jobs" className="kpi-chip">
+          <strong>{data.openJobs}</strong>
+          <span>Vị trí đang tuyển</span>
+        </Link>
+        <Link to="/recruitment/candidates" className="kpi-chip">
+          <strong>{data.pipelineCandidates}</strong>
+          <span>Ứng viên trong pipeline</span>
+        </Link>
+        <Link to="/recruitment/onboarding" className="kpi-chip">
+          <strong>{data.onboardingDue}</strong>
+          <span>Hết TV — cần chuyển NV</span>
+        </Link>
+        <Link to="/employees/jobs" className="kpi-chip">
+          <strong>{data.contractsEnding90d}</strong>
+          <span>HĐ hết hạn ≤ 90 ngày</span>
+        </Link>
+      </div>
+
+      <div className="grid g2">
+        <div className="card chart-card">
+          <h2>Biên chế theo tháng</h2>
+          <p className="ex">Ước lượng headcount từ tuyển mới / nghỉ việc</p>
+          <BarChart data={data.headcountTrend} />
+        </div>
+        <div className="card chart-card">
+          <h2>Tuyển mới vs nghỉ việc</h2>
+          <p className="ex">6 tháng gần nhất</p>
+          <DualBarChart
+            a={data.hiresByMonth}
+            b={data.exitsByMonth}
+            aLabel="Tuyển mới"
+            bLabel="Nghỉ việc"
+          />
+        </div>
+      </div>
+
+      <div className="grid g2">
+        <div className="card chart-card">
+          <h2>Nhân sự theo phòng ban</h2>
+          <HBarChart data={data.byDepartment} />
+        </div>
+        <div className="card chart-card">
+          <h2>Phễu tuyển dụng</h2>
+          <p className="ex">Số ứng viên theo giai đoạn</p>
+          <FunnelChart data={data.candidateFunnel} />
+        </div>
+      </div>
+
+      <div className="grid g2">
+        <div className="card chart-card">
+          <h2>Ngày nghỉ đã duyệt</h2>
+          <p className="ex">Tổng ngày công nghỉ / tháng</p>
+          <BarChart data={data.leaveDaysByMonth} />
+        </div>
+        <div className="card chart-card">
+          <h2>Nghỉ phép theo loại (90 ngày)</h2>
+          <DonutChart
+            data={data.leaveByType}
+            centerLabel="đơn"
+            centerValue={data.leaveByType.reduce((s, x) => s + x.value, 0)}
+          />
+        </div>
+      </div>
+
+      <div className="grid g2">
+        <div className="card chart-card">
+          <h2>Trạng thái đơn nghỉ</h2>
+          <DonutChart data={data.leaveByStatus} labelMap={LEAVE_STATUS} />
+          <p className="ex">
+            Đang chờ duyệt: <strong>{data.pendingLeave}</strong> —{' '}
+            <Link to="/leave">Xử lý</Link>
+          </p>
+        </div>
+        <div className="card chart-card">
+          <h2>Công tác theo trạng thái</h2>
+          <DonutChart data={data.tripsByStatus} labelMap={TRIP_STATUS} />
+          <p className="ex">
+            Chờ xử lý: <strong>{data.pendingTrips}</strong> —{' '}
+            <Link to="/travel">Tổng quan công tác</Link>
+          </p>
+        </div>
+      </div>
+
       <div className="grid g2">
         <div className="card">
-          <h2>Nhân sự theo phòng ban</h2>
-          {data.byDepartment.length === 0 ? (
-            <div className="empty">Chưa có dữ liệu từ kho dùng chung.</div>
+          <h2>Cảnh báo &amp; nhắc việc</h2>
+          {data.alerts.length === 0 ? (
+            <p className="empty">Không có cảnh báo.</p>
           ) : (
-            <ul className="dept-list">
-              {data.byDepartment.map((row) => (
-                <li key={row.department}>
-                  <span>{row.department}</span>
-                  <strong>{row.count}</strong>
+            <ul className="feed-list">
+              {data.alerts.map((a, i) => (
+                <li key={`${a.kind}-${a.title}-${i}`}>
+                  <div className="feed-when">{a.when}</div>
+                  <div>
+                    <strong>{a.title}</strong>
+                    <div className="muted small">{a.detail}</div>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
         </div>
         <div className="card">
-          <h2>Hôm nay</h2>
-          <div className="empty">
-            Chấm công theo ngày thật sẽ hiển thị khi có punch / import.
-          </div>
+          <h2>Nghỉ phép sắp tới (21 ngày)</h2>
+          {data.upcoming.length === 0 ? (
+            <p className="empty">Không có lịch nghỉ sắp tới.</p>
+          ) : (
+            <ul className="feed-list">
+              {data.upcoming.map((u, i) => (
+                <li key={`${u.title}-${u.when}-${i}`}>
+                  <div className="feed-when">{u.when}</div>
+                  <div>
+                    <strong>{u.title}</strong>
+                    <div className="muted small">{u.detail}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
-
-      <div className="grid g2">
-        <div className="card">
-          <h2>Cảnh báo & nhắc việc</h2>
-          <div className="empty">
-            {data.openTasks > 0
-              ? `Có ${data.openTasks} việc nghỉ phép / công tác đang chờ.`
-              : 'Không có cảnh báo.'}
-          </div>
-        </div>
-        <div className="card">
-          <h2>Sự kiện sắp tới</h2>
-          <div className="empty">Chưa có sự kiện.</div>
-        </div>
-      </div>
-
     </div>
   )
 }
