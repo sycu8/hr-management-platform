@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import type { Env } from '../env.ts'
-import { badRequest, json, notFound } from '../lib/http.ts'
+import { badRequest, json, notFound, privateCacheHeaders } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
 import {
@@ -116,7 +116,7 @@ employees.get('/', requireModule('emp', 1), async (c) => {
 
   const scope = await resolveEmployeeScope(c.env.DB, user)
   if (scope.mode === 'none') {
-    return json(c, { items: [], limit, offset })
+    return json(c, { items: [], limit, offset }, 200, privateCacheHeaders(20))
   }
 
   let scopeSql = ''
@@ -152,7 +152,7 @@ employees.get('/', requireModule('emp', 1), async (c) => {
     has_photo: Boolean(photo_r2_key),
   }))
 
-  return json(c, { items, limit, offset })
+  return json(c, { items, limit, offset }, 200, privateCacheHeaders(20))
 })
 
 employees.get(

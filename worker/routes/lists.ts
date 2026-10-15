@@ -1,13 +1,15 @@
 import { Hono } from 'hono'
 import { leaveQuota } from '../../shared/domain/leave.ts'
 import type { Env } from '../env.ts'
-import { json } from '../lib/http.ts'
+import { json, privateCacheHeaders } from '../lib/http.ts'
 import {
   resolveEmployeeScope,
-  type EmployeeScope,
+  scopeSqlClause,
 } from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
+
+const LIST_TTL = 30
 
 const lists = new Hono<{
   Bindings: Env
@@ -15,16 +17,6 @@ const lists = new Hono<{
 }>()
 
 lists.use('*', requireAuth)
-
-function filterByEmployeeId<T extends { employee_id?: string | null }>(
-  scope: EmployeeScope,
-  rows: T[],
-): T[] {
-  if (scope.mode === 'all') return rows
-  if (scope.mode === 'none') return []
-  const allowed = new Set(scope.ids)
-  return rows.filter((r) => r.employee_id && allowed.has(r.employee_id))
-}
 
 lists.get('/jobs', requireModule('rec', 1), async (c) => {
   const user = c.get('user')
@@ -37,7 +29,7 @@ lists.get('/jobs', requireModule('rec', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/candidates', requireModule('rec', 1), async (c) => {
@@ -53,7 +45,7 @@ lists.get('/candidates', requireModule('rec', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/onboarding', requireModule('rec', 1), async (c) => {
@@ -95,12 +87,14 @@ lists.get('/onboarding', requireModule('rec', 1), async (c) => {
         due && r.status === 'in_progress' ? 'due_convert' : (r.status as string),
     }
   })
-  return json(c, { items })
+  return json(c, { items }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/leave-requests', requireModule('leave', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'l.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT l.id, l.leave_type, l.start_date, l.end_date, l.working_days, l.status, l.reason,
             l.reject_note, l.employee_id,
@@ -108,38 +102,44 @@ lists.get('/leave-requests', requireModule('leave', 1), async (c) => {
      FROM leave_requests l
      JOIN employees e ON e.id = l.employee_id
      WHERE l.organization_id = ?
+       ${sc.sql}
      ORDER BY CASE l.status WHEN 'pending' THEN 0 ELSE 1 END, l.start_date DESC
      LIMIT 200`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/attendance', requireModule('leave', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'a.employee_id')
   const month = c.req.query('month') // YYYY-MM optional
   const now = new Date()
   const currentYm = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
   const prefix = month && /^\d{4}-\d{2}$/.test(month) ? month : currentYm
+  if (sc.empty) {
+    return json(c, { items: [], month: prefix }, 200, privateCacheHeaders(LIST_TTL))
+  }
   const { results } = await c.env.DB.prepare(
     `SELECT a.id, a.work_date, a.punch_in, a.punch_out, a.source, a.employee_id,
             e.full_name AS employee_name, e.code AS employee_code
      FROM attendance_punches a
      JOIN employees e ON e.id = a.employee_id
      WHERE a.organization_id = ? AND a.work_date LIKE ?
+       ${sc.sql}
      ORDER BY a.work_date DESC, e.code
      LIMIT 300`,
   )
-    .bind(user.organizationId, `${prefix}%`)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-    month: prefix,
-  })
+    .bind(user.organizationId, `${prefix}%`, ...sc.binds)
+    .all()
+  return json(
+    c,
+    { items: results ?? [], month: prefix },
+    200,
+    privateCacheHeaders(LIST_TTL),
+  )
 })
 
 lists.get('/policies', requireModule('pol', 1), async (c) => {
@@ -164,7 +164,7 @@ lists.get('/policies', requireModule('pol', 1), async (c) => {
   )
     .bind(...(category ? [user.organizationId, category] : [user.organizationId]))
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/courses', requireModule('learn', 1), async (c) => {
@@ -178,7 +178,7 @@ lists.get('/courses', requireModule('learn', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/certificates', requireModule('learn', 1), async (c) => {
@@ -196,7 +196,7 @@ lists.get('/certificates', requireModule('learn', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/cycles', requireModule('perf', 1), async (c) => {
@@ -209,7 +209,7 @@ lists.get('/cycles', requireModule('perf', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/security', requireModule('sys', 1), async (c) => {
@@ -252,12 +252,14 @@ lists.get('/exports', requireModule('sys', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/earnings', requireModule('pay', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'a.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT a.id, a.year_month, a.kind, a.title, a.amount, a.taxable, a.note,
             a.employee_id,
@@ -265,19 +267,20 @@ lists.get('/earnings', requireModule('pay', 1), async (c) => {
      FROM earnings a
      LEFT JOIN employees e ON e.id = a.employee_id
      WHERE a.organization_id = ?
+       ${sc.sql}
      ORDER BY a.year_month DESC, a.title
      LIMIT 200`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string | null }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/documents', requireModule('emp', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'd.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const type = c.req.query('type')
   const { results } = await c.env.DB.prepare(
     type
@@ -287,6 +290,7 @@ lists.get('/documents', requireModule('emp', 1), async (c) => {
          FROM documents d
          JOIN employees e ON e.id = d.employee_id
          WHERE d.organization_id = ? AND d.type_name = ?
+           ${sc.sql}
          ORDER BY d.expires_on IS NULL, d.expires_on
          LIMIT 200`
       : `SELECT d.id, d.type_name, d.file_name, d.issued_on, d.expires_on,
@@ -295,99 +299,113 @@ lists.get('/documents', requireModule('emp', 1), async (c) => {
          FROM documents d
          JOIN employees e ON e.id = d.employee_id
          WHERE d.organization_id = ?
+           ${sc.sql}
          ORDER BY d.expires_on IS NULL, d.expires_on
          LIMIT 200`,
   )
-    .bind(...(type ? [user.organizationId, type] : [user.organizationId]))
+    .bind(
+      ...(type
+        ? [user.organizationId, type, ...sc.binds]
+        : [user.organizationId, ...sc.binds]),
+    )
     .all<{ employee_id: string; r2_key: string | null }>()
-  const items = filterByEmployeeId(scope, results ?? []).map((d) => ({
+  const items = (results ?? []).map((d) => ({
     ...d,
     has_file: !!d.r2_key,
     r2_key: undefined,
   }))
-  return json(c, { items })
+  return json(c, { items }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/employment-events', requireModule('emp', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'ev.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT ev.id, ev.event_date, ev.event_type, ev.detail, ev.employee_id,
             e.full_name AS employee_name, e.code AS employee_code
      FROM employment_events ev
      JOIN employees e ON e.id = ev.employee_id
      WHERE ev.organization_id = ?
+       ${sc.sql}
      ORDER BY ev.event_date DESC
      LIMIT 200`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/job-profiles', requireModule('emp', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT id, code, full_name, department, title, contract_type,
             contract_start, contract_end, joined_on, status, manager_id, level
      FROM employees
      WHERE organization_id = ? AND status = 'active'
+       ${sc.sql}
      ORDER BY contract_end IS NULL, contract_end, code`,
   )
-    .bind(user.organizationId)
-    .all<{ id: string }>()
-  const items = (results ?? []).filter((r) => {
-    if (scope.mode === 'all') return true
-    if (scope.mode === 'none') return false
-    return scope.ids.includes(r.id)
-  })
-  return json(c, { items })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/leave-quotas', requireModule('leave', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'a.employee_id')
   const year = Number(c.req.query('year') ?? new Date().getFullYear()) || 2026
+  if (sc.empty) {
+    return json(c, { items: [], year }, 200, privateCacheHeaders(LIST_TTL))
+  }
   const { results } = await c.env.DB.prepare(
     `SELECT a.id, a.year, a.days, a.reason, a.employee_id,
             e.full_name AS employee_name, e.code AS employee_code
      FROM leave_adjustments a
      JOIN employees e ON e.id = a.employee_id
      WHERE a.organization_id = ? AND a.year = ?
+       ${sc.sql}
      ORDER BY e.code`,
   )
-    .bind(user.organizationId, year)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-    year,
-  })
+    .bind(user.organizationId, year, ...sc.binds)
+    .all()
+  return json(
+    c,
+    { items: results ?? [], year },
+    200,
+    privateCacheHeaders(LIST_TTL),
+  )
 })
 
 lists.get('/objectives', requireModule('perf', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'o.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT o.id, o.period, o.objective, o.key_results_json, o.employee_id,
             e.full_name AS employee_name, e.code AS employee_code
      FROM objectives o
      JOIN employees e ON e.id = o.employee_id
      WHERE o.organization_id = ?
+       ${sc.sql}
      ORDER BY o.period DESC, e.code`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/ratings', requireModule('perf', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'r.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT r.id, r.self_score, r.manager_score, r.final_score, r.employee_id,
             c.name AS cycle_name,
@@ -396,36 +414,38 @@ lists.get('/ratings', requireModule('perf', 1), async (c) => {
      JOIN employees e ON e.id = r.employee_id
      LEFT JOIN review_cycles c ON c.id = r.cycle_id
      WHERE r.organization_id = ?
+       ${sc.sql}
      ORDER BY c.start_date DESC, e.code`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/feedback-360', requireModule('perf', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'f.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT f.id, f.period, f.competencies_json, f.scores_json, f.employee_id,
             e.full_name AS employee_name, e.code AS employee_code
      FROM feedback_360 f
      JOIN employees e ON e.id = f.employee_id
      WHERE f.organization_id = ?
+       ${sc.sql}
      ORDER BY f.period DESC, e.code`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/enrollments', requireModule('learn', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'en.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT en.id, en.employee_id, en.course_id, en.progress, en.score,
             en.due_on, en.enrolled_on, en.completed_on,
@@ -435,13 +455,12 @@ lists.get('/enrollments', requireModule('learn', 1), async (c) => {
      JOIN courses c ON c.id = en.course_id
      JOIN employees e ON e.id = en.employee_id
      WHERE en.organization_id = ?
+       ${sc.sql}
      ORDER BY en.due_on IS NULL, en.due_on, e.code`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/careers', requireModule('learn', 1), async (c) => {
@@ -454,12 +473,14 @@ lists.get('/careers', requireModule('learn', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/employee-careers', requireModule('learn', 1), async (c) => {
   const user = c.get('user')
   const scope = await resolveEmployeeScope(c.env.DB, user)
+  const sc = scopeSqlClause(scope, 'ec.employee_id')
+  if (sc.empty) return json(c, { items: [] }, 200, privateCacheHeaders(LIST_TTL))
   const { results } = await c.env.DB.prepare(
     `SELECT ec.employee_id AS id, ec.employee_id, ec.path_id, ec.level_index,
             e.full_name AS employee_name, e.code AS employee_code,
@@ -468,13 +489,12 @@ lists.get('/employee-careers', requireModule('learn', 1), async (c) => {
      JOIN employees e ON e.id = ec.employee_id
      JOIN career_paths p ON p.id = ec.path_id
      WHERE ec.organization_id = ?
+       ${sc.sql}
      ORDER BY e.code`,
   )
-    .bind(user.organizationId)
-    .all<{ employee_id: string }>()
-  return json(c, {
-    items: filterByEmployeeId(scope, results ?? []),
-  })
+    .bind(user.organizationId, ...sc.binds)
+    .all()
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 /** Remaining leave balances (annual / used / pending / remaining). */
@@ -510,32 +530,41 @@ lists.get('/leave-balances', requireModule('leave', 1), async (c) => {
     employees = results ?? []
   }
 
-  const { results: leaves } = await c.env.DB.prepare(
-    `SELECT id, employee_id, leave_type, start_date, end_date, working_days, status
-     FROM leave_requests WHERE organization_id = ?`,
-  )
-    .bind(user.organizationId)
-    .all<{
-      id: string
-      employee_id: string
-      leave_type: string
-      start_date: string
-      end_date: string
-      working_days: number
-      status: string
-    }>()
+  const leaveScope = scopeSqlClause(scope, 'employee_id')
+  if (leaveScope.empty) return json(c, { items: [], year }, 200, privateCacheHeaders(LIST_TTL))
 
-  const { results: adjs } = await c.env.DB.prepare(
-    `SELECT employee_id, days FROM leave_adjustments
-     WHERE organization_id = ? AND year = ?`,
-  )
-    .bind(user.organizationId, year)
-    .all<{ employee_id: string; days: number }>()
+  const [leaveBatch, adjBatch] = await c.env.DB.batch([
+    c.env.DB.prepare(
+      `SELECT id, employee_id, leave_type, start_date, end_date, working_days, status
+       FROM leave_requests
+       WHERE organization_id = ?
+         ${leaveScope.sql}`,
+    ).bind(user.organizationId, ...leaveScope.binds),
+    c.env.DB.prepare(
+      `SELECT employee_id, days FROM leave_adjustments
+       WHERE organization_id = ? AND year = ?
+         ${leaveScope.sql}`,
+    ).bind(user.organizationId, year, ...leaveScope.binds),
+  ])
+
+  const leaves = (leaveBatch.results ?? []) as {
+    id: string
+    employee_id: string
+    leave_type: string
+    start_date: string
+    end_date: string
+    working_days: number
+    status: string
+  }[]
+  const adjs = (adjBatch.results ?? []) as {
+    employee_id: string
+    days: number
+  }[]
 
   const adjMap: Record<string, number> = {}
-  for (const a of adjs ?? []) adjMap[a.employee_id] = a.days
+  for (const a of adjs) adjMap[a.employee_id] = a.days
 
-  const leaveRows = (leaves ?? []).map((l) => ({
+  const leaveRows = leaves.map((l) => ({
     id: l.id,
     empId: l.employee_id,
     type: l.leave_type,
@@ -571,7 +600,7 @@ lists.get('/leave-balances', requireModule('leave', 1), async (c) => {
     }
   })
 
-  return json(c, { items, year })
+  return json(c, { items, year }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 lists.get('/travel-policy', requireModule('trip', 1), async (c) => {
@@ -584,7 +613,7 @@ lists.get('/travel-policy', requireModule('trip', 1), async (c) => {
   )
     .bind(user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+  return json(c, { items: results ?? [] }, 200, privateCacheHeaders(LIST_TTL))
 })
 
 export default lists
