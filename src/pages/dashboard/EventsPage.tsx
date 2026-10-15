@@ -51,12 +51,9 @@ export function EventsPage() {
   return (
     <div className="stack dash">
       <div className="dash-intro">
-        <div>
-          <h1 className="dash-title">Sự kiện sắp tới</h1>
-          <p className="muted">
-            Nghỉ phép đã duyệt và công tác trong 21 ngày tới.
-          </p>
-        </div>
+        <p className="page-lead muted">
+          Nghỉ phép đã duyệt và công tác trong 21 ngày tới.
+        </p>
         <div className="dash-actions">
           <Link className="btn ghost" to="/leave/calendar">
             Lịch nghỉ

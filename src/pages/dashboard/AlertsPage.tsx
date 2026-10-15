@@ -64,12 +64,9 @@ export function AlertsPage() {
 
   return (
     <div className="stack dash">
-      <div>
-        <h1 className="dash-title">Cảnh báo &amp; nhắc việc</h1>
-        <p className="muted">
-          Việc cần xử lý: duyệt phép / công tác, HĐ sắp hết hạn, hết thử việc.
-        </p>
-      </div>
+      <p className="page-lead muted">
+        Việc cần xử lý: duyệt phép / công tác, HĐ sắp hết hạn, hết thử việc.
+      </p>
       <div className="grid g4 kpi-row">
         <Link to="/leave" className="kpi-chip">
           <strong>{data.pendingLeave}</strong>

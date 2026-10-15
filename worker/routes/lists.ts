@@ -167,6 +167,35 @@ lists.get('/cycles', requireModule('perf', 1), async (c) => {
   return json(c, { items: results ?? [] })
 })
 
+lists.get('/security', requireModule('sys', 1), async (c) => {
+  const user = c.get('user')
+  const row = await c.env.DB.prepare(
+    `SELECT organization_id, mask_salary, require_2fa, session_minutes, log_exports
+     FROM security_settings
+     WHERE organization_id = ?
+     LIMIT 1`,
+  )
+    .bind(user.organizationId)
+    .first<{
+      organization_id: string
+      mask_salary: number
+      require_2fa: number
+      session_minutes: number
+      log_exports: number
+    }>()
+
+  return json(c, {
+    settings: row
+      ? {
+          maskSalary: !!row.mask_salary,
+          require2fa: !!row.require_2fa,
+          sessionMinutes: Number(row.session_minutes),
+          logExports: !!row.log_exports,
+        }
+      : null,
+  })
+})
+
 lists.get('/exports', requireModule('sys', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(

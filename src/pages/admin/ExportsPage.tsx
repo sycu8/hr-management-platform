@@ -14,6 +14,7 @@ export function ExportsPage() {
   return (
     <DataTablePage<Job>
       title="Báo cáo & xuất dữ liệu"
+      description="Lịch sử yêu cầu xuất báo cáo nhân sự / lương / công tác."
       endpoint="/api/lists/exports"
       columns={[
         { key: 'kind', header: 'Loại', render: (r) => r.kind },

@@ -18,11 +18,14 @@ export function DataTablePage<T extends { id: string }>({
   endpoint,
   columns,
   emptyText = 'Không có dữ liệu',
+  description,
 }: {
   title: string
   endpoint: string
   columns: Column<T>[]
   emptyText?: string
+  /** Optional intro under the topbar page title (avoid repeating title as h2). */
+  description?: string
 }) {
   const [state, setState] = useState<LoadState<T>>({ status: 'loading' })
 
@@ -36,7 +39,8 @@ export function DataTablePage<T extends { id: string }>({
         if (cancelled) return
         setState({
           status: 'error',
-          message: err instanceof Error ? err.message : 'Không tải được dữ liệu',
+          message:
+            err instanceof Error ? err.message : 'Không tải được dữ liệu',
         })
       })
     return () => {
@@ -46,57 +50,70 @@ export function DataTablePage<T extends { id: string }>({
 
   if (state.status === 'loading') {
     return (
-      <div className="card empty">
-        <h2>{title}</h2>
-        <p>Đang tải…</p>
+      <div className="stack">
+        {description ? <p className="page-lead muted">{description}</p> : null}
+        <div className="card empty">
+          <p>Đang tải {title.toLowerCase()}…</p>
+        </div>
       </div>
     )
   }
 
   if (state.status === 'error') {
     return (
-      <div className="card empty">
-        <h2>{title}</h2>
-        <p>{state.message}</p>
+      <div className="stack">
+        {description ? <p className="page-lead muted">{description}</p> : null}
+        <div className="card empty">
+          <h2>Không tải được dữ liệu</h2>
+          <p>{state.message}</p>
+        </div>
       </div>
     )
   }
 
   if (state.items.length === 0) {
     return (
-      <div className="card empty">
-        <h2>{title}</h2>
-        <p>{emptyText}</p>
+      <div className="stack">
+        {description ? <p className="page-lead muted">{description}</p> : null}
+        <div className="card empty">
+          <h2>{title}</h2>
+          <p>{emptyText}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="card">
-      <h2>
-        {title} ({state.items.length})
-      </h2>
-      <div className="table-wrap">
-        <table className="data">
-          <thead>
-            <tr>
-              {columns.map((c) => (
-                <th key={c.key}>{c.header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {state.items.map((row) => (
-              <tr key={row.id}>
+    <div className="stack">
+      <div className="table-head">
+        {description ? <p className="page-lead muted">{description}</p> : null}
+        <p className="table-meta muted">
+          <strong>{state.items.length}</strong> bản ghi
+        </p>
+      </div>
+      <div className="card table-card">
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
                 {columns.map((c) => (
-                  <td key={c.key} className={c.className}>
-                    {c.render(row)}
-                  </td>
+                  <th key={c.key}>{c.header}</th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {state.items.map((row) => (
+                <tr key={row.id}>
+                  {columns.map((c) => (
+                    <td key={c.key} className={c.className}>
+                      {c.render(row)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

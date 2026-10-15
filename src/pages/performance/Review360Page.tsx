@@ -22,12 +22,23 @@ export function Review360Page() {
   return (
     <DataTablePage<Feedback>
       title="Đánh giá 360 độ"
+      description="Điểm phản hồi đa chiều theo kỳ đánh giá."
       endpoint="/api/lists/feedback-360"
       columns={[
-        { key: 'period', header: 'Kỳ', render: (r) => r.period },
-        { key: 'employee_code', header: 'Mã', render: (r) => r.employee_code, className: 'mono' },
+        { key: 'period', header: 'Kỳ', render: (r) => r.period, className: 'mono' },
+        {
+          key: 'employee_code',
+          header: 'Mã',
+          render: (r) => r.employee_code,
+          className: 'mono',
+        },
         { key: 'employee_name', header: 'Nhân viên', render: (r) => r.employee_name },
-        { key: 'scores', header: 'Điểm', render: (r) => scoreSummary(r.scores_json) },
+        {
+          key: 'scores',
+          header: 'Điểm',
+          render: (r) => scoreSummary(r.scores_json),
+          className: 'cell-wrap',
+        },
       ]}
     />
   )

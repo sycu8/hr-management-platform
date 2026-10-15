@@ -30,12 +30,18 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       <h1>{title}</h1>
       {user ? (
         <div className="user-chip" title={user.email}>
-          <span className="user-name">{user.displayName}</span>
-          <span className="user-meta">
-            {TYPE_LABEL[user.accountType] ?? user.accountType}
-            {user.viewAsUserId ? ' · đang xem hộ' : ''}
-          </span>
-          <button type="button" className="linkish" onClick={() => void logout()}>
+          <div className="user-chip-text">
+            <span className="user-name">{user.displayName}</span>
+            <span className="user-meta">
+              {TYPE_LABEL[user.accountType] ?? user.accountType}
+              {user.viewAsUserId ? ' · đang xem hộ' : ''}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="linkish"
+            onClick={() => void logout()}
+          >
             Đăng xuất
           </button>
         </div>

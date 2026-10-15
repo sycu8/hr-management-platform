@@ -58,12 +58,9 @@ export function PresencePage() {
 
   return (
     <div className="stack dash">
-      <div>
-        <h1 className="dash-title">Tỷ lệ hiện diện / nghỉ việc</h1>
-        <p className="muted">
-          Chấm công hôm nay và xu hướng nghỉ việc 6 tháng gần nhất.
-        </p>
-      </div>
+      <p className="page-lead muted">
+        Chấm công hôm nay và xu hướng nghỉ việc 6 tháng gần nhất.
+      </p>
       <div className="grid g4">
         <div className="tile">
           <div className="v">

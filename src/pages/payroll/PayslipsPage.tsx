@@ -21,6 +21,7 @@ export function PayslipsPage() {
   return (
     <DataTablePage<Slip>
       title="Phiếu lương điện tử"
+      description="Phiếu lương kỳ 09/2026 — tổng thu nhập, BHXH NLĐ, TNCN và thực nhận."
       endpoint="/api/payroll/payslips?ym=2026-09"
       columns={[
         { key: 'year_month', header: 'Kỳ', render: (r) => r.year_month, className: 'mono' },

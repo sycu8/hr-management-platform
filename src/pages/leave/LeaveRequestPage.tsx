@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchJson } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import { LEAVE_STATUS, labelOf } from '../../lib/labels'
 
 type Leave = {
   id: string
@@ -90,6 +91,7 @@ export function LeaveRequestPage() {
       {items.length === 0 ? (
         <p>Không có dữ liệu</p>
       ) : (
+        <div className="card table-card">
         <div className="table-wrap">
           <table className="data">
             <thead>
@@ -101,7 +103,7 @@ export function LeaveRequestPage() {
                 <th>Đến</th>
                 <th>Ngày</th>
                 <th>Lý do</th>
-                <th>TT</th>
+                <th>Trạng thái</th>
                 {canDecide ? <th /> : null}
               </tr>
             </thead>
@@ -119,7 +121,19 @@ export function LeaveRequestPage() {
                   <td className="mono">{r.working_days}</td>
                   <td>{r.reason}</td>
                   <td>
-                    {r.status}
+                    <span
+                      className={`status-pill ${
+                        r.status === 'pending'
+                          ? 'warn'
+                          : r.status === 'approved'
+                            ? 'good'
+                            : r.status === 'rejected'
+                              ? 'bad'
+                              : ''
+                      }`}
+                    >
+                      {labelOf(LEAVE_STATUS, r.status)}
+                    </span>
                     {r.reject_note ? (
                       <div className="muted small">{r.reject_note}</div>
                     ) : null}
@@ -154,6 +168,7 @@ export function LeaveRequestPage() {
               ))}
             </tbody>
           </table>
+        </div>
         </div>
       )}
     </div>

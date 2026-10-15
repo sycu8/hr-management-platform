@@ -79,12 +79,9 @@ export function TravelOverviewPage() {
   return (
     <div className="stack dash">
       <div className="dash-intro">
-        <div>
-          <h1 className="dash-title">Tổng quan công tác</h1>
-          <p className="muted">
-            Pipeline phê duyệt, quyết toán và chi phí công tác theo thời gian.
-          </p>
-        </div>
+        <p className="page-lead muted">
+          Pipeline phê duyệt, quyết toán và chi phí công tác theo thời gian.
+        </p>
         <div className="dash-actions">
           <Link className="btn ghost" to="/travel/approvals">
             Phê duyệt

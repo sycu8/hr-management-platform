@@ -14,14 +14,41 @@ export function AttendancePage() {
   return (
     <DataTablePage<Punch>
       title="Chấm công"
-      endpoint="/api/lists/attendance?month=2026-09"
+      description="Bảng chấm công tháng 10/2026 — giờ vào / ra theo nhân viên."
+      endpoint="/api/lists/attendance?month=2026-10"
       columns={[
-        { key: 'work_date', header: 'Ngày', render: (r) => r.work_date },
-        { key: 'employee_code', header: 'Mã', render: (r) => r.employee_code, className: 'mono' },
+        {
+          key: 'work_date',
+          header: 'Ngày',
+          render: (r) => r.work_date,
+          className: 'mono',
+        },
+        {
+          key: 'employee_code',
+          header: 'Mã',
+          render: (r) => r.employee_code,
+          className: 'mono',
+        },
         { key: 'employee_name', header: 'Nhân viên', render: (r) => r.employee_name },
-        { key: 'punch_in', header: 'Vào', render: (r) => r.punch_in ?? '—' },
-        { key: 'punch_out', header: 'Ra', render: (r) => r.punch_out ?? '—' },
-        { key: 'source', header: 'Nguồn', render: (r) => r.source },
+        {
+          key: 'punch_in',
+          header: 'Vào',
+          render: (r) => r.punch_in ?? '—',
+          className: 'mono',
+        },
+        {
+          key: 'punch_out',
+          header: 'Ra',
+          render: (r) => r.punch_out ?? '—',
+          className: 'mono',
+        },
+        {
+          key: 'source',
+          header: 'Nguồn',
+          render: (r) => (
+            <span className="status-pill info">{r.source}</span>
+          ),
+        },
       ]}
     />
   )

@@ -112,15 +112,10 @@ export function DashboardPage() {
 
   return (
     <div className="stack dash">
-      <div className="dash-intro">
-        <div>
-          <h1 className="dash-title">Tổng quan nhân sự</h1>
-          <p className="muted">
-            Số liệu vận hành realtime — headcount, tuyển dụng, nghỉ phép &amp;
-            công tác.
-          </p>
-        </div>
-      </div>
+      <p className="page-lead muted">
+        Số liệu vận hành realtime — headcount, tuyển dụng, nghỉ phép &amp; công
+        tác.
+      </p>
 
       <div className="grid g4">
         <div className="tile">

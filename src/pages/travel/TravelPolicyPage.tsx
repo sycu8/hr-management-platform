@@ -13,16 +13,32 @@ export function TravelPolicyPage() {
   return (
     <DataTablePage<Policy>
       title="Chính sách công tác phí"
+      description="Phiên bản chính sách công tác phí đang / đã áp dụng."
       endpoint="/api/lists/travel-policy"
       columns={[
-        { key: 'version', header: 'Phiên bản', render: (r) => `v${r.version}`, className: 'mono' },
-        { key: 'effective_from', header: 'Hiệu lực từ', render: (r) => r.effective_from },
-        { key: 'effective_to', header: 'Đến', render: (r) => r.effective_to ?? 'Hiện hành' },
+        {
+          key: 'version',
+          header: 'Phiên bản',
+          render: (r) => `v${r.version}`,
+          className: 'mono',
+        },
+        {
+          key: 'effective_from',
+          header: 'Hiệu lực từ',
+          render: (r) => r.effective_from,
+          className: 'mono',
+        },
+        {
+          key: 'effective_to',
+          header: 'Đến',
+          render: (r) => r.effective_to ?? 'Hiện hành',
+        },
         { key: 'approved_by', header: 'Duyệt bởi', render: (r) => r.approved_by ?? '—' },
         {
           key: 'approved_at',
           header: 'Ngày duyệt',
           render: (r) => r.approved_at?.slice(0, 10) ?? '—',
+          className: 'mono',
         },
       ]}
     />

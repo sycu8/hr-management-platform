@@ -12,6 +12,7 @@ export function PayrollPage() {
   return (
     <DataTablePage<Run>
       title="Bảng lương hàng tháng"
+      description="Các kỳ lương đã chốt hoặc đang soạn thảo."
       endpoint="/api/payroll/runs"
       columns={[
         { key: 'year_month', header: 'Tháng', render: (r) => r.year_month },

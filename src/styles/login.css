@@ -198,14 +198,17 @@
   text-align: center;
   color: var(--login-muted);
   margin: 0;
+  min-height: 1.5em;
+  font-size: 0.95rem;
 }
 
 .login-foot {
   margin: 0;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--login-muted);
   letter-spacing: 0.02em;
+  line-height: 1.45;
 }
 
 @media (prefers-reduced-motion: reduce) {
