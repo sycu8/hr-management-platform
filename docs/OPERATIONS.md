@@ -15,8 +15,11 @@ Set through dashboard or `wrangler secret put`:
 
 | Name | Kind | Notes |
 | --- | --- | --- |
-| `ACCESS_TEAM_DOMAIN` | var | `<team>.cloudflareaccess.com` |
-| `ACCESS_AUD` | var | Access application audience |
+| `ACCESS_TEAM_DOMAIN` | var | `cloudspacevn.cloudflareaccess.com` |
+| `ACCESS_AUD` | var | Access application AUD (`42ad8829…`) |
+| Access JWKS | — | `https://cloudspacevn.cloudflareaccess.com/cdn-cgi/access/certs` |
+
+Worker auth prefers `ctx.access.getIdentity()` when Access matched the request, then falls back to verifying `CF-Access-Jwt-Assertion` with the team JWKS.
 | `TURNSTILE_SITE_KEY` | var | Public widget key |
 | `TURNSTILE_SECRET` | secret | Siteverify secret |
 | `EMAIL_FROM` | var | Address on an Email Sending–enabled domain |

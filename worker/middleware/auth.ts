@@ -24,14 +24,31 @@ type UserRow = {
   is_active: number
 }
 
+/** Cloudflare Access properties on ExecutionContext when an Access app matched. */
+type AccessContext = {
+  aud: string | string[]
+  getIdentity: () => Promise<{
+    email?: string
+    name?: string
+    idp?: { id?: string; type?: string }
+  }>
+}
+
+type ExecutionContextWithAccess = ExecutionContext & {
+  access?: AccessContext
+}
+
 const ACCESS_ASSERTION_HEADER = 'CF-Access-Jwt-Assertion'
 const DEV_AUTH_EMAIL_HEADER = 'DEV_AUTH_EMAIL'
 
-/** Cache JWKS fetchers per team domain for the isolate lifetime. */
 const jwksByDomain = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
+function normalizeTeamDomain(teamDomain: string): string {
+  return teamDomain.replace(/^https?:\/\//, '').replace(/\/$/, '')
+}
+
 function getAccessJwks(teamDomain: string) {
-  const normalized = teamDomain.replace(/^https?:\/\//, '').replace(/\/$/, '')
+  const normalized = normalizeTeamDomain(teamDomain)
   let jwks = jwksByDomain.get(normalized)
   if (!jwks) {
     jwks = createRemoteJWKSet(
@@ -44,6 +61,8 @@ function getAccessJwks(teamDomain: string) {
 
 function isPlaceholderAccessConfig(env: Env): boolean {
   return (
+    !env.ACCESS_TEAM_DOMAIN ||
+    !env.ACCESS_AUD ||
     env.ACCESS_TEAM_DOMAIN.includes('REPLACE_WITH') ||
     env.ACCESS_AUD.includes('REPLACE_WITH')
   )
@@ -51,6 +70,11 @@ function isPlaceholderAccessConfig(env: Env): boolean {
 
 function allowDevAuth(env: Env): boolean {
   return env.ALLOW_DEV_AUTH === 'true' || isPlaceholderAccessConfig(env)
+}
+
+function audMatches(expected: string, actual: string | string[]): boolean {
+  if (Array.isArray(actual)) return actual.includes(expected)
+  return actual === expected
 }
 
 async function lookupUserByEmail(
@@ -80,6 +104,23 @@ async function lookupUserByEmail(
   }
 }
 
+/** Preferred path: Workers Access runtime (`ctx.access`). */
+async function emailFromAccessContext(
+  ctx: ExecutionContextWithAccess,
+  env: Env,
+): Promise<string | null> {
+  if (!ctx.access) return null
+  if (
+    !isPlaceholderAccessConfig(env) &&
+    !audMatches(env.ACCESS_AUD, ctx.access.aud)
+  ) {
+    throw new Error('Access AUD mismatch')
+  }
+  const identity = await ctx.access.getIdentity()
+  return identity.email?.trim() || null
+}
+
+/** Fallback: verify `CF-Access-Jwt-Assertion` with team JWKS. */
 async function emailFromAccessJwt(
   token: string,
   env: Env,
@@ -99,7 +140,7 @@ async function emailFromAccessJwt(
     (typeof payload.common_name === 'string' && payload.common_name) ||
     null
 
-  return email
+  return email?.trim() || null
 }
 
 function resolveDevEmail(c: {
@@ -109,34 +150,44 @@ function resolveDevEmail(c: {
   if (!allowDevAuth(c.env)) return null
   const fromHeader = c.req.header(DEV_AUTH_EMAIL_HEADER)?.trim()
   if (fromHeader) return fromHeader
-  const fromEnv = c.env.DEV_AUTH_EMAIL?.trim()
-  return fromEnv || null
+  return c.env.DEV_AUTH_EMAIL?.trim() || null
 }
 
 /**
- * Authenticates via Cloudflare Access JWT, or local DEV_AUTH_EMAIL fallback.
+ * Authenticate via Cloudflare Access (`ctx.access` → JWT), or local DEV_AUTH.
  * Role/organization always come from the `users` table — never from the client.
  */
 export const requireAuth = createMiddleware<{
   Bindings: Env
   Variables: { user: AuthUser }
 }>(async (c, next) => {
-  const assertion = c.req.header(ACCESS_ASSERTION_HEADER)
   let email: string | null = null
 
-  if (assertion) {
-    try {
-      email = await emailFromAccessJwt(assertion, c.env)
-    } catch {
-      return unauthorized(c, 'Invalid Access token')
-    }
-    if (!email) {
-      return unauthorized(c, 'Access token missing email claim')
-    }
-  } else {
-    email = resolveDevEmail(c)
-    if (!email) {
-      return unauthorized(c, 'Authentication required')
+  try {
+    email = await emailFromAccessContext(
+      c.executionCtx as ExecutionContextWithAccess,
+      c.env,
+    )
+  } catch {
+    return unauthorized(c, 'Invalid Access identity')
+  }
+
+  if (!email) {
+    const assertion = c.req.header(ACCESS_ASSERTION_HEADER)
+    if (assertion) {
+      try {
+        email = await emailFromAccessJwt(assertion, c.env)
+      } catch {
+        return unauthorized(c, 'Invalid Access token')
+      }
+      if (!email) {
+        return unauthorized(c, 'Access token missing email claim')
+      }
+    } else {
+      email = resolveDevEmail(c)
+      if (!email) {
+        return unauthorized(c, 'Authentication required')
+      }
     }
   }
 

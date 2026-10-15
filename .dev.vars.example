@@ -1,16 +1,14 @@
-# Copy to `.dev.vars` for local `wrangler` / Vite worker runs.
-# Never commit real secrets. `.dev.vars` should stay gitignored.
+# Local development only. Copy to .dev.vars and fill values.
+# Never commit real tokens.
 
-# Local auth bypass when CF-Access-Jwt-Assertion is absent.
-# Must match a row in `users.email` after seeding.
+# Local auth bypass when CF-Access-Jwt-Assertion / ctx.access is absent.
+# Must match a row in users.email after seeding.
 DEV_AUTH_EMAIL=quan.tri@vidu.vn
-
-# Optional explicit switch (also allowed when ACCESS_* vars are still REPLACE_WITH_*).
 ALLOW_DEV_AUTH=true
 
-# Cloudflare Access (production). Leave placeholders locally or set real values.
-# ACCESS_TEAM_DOMAIN=your-team.cloudflareaccess.com
-# ACCESS_AUD=your-access-application-aud
+# Production Access values live in wrangler.jsonc vars:
+# ACCESS_TEAM_DOMAIN=cloudspacevn.cloudflareaccess.com
+# ACCESS_AUD=42ad88295b59755ae849cc895c05d407fbd6dfeb4f4a33261dd5eeb5f7a9505c
+# JWKS: https://cloudspacevn.cloudflareaccess.com/cdn-cgi/access/certs
 
-# Turnstile (if used by forms later)
-# TURNSTILE_SECRET_KEY=replace-me
+# TURNSTILE_SECRET=replace-with-turnstile-secret
