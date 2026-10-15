@@ -9,6 +9,10 @@ import {
   putDocumentBytes,
   r2ObjectResponse,
 } from '../lib/r2.ts'
+import {
+  employeeIdInClause,
+  resolveEmployeeScope,
+} from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import {
   getPermissionLevel,
@@ -110,16 +114,37 @@ employees.get('/', requireModule('emp', 1), async (c) => {
   const offset = Math.max(Number(c.req.query('offset') ?? 0) || 0, 0)
   const statusFilter = status === 'all' ? null : status
 
+  const scope = await resolveEmployeeScope(c.env.DB, user)
+  if (scope.mode === 'none') {
+    return json(c, { items: [], limit, offset })
+  }
+
+  let scopeSql = ''
+  const scopeBinds: string[] = []
+  if (scope.mode === 'ids') {
+    const clause = employeeIdInClause('id', scope)
+    scopeSql = clause.sql
+    scopeBinds.push(...clause.binds)
+  }
+
   const { results } = await c.env.DB.prepare(
     `SELECT id, code, full_name, email, phone, gender, department, title, level,
             status, manager_id, joined_on, contract_type, contract_end, photo_r2_key
      FROM employees
      WHERE organization_id = ?
        AND (? IS NULL OR status = ?)
+       ${scopeSql}
      ORDER BY code
      LIMIT ? OFFSET ?`,
   )
-    .bind(user.organizationId, statusFilter, statusFilter, limit, offset)
+    .bind(
+      user.organizationId,
+      statusFilter,
+      statusFilter,
+      ...scopeBinds,
+      limit,
+      offset,
+    )
     .all<EmployeeListRow>()
 
   const items = (results ?? []).map(({ photo_r2_key, ...rest }) => ({

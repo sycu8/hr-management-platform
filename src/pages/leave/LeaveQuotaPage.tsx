@@ -12,13 +12,28 @@ type Quota = {
   employee_id?: string
 }
 
+type Balance = {
+  employee_id: string
+  employee_code: string
+  employee_name: string
+  annual: number
+  adjustment: number
+  used_annual: number
+  pending_annual: number
+  remaining_annual: number
+  used_sick: number
+  used_special: number
+  used_unpaid: number
+}
+
 type Emp = { id: string; code: string; full_name: string }
 
 export function LeaveQuotaPage() {
   const { user } = useAuth()
   const canEdit = !!user?.canEditData
-  const year = 2026
+  const year = new Date().getFullYear()
   const [items, setItems] = useState<Quota[]>([])
+  const [balances, setBalances] = useState<Balance[]>([])
   const [emps, setEmps] = useState<Emp[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,10 +50,12 @@ export function LeaveQuotaPage() {
     setLoading(true)
     Promise.all([
       fetchJson<{ items: Quota[] }>(`/api/lists/leave-quotas?year=${year}`),
+      fetchJson<{ items: Balance[] }>(`/api/lists/leave-balances?year=${year}`),
       fetchJson<{ items: Emp[] }>('/api/employees?status=active&limit=200'),
     ])
-      .then(([q, e]) => {
+      .then(([q, b, e]) => {
         setItems(q.items ?? [])
+        setBalances(b.items ?? [])
         setEmps(e.items ?? [])
         setError(null)
       })
@@ -46,7 +63,7 @@ export function LeaveQuotaPage() {
         setError(err instanceof Error ? err.message : 'Không tải được'),
       )
       .finally(() => setLoading(false))
-  }, [])
+  }, [year])
 
   useEffect(() => {
     load()
@@ -163,74 +180,121 @@ export function LeaveQuotaPage() {
   }
 
   return (
-    <div className="card">
-      <div className="toolbar">
-        <div>
-          <h2>Hạn mức nghỉ phép {year} ({items.length})</h2>
-          <p className="muted">
-            Ngày cộng thêm (thâm niên / chuyển năm).{' '}
-            {canEdit ? 'Admin / Super Admin được chỉnh.' : ''}
-          </p>
-        </div>
-        {canEdit ? (
-          <button
-            type="button"
-            className="btn primary"
-            onClick={() =>
-              setForm({ employee_id: '', days: 1, reason: 'Thâm niên' })
-            }
-          >
-            + Điều chỉnh
-          </button>
-        ) : null}
-      </div>
-      {items.length === 0 ? (
-        <p>Không có dữ liệu</p>
-      ) : (
-        <div className="table-wrap">
-          <table className="data">
-            <thead>
-              <tr>
-                <th>Mã</th>
-                <th>Nhân viên</th>
-                <th>Năm</th>
-                <th>Ngày cộng</th>
-                <th>Lý do</th>
-                {canEdit ? <th /> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((r) => (
-                <tr key={r.id}>
-                  <td className="mono">{r.employee_code}</td>
-                  <td>{r.employee_name}</td>
-                  <td className="mono">{r.year}</td>
-                  <td className="mono">{r.days}</td>
-                  <td>{r.reason}</td>
-                  {canEdit ? (
-                    <td>
-                      <button
-                        type="button"
-                        className="btn ghost"
-                        onClick={() =>
-                          setForm({
-                            id: r.id,
-                            employee_id: '',
-                            days: r.days,
-                            reason: r.reason,
-                          })
-                        }
-                      >
-                        Sửa
-                      </button>
-                    </td>
-                  ) : null}
+    <div className="stack">
+      <div className="card">
+        <h2>Số dư phép {year}</h2>
+        <p className="muted">
+          Hạn mức năm − đã dùng − đang chờ = còn lại (theo ngày làm việc).
+        </p>
+        {balances.length === 0 ? (
+          <p>Không có dữ liệu</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Nhân viên</th>
+                  <th>Hạn mức</th>
+                  <th>Điều chỉnh</th>
+                  <th>Đã dùng</th>
+                  <th>Chờ duyệt</th>
+                  <th>Còn lại</th>
+                  <th>Ốm</th>
+                  <th>Đặc biệt</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {balances.map((r) => (
+                  <tr key={r.employee_id}>
+                    <td className="mono">{r.employee_code}</td>
+                    <td>{r.employee_name}</td>
+                    <td className="mono">{r.annual}</td>
+                    <td className="mono">{r.adjustment}</td>
+                    <td className="mono">{r.used_annual}</td>
+                    <td className="mono">{r.pending_annual}</td>
+                    <td className="mono">
+                      <strong>{r.remaining_annual}</strong>
+                    </td>
+                    <td className="mono">{r.used_sick}</td>
+                    <td className="mono">{r.used_special}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="toolbar">
+          <div>
+            <h2>Điều chỉnh hạn mức ({items.length})</h2>
+            <p className="muted">
+              Ngày cộng thêm (thâm niên / chuyển năm).{' '}
+              {canEdit ? 'Admin / Super Admin được chỉnh.' : ''}
+            </p>
+          </div>
+          {canEdit ? (
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() =>
+                setForm({ employee_id: '', days: 1, reason: 'Thâm niên' })
+              }
+            >
+              + Điều chỉnh
+            </button>
+          ) : null}
         </div>
-      )}
+        {items.length === 0 ? (
+          <p>Không có điều chỉnh</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Nhân viên</th>
+                  <th>Năm</th>
+                  <th>Ngày cộng</th>
+                  <th>Lý do</th>
+                  {canEdit ? <th /> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((r) => (
+                  <tr key={r.id}>
+                    <td className="mono">{r.employee_code}</td>
+                    <td>{r.employee_name}</td>
+                    <td className="mono">{r.year}</td>
+                    <td className="mono">{r.days}</td>
+                    <td>{r.reason}</td>
+                    {canEdit ? (
+                      <td>
+                        <button
+                          type="button"
+                          className="btn ghost"
+                          onClick={() =>
+                            setForm({
+                              id: r.id,
+                              employee_id: '',
+                              days: r.days,
+                              reason: r.reason,
+                            })
+                          }
+                        >
+                          Sửa
+                        </button>
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

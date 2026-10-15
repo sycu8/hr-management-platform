@@ -1354,6 +1354,12 @@ tr.row-selected td {
   gap: 16px;
   margin-top: 8px;
 }
+.emp-profile-card.is-highlight {
+  outline: 2px solid var(--accent, #e85d04);
+  outline-offset: 2px;
+  transition: outline-color 0.2s ease;
+}
+
 .emp-profile-card {
   display: flex;
   flex-direction: column;

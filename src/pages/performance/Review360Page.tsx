@@ -157,12 +157,20 @@ export function Review360Page() {
     setSaving(true)
     setError(null)
     try {
+      const scores = canEdit
+        ? form.scores
+        : { self: form.scores.self }
+      const comments = canEdit
+        ? form.comments
+        : { self: form.comments.self }
       const payload = {
-        employee_id: form.employee_id || user?.employeeId,
+        employee_id: canEdit
+          ? form.employee_id || user?.employeeId
+          : user?.employeeId,
         period: form.period,
         competencies: form.competencies,
-        scores: form.scores,
-        comments: form.comments,
+        scores,
+        comments,
       }
       if (!payload.employee_id) throw new Error('Chọn nhân viên')
       const res = await fetchJson<{ id: string }>('/api/feedback-360', {
@@ -273,21 +281,32 @@ export function Review360Page() {
           </div>
 
           <h3 style={{ marginTop: 16 }}>Điểm theo năng lực (1–5)</h3>
+          {!canEdit ? (
+            <p className="muted small">
+              Nhân viên chỉ gửi điểm tự đánh giá (self); các chiều khác do HR
+              nhập.
+            </p>
+          ) : null}
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
                   <th>Năng lực</th>
-                  {ROLE_META.map((r) => (
-                    <th key={r.key}>{r.label}</th>
-                  ))}
+                  {(canEdit ? ROLE_META : ROLE_META.filter((r) => r.key === 'self')).map(
+                    (r) => (
+                      <th key={r.key}>{r.label}</th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {form.competencies.map((comp, i) => (
                   <tr key={comp}>
                     <td>{comp}</td>
-                    {ROLE_META.map((r) => (
+                    {(canEdit
+                      ? ROLE_META
+                      : ROLE_META.filter((r) => r.key === 'self')
+                    ).map((r) => (
                       <td key={r.key}>
                         <input
                           type="number"
@@ -310,7 +329,10 @@ export function Review360Page() {
 
           <h3 style={{ marginTop: 16 }}>Nhận xét</h3>
           <div className="form-grid">
-            {ROLE_META.map((r) => (
+            {(canEdit
+              ? ROLE_META
+              : ROLE_META.filter((r) => r.key === 'self')
+            ).map((r) => (
               <label key={r.key} className="span2">
                 {r.label}
                 <textarea

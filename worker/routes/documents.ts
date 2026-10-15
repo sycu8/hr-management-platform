@@ -2,6 +2,10 @@ import { Hono } from 'hono'
 import type { Env } from '../env.ts'
 import { notFound } from '../lib/http.ts'
 import { r2ObjectResponse } from '../lib/r2.ts'
+import {
+  resolveEmployeeScope,
+  scopeAllowsEmployee,
+} from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
 
@@ -30,11 +34,8 @@ documents.get('/:id/download', requireModule('emp', 1), async (c) => {
 
   if (!row?.r2_key) return notFound(c, 'Document not found')
 
-  if (
-    user.accountType === 'user' &&
-    user.employeeId &&
-    row.employee_id !== user.employeeId
-  ) {
+  const scope = await resolveEmployeeScope(c.env.DB, user)
+  if (!scopeAllowsEmployee(scope, row.employee_id)) {
     return notFound(c, 'Document not found')
   }
 

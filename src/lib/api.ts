@@ -55,10 +55,12 @@ export type MeUser = {
   mustResetPassword: boolean
   viewAsUserId: string | null
   effectiveUserId: string
+  actorAccountType?: AccountType
+  actorDisplayName?: string
   modules: string[]
-  /** Admin + Super Admin: edit HR / account info. */
+  /** Admin + Super Admin: edit HR / account info (effective identity). */
   canEditData: boolean
-  /** Super Admin only: connect / toggle data sources. */
+  /** Super Admin only: connect / toggle data sources (real actor). */
   canManageDataSources: boolean
 }
 

@@ -20,6 +20,8 @@ export type AuthUser = {
   viewAsUserId: string | null
   /** Effective identity for authorization/scoping (view-as target or self). */
   effectiveUserId: string
+  /** Real session owner — always use for audit attribution. */
+  actorUserId: string
   sessionId: string
 }
 
@@ -60,6 +62,7 @@ async function loadUser(
     mustResetPassword: row.must_reset_password === 1,
     viewAsUserId: null,
     effectiveUserId: row.id,
+    actorUserId: row.id,
     sessionId: '',
   }
 }
@@ -81,7 +84,6 @@ export const requireAuth = createMiddleware<{
   const actor = await loadUser(c.env.DB, session.user_id)
   if (!actor || !actor.isActive) return unauthorized(c, 'User inactive')
 
-  let effective = actor
   if (
     session.view_as_user_id &&
     actor.accountType === 'super_admin' &&
@@ -89,21 +91,13 @@ export const requireAuth = createMiddleware<{
   ) {
     const target = await loadUser(c.env.DB, session.view_as_user_id)
     if (target && target.isActive) {
-      effective = {
+      c.set('user', {
         ...target,
         viewAsUserId: target.id,
         effectiveUserId: target.id,
-        sessionId: session.id,
-      }
-      // Keep actor markers for UI: impersonator still needs to know they are SA
-      c.set('user', {
-        ...effective,
-        // Expose impersonation via viewAs while preserving actor in separate fields isn't in type —
-        // store actor id on sessionId path; me route will reload actor for badge.
+        actorUserId: actor.id,
         sessionId: session.id,
       })
-      // Attach actor on context via a second variable would need typing; encode in viewAsUserId
-      // and keep actor identity by re-reading session.user_id in /me.
       await next()
       return
     }
@@ -113,6 +107,7 @@ export const requireAuth = createMiddleware<{
     ...actor,
     viewAsUserId: null,
     effectiveUserId: actor.id,
+    actorUserId: actor.id,
     sessionId: session.id,
   })
   await next()
@@ -140,6 +135,7 @@ export const optionalAuth = createMiddleware<{
       ...actor,
       viewAsUserId: session.view_as_user_id,
       effectiveUserId: session.view_as_user_id || actor.id,
+      actorUserId: actor.id,
       sessionId: session.id,
     })
   }

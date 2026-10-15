@@ -1,9 +1,12 @@
 import { Hono } from 'hono'
-import type { Env } from '../env.ts'
+import type { Env, ModuleKey } from '../env.ts'
 import { json } from '../lib/http.ts'
+import {
+  employeeIdInClause,
+  resolveEmployeeScope,
+} from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { getPermissionLevel } from '../middleware/rbac.ts'
-import type { ModuleKey } from '../env.ts'
 
 type Hit = {
   kind: 'employee' | 'policy' | 'job' | 'candidate' | 'course' | 'page'
@@ -44,36 +47,55 @@ search.get('/', async (c) => {
   }
 
   if (await can('emp')) {
-    const { results } = await c.env.DB.prepare(
-      `SELECT id, code, full_name, department, title
-       FROM employees
-       WHERE organization_id = ?
-         AND (code LIKE ? COLLATE NOCASE
-           OR full_name LIKE ? COLLATE NOCASE
-           OR department LIKE ? COLLATE NOCASE
-           OR title LIKE ? COLLATE NOCASE
-           OR ifnull(email,'') LIKE ? COLLATE NOCASE)
-       ORDER BY code
-       LIMIT 8`,
-    )
-      .bind(user.organizationId, needle, needle, needle, needle, needle)
-      .all<{
-        id: string
-        code: string
-        full_name: string
-        department: string
-        title: string
-      }>()
-    for (const r of results ?? []) {
-      hits.push({
-        kind: 'employee',
-        id: r.id,
-        title: `${r.code} · ${r.full_name}`,
-        subtitle: `${r.title} · ${r.department}`,
-        path: `/employees?highlight=${encodeURIComponent(r.id)}`,
-        moduleKey: 'emp',
-        score: 10,
-      })
+    const scope = await resolveEmployeeScope(c.env.DB, user)
+    if (scope.mode !== 'none') {
+      let scopeSql = ''
+      const scopeBinds: string[] = []
+      if (scope.mode === 'ids') {
+        const clause = employeeIdInClause('id', scope)
+        scopeSql = clause.sql
+        scopeBinds.push(...clause.binds)
+      }
+      const { results } = await c.env.DB.prepare(
+        `SELECT id, code, full_name, department, title
+         FROM employees
+         WHERE organization_id = ?
+           ${scopeSql}
+           AND (code LIKE ? COLLATE NOCASE
+             OR full_name LIKE ? COLLATE NOCASE
+             OR department LIKE ? COLLATE NOCASE
+             OR title LIKE ? COLLATE NOCASE
+             OR ifnull(email,'') LIKE ? COLLATE NOCASE)
+         ORDER BY code
+         LIMIT 8`,
+      )
+        .bind(
+          user.organizationId,
+          ...scopeBinds,
+          needle,
+          needle,
+          needle,
+          needle,
+          needle,
+        )
+        .all<{
+          id: string
+          code: string
+          full_name: string
+          department: string
+          title: string
+        }>()
+      for (const r of results ?? []) {
+        hits.push({
+          kind: 'employee',
+          id: r.id,
+          title: `${r.code} · ${r.full_name}`,
+          subtitle: `${r.title} · ${r.department}`,
+          path: `/employees?highlight=${encodeURIComponent(r.id)}`,
+          moduleKey: 'emp',
+          score: 10,
+        })
+      }
     }
   }
 

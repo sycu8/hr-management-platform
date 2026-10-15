@@ -1,9 +1,13 @@
--- Password-auth accounts for public HRM (hrm.orangecloud.vn).
--- Default passwords (change after first login):
+-- LOCAL / DEMO password-auth accounts only.
+-- NEVER apply these default passwords to production without immediate rotation.
+-- Defaults (local e2e / sanitized demo):
 --   super@orangecloud.vn              SuperAdmin!2026
 --   admin@orangecloud.vn              Admin!2026
 --   user.tuyendung@orangecloud.vn     User!2026
 --   user.luong@orangecloud.vn         User!2026
+--
+-- Production checklist: rotate all four passwords, set must_reset_password=1,
+-- and confirm TURNSTILE_HOSTNAMES is production-only (no localhost).
 --
 -- employee_id links (after seed/demo.sql):
 --   admin@orangecloud.vn          -> e3  Le Thu Ha (Truong phong nhan su)

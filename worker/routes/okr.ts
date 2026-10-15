@@ -15,6 +15,7 @@ import {
   type Completeness,
   type KeyResult,
 } from '../lib/okr.ts'
+import { isElevated } from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { getPermissionLevel, requireModule } from '../middleware/rbac.ts'
 
@@ -63,10 +64,6 @@ const okr = new Hono<{
 }>()
 
 okr.use('*', requireAuth)
-
-function isElevated(user: AuthUser): boolean {
-  return user.accountType === 'admin' || user.accountType === 'super_admin'
-}
 
 async function canManageEmployee(
   env: Env,
@@ -124,7 +121,10 @@ okr.get('/', requireModule('perf', 1), async (c) => {
   const year = Number(c.req.query('year') || new Date().getFullYear()) || 2026
   const quarterRaw = c.req.query('quarter')
   const quarter = quarterRaw ? Number(quarterRaw) : null
-  const scope = (c.req.query('scope') || 'all') as 'mine' | 'team' | 'all'
+  const requested = (c.req.query('scope') || 'team') as 'mine' | 'team' | 'all'
+  // Non-admin may not request org-wide OKRs
+  const scope: 'mine' | 'team' | 'all' =
+    requested === 'all' && !isElevated(user) ? 'team' : requested
 
   const { results } = await c.env.DB.prepare(
     `SELECT o.id, o.employee_id, o.period, o.objective, o.key_results_json,
@@ -163,6 +163,8 @@ okr.get('/', requireModule('perf', 1), async (c) => {
     } else {
       items = []
     }
+  } else if (scope === 'all' && !isElevated(user)) {
+    items = []
   }
 
   return json(c, { items, year, quarter, scope })
@@ -183,7 +185,10 @@ okr.get('/summary', requireModule('perf', 1), async (c) => {
   }
   let employees: EmpRow[] = []
 
-  if (scope === 'all' || isElevated(user)) {
+  const effectiveScope =
+    scope === 'all' && !isElevated(user) ? 'team' : scope
+
+  if (effectiveScope === 'all' && isElevated(user)) {
     const { results } = await c.env.DB.prepare(
       `SELECT id, code, full_name, department, manager_id
        FROM employees

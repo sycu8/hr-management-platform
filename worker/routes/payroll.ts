@@ -4,6 +4,7 @@ import type { Env } from '../env.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
 import { badRequest, forbidden, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
+import { isElevated, selfOnlyEmployeeFilter } from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
 
@@ -168,6 +169,7 @@ payroll.get('/runs', requireModule('pay', 1), async (c) => {
     .bind(user.organizationId, limit, offset)
     .all<PayrollRunRow>()
 
+  const showOrgTotals = isElevated(user)
   const items = (results ?? []).map((r) => {
     const totals = parseJson<{
       headcount?: number
@@ -188,15 +190,16 @@ payroll.get('/runs', requireModule('pay', 1), async (c) => {
       closed_by: r.closed_by,
       created_at: r.created_at,
       legal_review_status: r.legal_review_status,
-      headcount: totals.headcount ?? null,
-      gross: totals.gross ?? null,
-      pit: totals.pit ?? null,
-      net: totals.net ?? null,
-      cost: totals.cost ?? null,
-      bh_emp_total: totals.bhEmp ?? null,
-      bh_er_total: totals.bhEr ?? null,
-      note: totals.note ?? null,
-      totals,
+      // Org aggregates only for Admin / Super Admin (B7)
+      headcount: showOrgTotals ? (totals.headcount ?? null) : null,
+      gross: showOrgTotals ? (totals.gross ?? null) : null,
+      pit: showOrgTotals ? (totals.pit ?? null) : null,
+      net: showOrgTotals ? (totals.net ?? null) : null,
+      cost: showOrgTotals ? (totals.cost ?? null) : null,
+      bh_emp_total: showOrgTotals ? (totals.bhEmp ?? null) : null,
+      bh_er_total: showOrgTotals ? (totals.bhEr ?? null) : null,
+      note: showOrgTotals ? (totals.note ?? null) : null,
+      totals: showOrgTotals ? totals : {},
     }
   })
 
@@ -238,8 +241,9 @@ payroll.get('/runs/:id', requireModule('pay', 1), async (c) => {
 
   if (!run) return notFound(c, 'Payroll run not found')
 
-  const employeeFilter =
-    user.accountType === 'user' && user.employeeId ? user.employeeId : null
+  const scoped = selfOnlyEmployeeFilter(user)
+  if (scoped.ok === false) return forbidden(c, scoped.reason)
+  const employeeFilter = scoped.filter
 
   const { results } = await c.env.DB.prepare(
     `SELECT i.id, i.gross, i.employee_insurance, i.pit, i.net, i.employer_insurance,
@@ -257,7 +261,9 @@ payroll.get('/runs/:id', requireModule('pay', 1), async (c) => {
     .bind(user.organizationId, id, employeeFilter, employeeFilter)
     .all<PayslipRow>()
 
-  const totals = parseJson<Record<string, unknown>>(run.totals_json, {})
+  const totals = isElevated(user)
+    ? parseJson<Record<string, unknown>>(run.totals_json, {})
+    : {}
   return json(c, {
     run: {
       id: run.id,
@@ -269,7 +275,7 @@ payroll.get('/runs/:id', requireModule('pay', 1), async (c) => {
       created_at: run.created_at,
       legal_review_status: run.legal_review_status,
       totals,
-      policy: parseJson(run.policy_json, {}),
+      policy: isElevated(user) ? parseJson(run.policy_json, {}) : {},
     },
     items: (results ?? []).map(enrichPayslip),
   })
@@ -280,8 +286,9 @@ payroll.get('/payslips', requireModule('pay', 1), async (c) => {
   const ym = c.req.query('ym')
   const limit = Math.min(Number(c.req.query('limit') ?? 100) || 100, 300)
 
-  const employeeFilter =
-    user.accountType === 'user' && user.employeeId ? user.employeeId : null
+  const scoped = selfOnlyEmployeeFilter(user)
+  if (scoped.ok === false) return forbidden(c, scoped.reason)
+  const employeeFilter = scoped.filter
 
   const { results } = await c.env.DB.prepare(
     `SELECT i.id, i.gross, i.employee_insurance, i.pit, i.net, i.employer_insurance,
@@ -335,11 +342,9 @@ payroll.get('/payslips/:id', requireModule('pay', 1), async (c) => {
 
   if (!row) return notFound(c, 'Payslip not found')
 
-  if (
-    user.accountType === 'user' &&
-    user.employeeId &&
-    row.employee_id !== user.employeeId
-  ) {
+  const scoped = selfOnlyEmployeeFilter(user)
+  if (scoped.ok === false) return forbidden(c, scoped.reason)
+  if (scoped.filter && row.employee_id !== scoped.filter) {
     return forbidden(c, 'Chỉ xem phiếu lương của chính mình')
   }
 
@@ -352,8 +357,9 @@ payroll.get('/insurance', requireModule('pay', 1), async (c) => {
   const ym = c.req.query('ym') ?? '2026-09'
   const limit = Math.min(Number(c.req.query('limit') ?? 200) || 200, 300)
 
-  const employeeFilter =
-    user.accountType === 'user' && user.employeeId ? user.employeeId : null
+  const scoped = selfOnlyEmployeeFilter(user)
+  if (scoped.ok === false) return forbidden(c, scoped.reason)
+  const employeeFilter = scoped.filter
 
   const { results } = await c.env.DB.prepare(
     `SELECT i.id, i.gross, i.employee_insurance, i.pit, i.net, i.employer_insurance,

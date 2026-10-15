@@ -11,6 +11,11 @@ import {
 } from '../lib/feedback360.ts'
 import { apiError, badRequest, forbidden, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
+import {
+  isElevated,
+  resolveEmployeeScope,
+  scopeAllowsEmployee,
+} from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
 
@@ -53,10 +58,6 @@ const feedback = new Hono<{
 }>()
 
 feedback.use('*', requireAuth)
-
-function isElevated(user: AuthUser): boolean {
-  return user.accountType === 'admin' || user.accountType === 'super_admin'
-}
 
 function enrich(row: Row) {
   const normalized = normalizeFeedback({
@@ -113,6 +114,14 @@ const SELECT = `SELECT f.id, f.employee_id, f.period, f.competencies_json, f.sco
 feedback.get('/', requireModule('perf', 1), async (c) => {
   const user = c.get('user')
   const period = c.req.query('period')
+  const scope = await resolveEmployeeScope(c.env.DB, user)
+  if (scope.mode === 'none') {
+    return json(c, {
+      items: [],
+      roles: ROLE_KEYS.map((r) => ({ role: r, label: ROLE_LABEL[r] })),
+    })
+  }
+
   const { results } = await c.env.DB.prepare(
     `${SELECT}
      WHERE f.organization_id = ?
@@ -122,8 +131,12 @@ feedback.get('/', requireModule('perf', 1), async (c) => {
     .bind(user.organizationId, period ?? null, period ?? null)
     .all<Row>()
 
+  const items = (results ?? [])
+    .filter((row) => scopeAllowsEmployee(scope, row.employee_id))
+    .map(enrich)
+
   return json(c, {
-    items: (results ?? []).map(enrich),
+    items,
     roles: ROLE_KEYS.map((r) => ({ role: r, label: ROLE_LABEL[r] })),
   })
 })
@@ -138,6 +151,11 @@ feedback.get('/:id', requireModule('perf', 1), async (c) => {
     .bind(user.organizationId, c.req.param('id'))
     .first<Row>()
   if (!row) return notFound(c, 'Feedback not found')
+
+  const scope = await resolveEmployeeScope(c.env.DB, user)
+  if (!scopeAllowsEmployee(scope, row.employee_id)) {
+    return notFound(c, 'Feedback not found')
+  }
   return json(c, { item: enrich(row) })
 })
 
@@ -154,10 +172,22 @@ feedback.post('/', requireModule('perf', 1), async (c) => {
     return badRequest(c, 'Invalid 360 payload')
   }
 
-  // Non-admin may only submit as self scores for themselves
+  // Non-admin may only submit self scores for themselves
   if (!isElevated(user)) {
     if (body.employee_id !== user.employeeId) {
       return forbidden(c, 'Chỉ được đánh giá / cập nhật hồ sơ của mình')
+    }
+    const allowedScores: Record<string, unknown> = {}
+    if (body.scores.self != null) allowedScores.self = body.scores.self
+    body = {
+      ...body,
+      scores: allowedScores as z.infer<typeof upsertSchema>['scores'],
+      comments: body.comments?.self
+        ? { self: body.comments.self }
+        : {},
+    }
+    if (Object.keys(body.scores).length === 0) {
+      return badRequest(c, 'Nhân viên chỉ được gửi điểm tự đánh giá (self)')
     }
   }
 
@@ -169,17 +199,51 @@ feedback.post('/', requireModule('perf', 1), async (c) => {
   if (!emp) return notFound(c, 'Employee not found')
 
   const existing = await c.env.DB.prepare(
-    `SELECT id FROM feedback_360
+    `SELECT id, competencies_json, scores_json, comments_json FROM feedback_360
      WHERE organization_id = ? AND employee_id = ? AND period = ?
      LIMIT 1`,
   )
     .bind(user.organizationId, body.employee_id, body.period)
-    .first<{ id: string }>()
+    .first<{
+      id: string
+      competencies_json: string
+      scores_json: string
+      comments_json: string | null
+    }>()
 
   const now = new Date().toISOString()
-  const competenciesJson = JSON.stringify(body.competencies)
-  const scoresJson = JSON.stringify(body.scores)
-  const commentsJson = JSON.stringify(body.comments ?? {})
+
+  let competenciesJson = JSON.stringify(body.competencies)
+  let scoresJson = JSON.stringify(body.scores)
+  let commentsJson = JSON.stringify(body.comments ?? {})
+
+  // Non-admin merges self scores/comments; never wipe mgr/peer/report.
+  if (!isElevated(user) && existing) {
+    let prevScores: Record<string, unknown> = {}
+    let prevComments: Record<string, unknown> = {}
+    try {
+      prevScores = JSON.parse(existing.scores_json || '{}') as Record<
+        string,
+        unknown
+      >
+    } catch {
+      prevScores = {}
+    }
+    try {
+      prevComments = JSON.parse(existing.comments_json || '{}') as Record<
+        string,
+        unknown
+      >
+    } catch {
+      prevComments = {}
+    }
+    scoresJson = JSON.stringify({ ...prevScores, self: body.scores.self })
+    commentsJson = JSON.stringify({
+      ...prevComments,
+      ...(body.comments?.self != null ? { self: body.comments.self } : {}),
+    })
+    competenciesJson = existing.competencies_json
+  }
 
   if (existing) {
     await c.env.DB.prepare(
@@ -260,6 +324,11 @@ feedback.post('/:id/analyze', requireModule('perf', 1), async (c) => {
     .bind(user.organizationId, id)
     .first<Row>()
   if (!row) return notFound(c, 'Feedback not found')
+
+  const scope = await resolveEmployeeScope(c.env.DB, user)
+  if (!scopeAllowsEmployee(scope, row.employee_id)) {
+    return notFound(c, 'Feedback not found')
+  }
 
   const item = enrich(row)
   const roleLines = ROLE_KEYS.map((role) => {

@@ -12,6 +12,8 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
+    "db:seed:local:all": "node scripts/seed-local.mjs",
+    "qa:local": "npm run typecheck && npm run test:unit && npm run test:e2e",
     "preview": "npm run build && vite preview",
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types",

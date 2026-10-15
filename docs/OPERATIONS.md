@@ -46,16 +46,24 @@ Worker auth prefers `ctx.access.getIdentity()` when Access matched the request, 
 9. Apply migrations: `npm run db:migrate:remote`.
 10. Deploy: push to `main` or run the Deploy workflow.
 
+## Security hard rules
+
+1. **Never** set `TURNSTILE_SECRET` to Cloudflare’s always-pass test secret outside local. Production `TURNSTILE_HOSTNAMES` must be the real hostname only (no `localhost` / `127.0.0.1`).
+2. **Rotate** every password from `seed/auth_users.sql` before or immediately after any remote seed. Demo passwords are public in the repo.
+3. Prefer remote seed with unique generated passwords + `must_reset_password=1`, not the committed demo hashes.
+4. Session cookies are `HttpOnly` + `SameSite=Lax` (+ `Secure` on HTTPS). Do not weaken cookie flags.
+
 ## Local development
 
 ```bash
 cp .dev.vars.example .dev.vars
 npm install
 npm run db:migrate:local
+npm run db:seed:local:all
 npm run dev
 ```
 
-Without Access locally, `.dev.vars` `DEV_AUTH_EMAIL` selects a simulated signed-in user. Production never accepts this path.
+Use Cloudflare always-pass Turnstile keys in `.dev.vars` only when `TURNSTILE_HOSTNAMES=localhost,127.0.0.1`.
 
 ## Importing real data
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   EmployeeEditor,
   type EmployeeForm,
@@ -44,6 +45,8 @@ function initials(name: string) {
 
 export function EmployeeProfilesPage() {
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
+  const highlightId = searchParams.get('highlight')
   const canEdit = !!user?.canEditData
   const [state, setState] = useState<LoadState>({ status: 'loading' })
   const [filter, setFilter] = useState<'active' | 'all' | 'left'>('active')
@@ -71,6 +74,16 @@ export function EmployeeProfilesPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    if (!highlightId || state.status !== 'ok') return
+    const el = document.getElementById(`emp-card-${highlightId}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.classList.add('is-highlight')
+    const t = window.setTimeout(() => el.classList.remove('is-highlight'), 2500)
+    return () => window.clearTimeout(t)
+  }, [highlightId, state])
 
   const managers: ManagerOption[] = useMemo(() => {
     if (state.status !== 'ok') return []
@@ -276,7 +289,11 @@ export function EmployeeProfilesPage() {
                   EMP_STATUS.find((s) => s.value === emp.status)?.label ??
                   emp.status
                 return (
-                  <article key={emp.id} className="emp-profile-card">
+                  <article
+                    key={emp.id}
+                    id={`emp-card-${emp.id}`}
+                    className="emp-profile-card"
+                  >
                     <div className="emp-profile-card__media">
                       {src ? (
                         <img

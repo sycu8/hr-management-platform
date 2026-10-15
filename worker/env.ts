@@ -61,7 +61,8 @@ export const CAPABILITY_TO_MODULE: Record<Capability, ModuleKey> = {
   leave: 'leave',
   travel: 'trip',
   payroll: 'pay',
-  benefits: 'pol',
+  /** Allowances / insurance sit under payroll module — never policies write. */
+  benefits: 'pay',
   performance: 'perf',
   learning: 'learn',
   policies: 'pol',

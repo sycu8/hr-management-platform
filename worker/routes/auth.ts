@@ -277,22 +277,30 @@ auth.get('/me', requireAuth, async (c) => {
 
   const modules = await listAllowedModules(c.env.DB, user)
   const actorType = actor.account_type as 'super_admin' | 'admin' | 'user'
+  // Effective identity (view-as target when active) drives UX permissions.
+  const effectiveType = user.accountType
+  const viewingAs = !!session?.view_as_user_id
 
   return json(c, {
-    id: actor.id,
+    id: viewingAs ? user.effectiveUserId : actor.id,
     organizationId: user.organizationId,
-    email: actor.email,
-    displayName: actor.display_name,
-    accountType: actorType,
-    employeeId: actor.employee_id,
-    mustResetPassword: actor.must_reset_password === 1,
+    email: viewingAs ? user.email : actor.email,
+    displayName: viewingAs ? user.displayName : actor.display_name,
+    accountType: effectiveType,
+    employeeId: user.employeeId,
+    mustResetPassword: viewingAs
+      ? user.mustResetPassword
+      : actor.must_reset_password === 1,
     viewAsUserId: session?.view_as_user_id ?? null,
     effectiveUserId: user.effectiveUserId,
+    /** Real session owner (for badge / clear view-as). */
+    actorAccountType: actorType,
+    actorDisplayName: actor.display_name,
     modules,
-    /** Admin + Super Admin may edit HR / user records. */
-    canEditData: actorType === 'super_admin' || actorType === 'admin',
-    /** Only Super Admin may manage data-source integrations. */
-    canManageDataSources: actorType === 'super_admin',
+    /** Edit capability follows effective identity during view-as. */
+    canEditData: effectiveType === 'super_admin' || effectiveType === 'admin',
+    /** Only real Super Admin may manage data-source integrations. */
+    canManageDataSources: actorType === 'super_admin' && !viewingAs,
   })
 })
 

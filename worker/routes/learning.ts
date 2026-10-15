@@ -4,6 +4,10 @@ import type { Env } from '../env.ts'
 import { badRequest, forbidden, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
+import {
+  resolveEmployeeScope,
+  scopeAllowsEmployee,
+} from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
 
@@ -231,8 +235,12 @@ learning.get('/enrollments/:id', requireModule('learn', 1), async (c) => {
      WHERE en.organization_id = ? AND en.id = ? LIMIT 1`,
   )
     .bind(user.organizationId, c.req.param('id'))
-    .first()
+    .first<{ employee_id: string }>()
   if (!row) return notFound(c, 'Enrollment not found')
+  const scope = await resolveEmployeeScope(c.env.DB, user)
+  if (!scopeAllowsEmployee(scope, row.employee_id)) {
+    return notFound(c, 'Enrollment not found')
+  }
   return json(c, { enrollment: row })
 })
 
@@ -341,8 +349,12 @@ learning.get('/certificates/:id', requireModule('learn', 1), async (c) => {
      WHERE c.organization_id = ? AND c.id = ? LIMIT 1`,
   )
     .bind(user.organizationId, c.req.param('id'))
-    .first()
+    .first<{ employee_id: string }>()
   if (!row) return notFound(c, 'Certificate not found')
+  const scope = await resolveEmployeeScope(c.env.DB, user)
+  if (!scopeAllowsEmployee(scope, row.employee_id)) {
+    return notFound(c, 'Certificate not found')
+  }
   return json(c, { certificate: row })
 })
 

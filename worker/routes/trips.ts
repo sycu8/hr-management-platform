@@ -6,6 +6,7 @@ import type { Env } from '../env.ts'
 import { badRequest, forbidden, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
+import { selfOnlyEmployeeFilter } from '../lib/scope.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
 
@@ -126,8 +127,9 @@ trips.get('/', requireModule('trip', 1), async (c) => {
   const limit = Math.min(Number(c.req.query('limit') ?? 50) || 50, 200)
   const offset = Math.max(Number(c.req.query('offset') ?? 0) || 0, 0)
 
-  const employeeFilter =
-    user.accountType === 'user' && user.employeeId ? user.employeeId : null
+  const scoped = selfOnlyEmployeeFilter(user)
+  if (scoped.ok === false) return forbidden(c, scoped.reason)
+  const employeeFilter = scoped.filter
 
   let statusClause = 'AND (? IS NULL OR status = ?)'
   const binds: unknown[] = [user.organizationId]
@@ -270,11 +272,9 @@ trips.get('/:id', requireModule('trip', 1), async (c) => {
     .bind(user.organizationId, c.req.param('id'))
     .first()
   if (!row) return notFound(c, 'Trip not found')
-  if (
-    user.accountType === 'user' &&
-    user.employeeId &&
-    row.employee_id !== user.employeeId
-  ) {
+  const scoped = selfOnlyEmployeeFilter(user)
+  if (scoped.ok === false) return forbidden(c, scoped.reason)
+  if (scoped.filter && row.employee_id !== scoped.filter) {
     return forbidden(c, 'Not your trip')
   }
   return json(c, { trip: row })

@@ -8,6 +8,11 @@ import {
   type PermissionLevel,
 } from '../env.ts'
 import { forbidden } from '../lib/http.ts'
+import {
+  isElevated,
+  resolveEmployeeScope,
+  scopeAllowsEmployee,
+} from '../lib/scope.ts'
 import type { AuthUser } from './auth.ts'
 
 type AppBindings = {
@@ -149,6 +154,10 @@ export function requireActorSuperAdmin() {
   })
 }
 
+/**
+ * Allow self, direct reports (manager), or Admin/SA.
+ * Module read level alone must NEVER grant org-wide employee access.
+ */
 export function requireSelfOrElevated(options: {
   moduleKey: ModuleKey
   getEmployeeId: (c: {
@@ -157,13 +166,17 @@ export function requireSelfOrElevated(options: {
       query: (key: string) => string | undefined
     }
   }) => string | undefined | null
+  /** @deprecated Ignored — capability level is not org-wide elevation. */
   elevatedMinLevel?: PermissionLevel
 }) {
-  const elevatedMin = options.elevatedMinLevel ?? 1
-
   return createMiddleware<AppBindings>(async (c, next) => {
     const user = c.get('user')
     const targetEmployeeId = options.getEmployeeId(c)
+
+    if (isElevated(user)) {
+      await next()
+      return
+    }
 
     if (
       targetEmployeeId &&
@@ -174,22 +187,20 @@ export function requireSelfOrElevated(options: {
       return
     }
 
-    if (
-      user.accountType === 'super_admin' ||
-      user.accountType === 'admin'
-    ) {
-      await next()
-      return
-    }
-
-    const level = await getPermissionLevel(
-      c.env.DB,
-      user,
-      options.moduleKey,
-    )
-    if (level >= elevatedMin) {
-      await next()
-      return
+    if (targetEmployeeId) {
+      const scope = await resolveEmployeeScope(c.env.DB, user)
+      if (scopeAllowsEmployee(scope, targetEmployeeId)) {
+        // Ensure caller still has the module (read) before team access
+        const level = await getPermissionLevel(
+          c.env.DB,
+          user,
+          options.moduleKey,
+        )
+        if (level >= 1) {
+          await next()
+          return
+        }
+      }
     }
 
     return forbidden(c, 'Self or elevated access required')
