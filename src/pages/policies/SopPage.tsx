@@ -1,11 +1,11 @@
-import { PoliciesManager } from './PoliciesManager'
+import { PoliciesCategoryPage } from './PoliciesCategoryPage'
 
 export function SopPage() {
   return (
-    <PoliciesManager
+    <PoliciesCategoryPage
       category="Quy trình"
       title="Quy trình & SOP"
-      description="Quy trình vận hành / SOP — mã, trạng thái, phòng ban, file R2 và OCR."
+      description="Quy trình vận hành — mã, loại, trạng thái, phòng ban áp dụng và tài liệu đính kèm."
     />
   )
 }

@@ -17,6 +17,7 @@ export const POLICY_STATUSES = [
   { value: 'draft', label: 'Nháp' },
   { value: 'active', label: 'Đang hiệu lực' },
   { value: 'expired', label: 'Hết hiệu lực' },
+  { value: 'archived', label: 'Lưu trữ' },
 ] as const
 export type PolicyStatus = (typeof POLICY_STATUSES)[number]['value']
 

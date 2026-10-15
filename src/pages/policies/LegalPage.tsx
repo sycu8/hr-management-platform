@@ -1,11 +1,11 @@
-import { PoliciesManager } from './PoliciesManager'
+import { PoliciesCategoryPage } from './PoliciesCategoryPage'
 
 export function LegalPage() {
   return (
-    <PoliciesManager
+    <PoliciesCategoryPage
       category="Pháp lý"
       title="Văn bản pháp lý"
-      description="Văn bản pháp lý — hiệu lực, bản scan trên R2 và OCR nội dung."
+      description="Văn bản pháp lý tham chiếu — hiệu lực, file gốc, tóm tắt và OCR."
     />
   )
 }

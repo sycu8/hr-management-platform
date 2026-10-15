@@ -1,11 +1,11 @@
-import { PoliciesManager } from './PoliciesManager'
+import { PoliciesCategoryPage } from './PoliciesCategoryPage'
 
 export function RulesPage() {
   return (
-    <PoliciesManager
+    <PoliciesCategoryPage
       category="Quy định"
       title="Quy định công ty"
-      description="Nội quy và quy định nội bộ — phiên bản, hiệu lực, file R2 và OCR."
+      description="Nội quy và quy định nội bộ — phiên bản, hiệu lực, file R2 và Upload & OCR."
     />
   )
 }

@@ -2,13 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import type { Env } from '../env.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
-import {
-  badRequest,
-  forbidden,
-  json,
-  notFound,
-  serverError,
-} from '../lib/http.ts'
+import { badRequest, forbidden, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
 import {
   extractMarkdownFromR2Object,
@@ -173,7 +167,7 @@ policies.get('/', requireModule('pol', 1), async (c) => {
       ? `SELECT p.id, p.category, p.code, p.title, p.version, p.policy_type,
                 p.effective_from, p.effective_to, p.status,
                 p.applicable_departments, p.summary, p.file_name, p.r2_key,
-                p.owner_name, p.updated_at,
+                p.owner_name, p.last_reviewed_at, p.updated_at,
                 (SELECT COUNT(*) FROM policy_attachments a
                  WHERE a.policy_id = p.id) AS attachment_count
          FROM policy_documents p
@@ -182,7 +176,7 @@ policies.get('/', requireModule('pol', 1), async (c) => {
       : `SELECT p.id, p.category, p.code, p.title, p.version, p.policy_type,
                 p.effective_from, p.effective_to, p.status,
                 p.applicable_departments, p.summary, p.file_name, p.r2_key,
-                p.owner_name, p.updated_at,
+                p.owner_name, p.last_reviewed_at, p.updated_at,
                 (SELECT COUNT(*) FROM policy_attachments a
                  WHERE a.policy_id = p.id) AS attachment_count
          FROM policy_documents p
@@ -324,31 +318,42 @@ policies.post(
       'application/octet-stream'
     const buffer = await object.arrayBuffer()
 
-    let markdown = ''
-    let method: 'ai_tomarkdown' | 'utf8_text' = 'utf8_text'
-    try {
-      const extracted = await extractMarkdownFromR2Object(
-        c.env.AI,
-        att.file_name,
-        mime,
-        buffer,
-      )
-      markdown = extracted.markdown
-      method = extracted.method
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
+    const extractedDoc = await extractMarkdownFromR2Object(
+      c.env.AI,
+      att.file_name,
+      mime,
+      buffer,
+    )
+    const markdown = extractedDoc.markdown
+    const method = extractedDoc.method
+    const note = extractedDoc.note
+
+    if (!markdown.trim() && method === 'unavailable') {
       await c.env.DB.prepare(
         `UPDATE policy_attachments SET ocr_status = 'failed', ocr_error = ?
          WHERE id = ?`,
       )
-        .bind(message.slice(0, 500), attachmentId)
+        .bind((note ?? 'OCR unavailable').slice(0, 500), attachmentId)
         .run()
-      return serverError(c, `OCR failed: ${message}`)
+      // Still return 200 so UI can keep the file and let user paste/fill manually.
+      return json(c, {
+        method,
+        markdown: '',
+        sections: [],
+        extracted: extractPolicyFieldsFromText(''),
+        applied: false,
+        note,
+        policy: null,
+        ai_available: !!c.env.AI,
+      })
     }
 
     const sections = markdownToSections(markdown)
+    const fieldGuess = extractPolicyFieldsFromText(markdown)
     const summaryGuess =
-      sections[0]?.b?.split('\n').find((l) => l.trim())?.slice(0, 400) ?? null
+      fieldGuess.summary ??
+      sections[0]?.b?.split('\n').find((l) => l.trim())?.slice(0, 400) ??
+      null
 
     await c.env.DB.prepare(
       `UPDATE policy_attachments SET ocr_status = 'done', ocr_error = NULL
@@ -360,7 +365,7 @@ policies.post(
     let policy = await loadPolicy(c.env.DB, user.organizationId, att.policy_id)
     if (!policy) return notFound(c, 'Policy not found')
 
-    if (apply) {
+    if (apply && markdown.trim()) {
       const body = {
         sections,
         ocr_source_attachment_id: attachmentId,
@@ -371,7 +376,18 @@ policies.post(
         : summaryGuess
       await c.env.DB.prepare(
         `UPDATE policy_documents
-         SET body_json = ?, content_text = ?, summary = COALESCE(?, summary),
+         SET body_json = ?, content_text = ?,
+             summary = COALESCE(?, summary),
+             code = CASE WHEN trim(COALESCE(code,'')) = '' OR code LIKE 'OCR-%'
+               THEN COALESCE(?, code) ELSE code END,
+             title = CASE WHEN title LIKE 'OCR %' OR title LIKE 'Draft %'
+               THEN COALESCE(?, title) ELSE title END,
+             policy_type = COALESCE(policy_type, ?),
+             version = COALESCE(version, ?),
+             effective_from = COALESCE(effective_from, ?),
+             effective_to = COALESCE(effective_to, ?),
+             owner_name = COALESCE(owner_name, ?),
+             applicable_departments = COALESCE(applicable_departments, ?),
              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
          WHERE id = ? AND organization_id = ?`,
       )
@@ -379,6 +395,14 @@ policies.post(
           JSON.stringify(body),
           markdown.slice(0, 100_000),
           nextSummary,
+          fieldGuess.code,
+          fieldGuess.title,
+          fieldGuess.policy_type,
+          fieldGuess.version,
+          fieldGuess.effective_from,
+          fieldGuess.effective_to,
+          fieldGuess.owner_name,
+          fieldGuess.applicable_departments,
           att.policy_id,
           user.organizationId,
         )
@@ -401,7 +425,10 @@ policies.post(
       method,
       markdown,
       sections,
+      extracted: fieldGuess,
       applied: apply,
+      note,
+      ai_available: !!c.env.AI,
       policy: policy ? toClient(policy) : null,
     })
   },
