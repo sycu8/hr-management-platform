@@ -1,0 +1,48 @@
+{
+  "name": "hr-management-platform",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test",
+    "preview": "npm run build && vite preview",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "db:migrate:local": "wrangler d1 migrations apply HRM_DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply HRM_DB --remote",
+    "db:seed:local": "wrangler d1 execute HRM_DB --local --file=./seed/demo.sql"
+  },
+  "dependencies": {
+    "date-fns": "^4.4.0",
+    "hono": "^4.13.13",
+    "jose": "^6.2.12",
+    "lucide-react": "^0.544.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.64.0",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "typescript": "~5.9.2",
+    "vite": "^8.3.0",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.151.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

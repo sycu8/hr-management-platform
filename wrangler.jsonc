@@ -1,0 +1,103 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hr-management-platform",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1
+    }
+  },
+  "upload_source_maps": true,
+  "placement": {
+    "mode": "smart"
+  },
+  "vars": {
+    "APP_NAME": "HR Management Platform",
+    "APP_LOCALE": "vi-VN",
+    "APP_CURRENCY": "VND",
+    "APP_TIMEZONE": "Asia/Ho_Chi_Minh",
+    "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_TEAM.cloudflareaccess.com",
+    "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD",
+    "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY",
+    "EMAIL_FROM": "hrm@example.com",
+    "EMAIL_FROM_NAME": "HR Management Platform",
+    "LEGAL_REVIEW_REQUIRED": "true"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "HRM_DB",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "DOCUMENTS",
+      "bucket_name": "hrm-documents"
+    },
+    {
+      "binding": "EXPORTS",
+      "bucket_name": "hrm-exports"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "NOTIFICATIONS",
+        "queue": "hrm-notifications"
+      },
+      {
+        "binding": "JOBS",
+        "queue": "hrm-jobs"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "hrm-notifications",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5
+      },
+      {
+        "queue": "hrm-jobs",
+        "max_batch_size": 5,
+        "max_batch_timeout": 10
+      }
+    ]
+  },
+  "workflows": [
+    {
+      "name": "hrm-reminder-workflow",
+      "binding": "REMINDER_WORKFLOW",
+      "class_name": "ReminderWorkflow"
+    },
+    {
+      "name": "hrm-payroll-close-workflow",
+      "binding": "PAYROLL_CLOSE_WORKFLOW",
+      "class_name": "PayrollCloseWorkflow"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  }
+}

@@ -1,0 +1,48 @@
+name: Deploy Cloudflare
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run build
+      - name: Apply D1 migrations
+        run: npx wrangler d1 migrations apply HRM_DB --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy Worker
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Reminder about required secrets
+        run: |
+          echo "Configure these GitHub Actions secrets before production use:"
+          echo "- CLOUDFLARE_API_TOKEN"
+          echo "- CLOUDFLARE_ACCOUNT_ID"
+          echo "Also set Worker secrets / vars:"
+          echo "- ACCESS_TEAM_DOMAIN, ACCESS_AUD"
+          echo "- TURNSTILE_SECRET (Worker secret), TURNSTILE_SITE_KEY (var)"
+          echo "- EMAIL domain enabled for Cloudflare Email Service"
+          echo "- Replace placeholder D1/KV/R2 resource IDs in wrangler.jsonc after provisioning"

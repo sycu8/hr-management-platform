@@ -1,0 +1,109 @@
+/* Color & type tokens from HRM Portal handoff (:root + dark). Themes via data-theme. */
+
+:root,
+:root[data-theme='light'] {
+  --bg: #f5f4fa;
+  --surface: #ffffff;
+  --ink: #1b1936;
+  --muted: #645f7e;
+  --line: #e2e0ee;
+  --accent: #534ab7;
+  --accent-ink: #ffffff;
+  --accent-soft: #eceafb;
+  --nav: #1e1b4b;
+  --nav-ink: #d9d6f5;
+  --nav-mut: #8e8ac4;
+  --nav-line: #322e6b;
+  --nav-hi: #2e2a66;
+  --good: #1f7a4d;
+  --good-bg: #e3f4ea;
+  --warn: #935a08;
+  --warn-bg: #fbefd9;
+  --bad: #b3302e;
+  --bad-bg: #fbe6e5;
+  --info: #1f5fa6;
+  --info-bg: #e2eefa;
+  --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #12111f;
+  --surface: #1b1a2e;
+  --ink: #ecebf7;
+  --muted: #a09ebc;
+  --line: #2e2c48;
+  --accent: #9c95f0;
+  --accent-ink: #14122b;
+  --accent-soft: #2a2750;
+  --nav: #0d0c1c;
+  --nav-ink: #d2d0ec;
+  --nav-mut: #7f7cae;
+  --nav-line: #25233f;
+  --nav-hi: #25233f;
+  --good: #6fd39b;
+  --good-bg: #16342a;
+  --warn: #edb561;
+  --warn-bg: #3a2d14;
+  --bad: #f08a87;
+  --bad-bg: #40191a;
+  --info: #79b4f2;
+  --info-bg: #172e47;
+  color-scheme: dark;
+}
+
+/* system / unset = follow OS preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']),
+  :root[data-theme='system'] {
+    --bg: #12111f;
+    --surface: #1b1a2e;
+    --ink: #ecebf7;
+    --muted: #a09ebc;
+    --line: #2e2c48;
+    --accent: #9c95f0;
+    --accent-ink: #14122b;
+    --accent-soft: #2a2750;
+    --nav: #0d0c1c;
+    --nav-ink: #d2d0ec;
+    --nav-mut: #7f7cae;
+    --nav-line: #25233f;
+    --nav-hi: #25233f;
+    --good: #6fd39b;
+    --good-bg: #16342a;
+    --warn: #edb561;
+    --warn-bg: #3a2d14;
+    --bad: #f08a87;
+    --bad-bg: #40191a;
+    --info: #79b4f2;
+    --info-bg: #172e47;
+    color-scheme: dark;
+  }
+}
+
+/* Force light even when OS prefers dark */
+:root[data-theme='light'] {
+  --bg: #f5f4fa;
+  --surface: #ffffff;
+  --ink: #1b1936;
+  --muted: #645f7e;
+  --line: #e2e0ee;
+  --accent: #534ab7;
+  --accent-ink: #ffffff;
+  --accent-soft: #eceafb;
+  --nav: #1e1b4b;
+  --nav-ink: #d9d6f5;
+  --nav-mut: #8e8ac4;
+  --nav-line: #322e6b;
+  --nav-hi: #2e2a66;
+  --good: #1f7a4d;
+  --good-bg: #e3f4ea;
+  --warn: #935a08;
+  --warn-bg: #fbefd9;
+  --bad: #b3302e;
+  --bad-bg: #fbe6e5;
+  --info: #1f5fa6;
+  --info-bg: #e2eefa;
+  color-scheme: light;
+}
