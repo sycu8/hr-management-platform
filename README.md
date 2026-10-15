@@ -9,7 +9,20 @@ Rebuilt from the HRM Portal handoff as a production Cloudflare application.
 - React + Vite SPA (Vietnamese UI)
 - Cloudflare Workers + Hono API
 - D1, R2, KV, Queues, Workflows, Cron, Email Service, Turnstile
-- Cloudflare Access for organization SSO
+- Public email/password login (no Cloudflare Access gate)
+
+## Login (public)
+
+App: https://hrm.orangecloud.vn
+
+Use email/password:
+
+| Account | Email | Password | Rights |
+| --- | --- | --- | --- |
+| Super Admin | super@orangecloud.vn | SuperAdmin!2026 | Full + view-as |
+| Admin (HR) | admin@orangecloud.vn | Admin!2026 | Create users, manage data, reset passwords (no system admin) |
+| User (tuyen dung) | user.tuyendung@orangecloud.vn | User!2026 | Recruiting capabilities |
+| User (luong) | user.luong@orangecloud.vn | User!2026 | Payroll/benefits capabilities |
 
 ## Quick start
 

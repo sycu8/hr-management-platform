@@ -51,7 +51,12 @@ export function EmployeeProfilesPage() {
   }
 
   if (state.items.length === 0) {
-    return <div className="card empty">Chưa có nhân viên trong tổ chức.</div>
+    return (
+      <div className="card empty">
+        <h2>Hồ sơ cá nhân</h2>
+        <p>Không có dữ liệu</p>
+      </div>
+    )
   }
 
   return (

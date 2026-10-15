@@ -112,11 +112,6 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <p className="ex">
-        Ngày hệ thống dùng ngày hiện tại thật. Tài khoản Access được tự tạo trong
-        tổ chức demo khi đăng nhập lần đầu; nâng quyền (HR/Admin) cần cập nhật
-        trong bảng users.
-      </p>
     </div>
   )
 }
