@@ -38,14 +38,23 @@ type DashboardSummary = {
     title: string
     when: string
     detail: string
+    href?: string
+    action?: string
   }[]
-  upcoming: { kind?: string; title: string; when: string; detail: string }[]
+  upcoming: {
+    kind?: string
+    title: string
+    when: string
+    detail: string
+    href?: string
+  }[]
   presenceTrend?: { month: string; value: number }[]
   contractsEnding?: {
     name: string
     code: string
     end: string
     title: string
+    href?: string
   }[]
 }
 
@@ -232,15 +241,31 @@ export function DashboardPage() {
             <p className="empty">Không có cảnh báo.</p>
           ) : (
             <ul className="feed-list">
-              {data.alerts.map((a, i) => (
-                <li key={`${a.kind}-${a.title}-${i}`}>
-                  <div className="feed-when">{a.when}</div>
-                  <div>
-                    <strong>{a.title}</strong>
-                    <div className="muted small">{a.detail}</div>
-                  </div>
-                </li>
-              ))}
+              {data.alerts.map((a, i) => {
+                const body = (
+                  <>
+                    <div className="feed-when">{a.when}</div>
+                    <div className="feed-body">
+                      <strong>{a.title}</strong>
+                      <div className="muted small">{a.detail}</div>
+                      {a.action ? (
+                        <span className="feed-action">{a.action} →</span>
+                      ) : null}
+                    </div>
+                  </>
+                )
+                return (
+                  <li key={`${a.kind}-${a.title}-${i}`}>
+                    {a.href ? (
+                      <Link to={a.href} className="feed-link">
+                        {body}
+                      </Link>
+                    ) : (
+                      body
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>
@@ -250,15 +275,28 @@ export function DashboardPage() {
             <p className="empty">Không có lịch nghỉ sắp tới.</p>
           ) : (
             <ul className="feed-list">
-              {data.upcoming.map((u, i) => (
-                <li key={`${u.title}-${u.when}-${i}`}>
-                  <div className="feed-when">{u.when}</div>
-                  <div>
-                    <strong>{u.title}</strong>
-                    <div className="muted small">{u.detail}</div>
-                  </div>
-                </li>
-              ))}
+              {data.upcoming.map((u, i) => {
+                const body = (
+                  <>
+                    <div className="feed-when">{u.when}</div>
+                    <div className="feed-body">
+                      <strong>{u.title}</strong>
+                      <div className="muted small">{u.detail}</div>
+                    </div>
+                  </>
+                )
+                return (
+                  <li key={`${u.title}-${u.when}-${i}`}>
+                    {u.href ? (
+                      <Link to={u.href} className="feed-link">
+                        {body}
+                      </Link>
+                    ) : (
+                      body
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>

@@ -2,8 +2,21 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchJson } from '../../lib/api'
 
-type Alert = { kind: string; title: string; when: string; detail: string }
-type Contract = { name: string; code: string; end: string; title: string }
+type Alert = {
+  kind: string
+  title: string
+  when: string
+  detail: string
+  href?: string
+  action?: string
+}
+type Contract = {
+  name: string
+  code: string
+  end: string
+  title: string
+  href?: string
+}
 
 type Summary = {
   alerts: Alert[]
@@ -25,6 +38,8 @@ const KIND_LABEL: Record<string, string> = {
   trip: 'Công tác',
   contract: 'Hợp đồng',
   onboard: 'Onboarding',
+  job: 'Tin tuyển',
+  candidate: 'Ứng viên',
 }
 
 export function AlertsPage() {
@@ -65,7 +80,8 @@ export function AlertsPage() {
   return (
     <div className="stack dash">
       <p className="page-lead muted">
-        Việc cần xử lý: duyệt phép / công tác, HĐ sắp hết hạn, hết thử việc.
+        Bấm từng dòng để mở đúng trang xử lý: duyệt phép, phê duyệt/quyết toán
+        công tác, HĐ, onboarding, tin tuyển.
       </p>
       <div className="grid g4 kpi-row">
         <Link to="/leave" className="kpi-chip">
@@ -91,20 +107,36 @@ export function AlertsPage() {
           <p className="empty">Không có cảnh báo.</p>
         ) : (
           <ul className="feed-list">
-            {data.alerts.map((a, i) => (
-              <li key={`${a.kind}-${a.title}-${i}`}>
-                <div className="feed-when">{a.when}</div>
-                <div>
-                  <span className="muted small">
-                    {KIND_LABEL[a.kind] ?? a.kind}
-                  </span>
-                  <div>
-                    <strong>{a.title}</strong>
+            {data.alerts.map((a, i) => {
+              const body = (
+                <>
+                  <div className="feed-when">{a.when}</div>
+                  <div className="feed-body">
+                    <span className="muted small">
+                      {KIND_LABEL[a.kind] ?? a.kind}
+                    </span>
+                    <div>
+                      <strong>{a.title}</strong>
+                    </div>
+                    <div className="muted small">{a.detail}</div>
+                    {a.action ? (
+                      <span className="feed-action">{a.action} →</span>
+                    ) : null}
                   </div>
-                  <div className="muted small">{a.detail}</div>
-                </div>
-              </li>
-            ))}
+                </>
+              )
+              return (
+                <li key={`${a.kind}-${a.title}-${i}`}>
+                  {a.href ? (
+                    <Link to={a.href} className="feed-link">
+                      {body}
+                    </Link>
+                  ) : (
+                    body
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
@@ -125,7 +157,13 @@ export function AlertsPage() {
                 {data.contractsEnding.map((c) => (
                   <tr key={c.code} className="row-warn">
                     <td className="mono">{c.code}</td>
-                    <td>{c.name}</td>
+                    <td>
+                      {c.href ? (
+                        <Link to={c.href}>{c.name}</Link>
+                      ) : (
+                        c.name
+                      )}
+                    </td>
                     <td>{c.title}</td>
                     <td className="mono">{c.end}</td>
                   </tr>

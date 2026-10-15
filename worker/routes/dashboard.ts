@@ -197,25 +197,55 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
     .all<CountRow>()
 
   const { results: alertLeave } = await c.env.DB.prepare(
-    `SELECT e.full_name AS name, l.start_date AS when_at, l.leave_type AS detail
+    `SELECT l.id, e.full_name AS name, l.start_date AS when_at, l.leave_type AS detail
      FROM leave_requests l
      JOIN employees e ON e.id = l.employee_id
      WHERE l.organization_id = ? AND l.status = 'pending'
      ORDER BY l.start_date
-     LIMIT 5`,
+     LIMIT 8`,
   )
     .bind(org)
-    .all<{ name: string; when_at: string; detail: string }>()
+    .all<{ id: string; name: string; when_at: string; detail: string }>()
 
   const { results: alertTrips } = await c.env.DB.prepare(
-    `SELECT code AS name, start_at AS when_at, destination AS detail
+    `SELECT id, code AS name, start_at AS when_at, destination AS detail, status
      FROM trips
-     WHERE organization_id = ? AND status IN ('pm','ph','st')
-     ORDER BY start_at
+     WHERE organization_id = ? AND status IN ('pm','ph','st','ap')
+     ORDER BY
+       CASE status WHEN 'pm' THEN 0 WHEN 'ph' THEN 1 WHEN 'st' THEN 2 ELSE 3 END,
+       start_at
+     LIMIT 8`,
+  )
+    .bind(org)
+    .all<{
+      id: string
+      name: string
+      when_at: string
+      detail: string
+      status: string
+    }>()
+
+  const { results: alertJobs } = await c.env.DB.prepare(
+    `SELECT id, title AS name, deadline AS when_at, department AS detail
+     FROM job_requisitions
+     WHERE organization_id = ? AND status = 'open'
+       AND deadline IS NOT NULL AND deadline <= date(?, '+21 days')
+     ORDER BY deadline
+     LIMIT 5`,
+  )
+    .bind(org, today)
+    .all<{ id: string; name: string; when_at: string; detail: string }>()
+
+  const { results: alertOffer } = await c.env.DB.prepare(
+    `SELECT id, full_name AS name, COALESCE(interview_at, updated_at) AS when_at,
+            stage AS detail
+     FROM candidates
+     WHERE organization_id = ? AND stage IN ('offer','Offer')
+     ORDER BY updated_at DESC
      LIMIT 5`,
   )
     .bind(org)
-    .all<{ name: string; when_at: string; detail: string }>()
+    .all<{ id: string; name: string; when_at: string; detail: string }>()
 
   const { results: upcomingLeave } = await c.env.DB.prepare(
     `SELECT e.full_name AS name, l.start_date AS when_at,
@@ -330,19 +360,33 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
         kind: 'leave' as const,
         title: a.name,
         when: a.when_at,
-        detail: `Chờ duyệt: ${a.detail}`,
+        detail: `Chờ duyệt nghỉ: ${a.detail}`,
+        href: '/leave',
+        action: 'Duyệt phép',
+        entityId: a.id,
       })),
-      ...(alertTrips ?? []).map((a) => ({
-        kind: 'trip' as const,
-        title: a.name,
-        when: String(a.when_at).slice(0, 10),
-        detail: `Công tác: ${a.detail}`,
-      })),
+      ...(alertTrips ?? []).map((a) => {
+        const settle = a.status === 'st' || a.status === 'ap'
+        return {
+          kind: 'trip' as const,
+          title: a.name,
+          when: String(a.when_at).slice(0, 10),
+          detail: settle
+            ? `Quyết toán công tác: ${a.detail}`
+            : `Chờ phê duyệt công tác: ${a.detail}`,
+          href: settle ? '/travel/settlements' : '/travel/approvals',
+          action: settle ? 'Quyết toán' : 'Phê duyệt',
+          entityId: a.id,
+        }
+      }),
       ...(contractsSoon ?? []).map((a) => ({
         kind: 'contract' as const,
         title: `${a.name} (${a.code})`,
         when: a.when_at,
         detail: `HĐ hết hạn — ${a.detail}`,
+        href: '/employees/jobs',
+        action: 'Xem hồ sơ CV',
+        entityId: a.code,
       })),
       ...(Number(onboardingDue?.n ?? 0) > 0
         ? [
@@ -351,9 +395,30 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
               title: 'Onboarding hết thử việc',
               when: today,
               detail: `${onboardingDue?.n} người cần chuyển hồ sơ NV chính thức`,
+              href: '/recruitment/onboarding',
+              action: 'Xử lý onboarding',
+              entityId: null as string | null,
             },
           ]
         : []),
+      ...(alertJobs ?? []).map((a) => ({
+        kind: 'job' as const,
+        title: a.name,
+        when: a.when_at,
+        detail: `Tin tuyển ${a.detail} — hạn nhận hồ sơ`,
+        href: '/recruitment/jobs',
+        action: 'Xem tin tuyển',
+        entityId: a.id,
+      })),
+      ...(alertOffer ?? []).map((a) => ({
+        kind: 'candidate' as const,
+        title: a.name,
+        when: String(a.when_at).slice(0, 10),
+        detail: `Ứng viên ở bước Offer — cần phản hồi`,
+        href: '/recruitment/candidates',
+        action: 'Theo dõi UV',
+        entityId: a.id,
+      })),
     ],
     upcoming: [
       ...(upcomingLeave ?? []).map((u) => ({
@@ -361,12 +426,14 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
         title: u.name,
         when: u.when_at,
         detail: u.detail,
+        href: '/leave/calendar',
       })),
       ...(upcomingTrips ?? []).map((u) => ({
         kind: 'trip' as const,
         title: u.name,
         when: String(u.when_at).slice(0, 10),
         detail: u.detail,
+        href: '/travel/trips',
       })),
     ].sort((a, b) => a.when.localeCompare(b.when)),
     presenceTrend: (presenceTrend ?? []).map((r) => ({
@@ -378,6 +445,7 @@ dashboard.get('/summary', requireModule('dash', 1), async (c) => {
       code: c.code,
       end: c.when_at,
       title: c.detail,
+      href: '/employees/jobs',
     })),
   })
 })

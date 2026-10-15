@@ -5,5 +5,5 @@
     "types": ["./worker-configuration.d.ts", "vite/client"],
     "allowImportingTsExtensions": true
   },
-  "include": ["worker"]
+  "include": ["worker", "shared"]
 }
