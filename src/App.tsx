@@ -1,5 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
+import { RequireAuth } from './components/RequireAuth'
+import { AuthProvider } from './lib/auth'
+import { LoginPage } from './pages/LoginPage'
 import { ExportsPage } from './pages/admin/ExportsPage'
 import { IntegrationsPage } from './pages/admin/IntegrationsPage'
 import { PermissionsPage } from './pages/admin/PermissionsPage'
@@ -43,52 +46,57 @@ import { TravelTripsPage } from './pages/travel/TravelTripsPage'
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="presence" element={<PresencePage />} />
-          <Route path="alerts" element={<AlertsPage />} />
-          <Route path="events" element={<EventsPage />} />
-          <Route path="employees" element={<EmployeeProfilesPage />} />
-          <Route path="employees/jobs" element={<JobProfilesPage />} />
-          <Route path="employees/history" element={<WorkHistoryPage />} />
-          <Route path="employees/docs" element={<DocumentsPage />} />
-          <Route path="recruitment/jobs" element={<JobListingsPage />} />
-          <Route path="recruitment/candidates" element={<CandidatesPage />} />
-          <Route path="recruitment/onboarding" element={<OnboardingPage />} />
-          <Route path="leave" element={<LeaveRequestPage />} />
-          <Route path="leave/quota" element={<LeaveQuotaPage />} />
-          <Route path="attendance" element={<AttendancePage />} />
-          <Route path="leave/calendar" element={<TeamCalendarPage />} />
-          <Route path="travel" element={<TravelOverviewPage />} />
-          <Route path="travel/trips" element={<TravelTripsPage />} />
-          <Route path="travel/approvals" element={<TravelApprovalsPage />} />
-          <Route path="travel/settlements" element={<TravelSettlementsPage />} />
-          <Route path="travel/policy" element={<TravelPolicyPage />} />
-          <Route path="travel/reports" element={<TravelReportsPage />} />
-          <Route path="payroll" element={<PayrollPage />} />
-          <Route path="payroll/payslips" element={<PayslipsPage />} />
-          <Route path="payroll/allowances" element={<AllowancesPage />} />
-          <Route path="payroll/insurance" element={<InsurancePage />} />
-          <Route path="performance/cycles" element={<CyclesPage />} />
-          <Route path="performance/okr" element={<OkrPage />} />
-          <Route path="performance/360" element={<Review360Page />} />
-          <Route path="performance/history" element={<PerfHistoryPage />} />
-          <Route path="learning/courses" element={<CoursesPage />} />
-          <Route path="learning/progress" element={<ProgressPage />} />
-          <Route path="learning/certificates" element={<CertificatesPage />} />
-          <Route path="learning/careers" element={<CareersPage />} />
-          <Route path="policies/rules" element={<RulesPage />} />
-          <Route path="policies/sop" element={<SopPage />} />
-          <Route path="policies/legal" element={<LegalPage />} />
-          <Route path="admin/permissions" element={<PermissionsPage />} />
-          <Route path="admin/security" element={<SecurityPage />} />
-          <Route path="admin/integrations" element={<IntegrationsPage />} />
-          <Route path="admin/exports" element={<ExportsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<RequireAuth />}>
+            <Route element={<AppShell />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="presence" element={<PresencePage />} />
+              <Route path="alerts" element={<AlertsPage />} />
+              <Route path="events" element={<EventsPage />} />
+              <Route path="employees" element={<EmployeeProfilesPage />} />
+              <Route path="employees/jobs" element={<JobProfilesPage />} />
+              <Route path="employees/history" element={<WorkHistoryPage />} />
+              <Route path="employees/docs" element={<DocumentsPage />} />
+              <Route path="recruitment/jobs" element={<JobListingsPage />} />
+              <Route path="recruitment/candidates" element={<CandidatesPage />} />
+              <Route path="recruitment/onboarding" element={<OnboardingPage />} />
+              <Route path="leave" element={<LeaveRequestPage />} />
+              <Route path="leave/quota" element={<LeaveQuotaPage />} />
+              <Route path="attendance" element={<AttendancePage />} />
+              <Route path="leave/calendar" element={<TeamCalendarPage />} />
+              <Route path="travel" element={<TravelOverviewPage />} />
+              <Route path="travel/trips" element={<TravelTripsPage />} />
+              <Route path="travel/approvals" element={<TravelApprovalsPage />} />
+              <Route path="travel/settlements" element={<TravelSettlementsPage />} />
+              <Route path="travel/policy" element={<TravelPolicyPage />} />
+              <Route path="travel/reports" element={<TravelReportsPage />} />
+              <Route path="payroll" element={<PayrollPage />} />
+              <Route path="payroll/payslips" element={<PayslipsPage />} />
+              <Route path="payroll/allowances" element={<AllowancesPage />} />
+              <Route path="payroll/insurance" element={<InsurancePage />} />
+              <Route path="performance/cycles" element={<CyclesPage />} />
+              <Route path="performance/okr" element={<OkrPage />} />
+              <Route path="performance/360" element={<Review360Page />} />
+              <Route path="performance/history" element={<PerfHistoryPage />} />
+              <Route path="learning/courses" element={<CoursesPage />} />
+              <Route path="learning/progress" element={<ProgressPage />} />
+              <Route path="learning/certificates" element={<CertificatesPage />} />
+              <Route path="learning/careers" element={<CareersPage />} />
+              <Route path="policies/rules" element={<RulesPage />} />
+              <Route path="policies/sop" element={<SopPage />} />
+              <Route path="policies/legal" element={<LegalPage />} />
+              <Route path="admin/permissions" element={<PermissionsPage />} />
+              <Route path="admin/security" element={<SecurityPage />} />
+              <Route path="admin/integrations" element={<IntegrationsPage />} />
+              <Route path="admin/exports" element={<ExportsPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }

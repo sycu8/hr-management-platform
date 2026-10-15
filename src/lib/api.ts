@@ -17,6 +17,7 @@ export async function fetchJson<T>(
     ...init,
     headers: {
       Accept: 'application/json',
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
       ...(init?.headers ?? {}),
     },
   })
@@ -29,10 +30,11 @@ export async function fetchJson<T>(
         message?: string
       }
       if (typeof body.error === 'string') detail = body.error
-      else if (body.error?.message) detail = body.error.message
+      else if (body.error && typeof body.error === 'object' && body.error.message)
+        detail = body.error.message
       else if (body.message) detail = body.message
     } catch {
-      /* ignore non-JSON error bodies */
+      /* ignore */
     }
     throw new ApiError(res.status, detail)
   }
@@ -41,16 +43,45 @@ export async function fetchJson<T>(
   return (await res.json()) as T
 }
 
-/** Authenticated user payload from `GET /api/me`. */
+export type AccountType = 'super_admin' | 'admin' | 'user'
+
 export type MeUser = {
   id: string
   organizationId: string
   email: string
   displayName: string
-  role: string
+  accountType: AccountType
   employeeId: string | null
+  mustResetPassword: boolean
+  viewAsUserId: string | null
+  effectiveUserId: string
+  modules: string[]
 }
 
 export function fetchMe(): Promise<MeUser> {
-  return fetchJson<MeUser>('/api/me')
+  return fetchJson<MeUser>('/api/auth/me')
+}
+
+export function login(email: string, password: string) {
+  return fetchJson<{
+    id: string
+    email: string
+    displayName: string
+    accountType: AccountType
+    mustResetPassword: boolean
+  }>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+export function logout() {
+  return fetchJson<{ ok: boolean }>('/api/auth/logout', { method: 'POST' })
+}
+
+export function changePassword(currentPassword: string, newPassword: string) {
+  return fetchJson<{ ok: boolean }>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
 }

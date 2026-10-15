@@ -18,7 +18,9 @@
     "db:migrate:local": "wrangler d1 migrations apply HRM_DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply HRM_DB --remote",
     "db:seed:local": "wrangler d1 execute HRM_DB --local --file=./seed/demo.sql",
-    "db:provision": "node scripts/provision-cloudflare.mjs"
+    "db:provision": "node scripts/provision-cloudflare.mjs",
+    "db:seed:auth:local": "wrangler d1 execute HRM_DB --local --file=./seed/auth_users.sql",
+    "db:seed:auth:remote": "wrangler d1 execute HRM_DB --remote --file=./seed/auth_users.sql"
   },
   "dependencies": {
     "date-fns": "^4.4.0",
@@ -47,4 +49,3 @@
     "node": ">=22"
   }
 }
-

@@ -4,6 +4,13 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-15",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "hrm.orangecloud.vn/*",
+      "zone_name": "orangecloud.vn"
+    }
+  ],
   "assets": {
     "not_found_handling": "single-page-application",
     "binding": "ASSETS",
@@ -25,10 +32,9 @@
     "APP_LOCALE": "vi-VN",
     "APP_CURRENCY": "VND",
     "APP_TIMEZONE": "Asia/Ho_Chi_Minh",
-    "ACCESS_TEAM_DOMAIN": "cloudspacevn.cloudflareaccess.com",
-    "ACCESS_AUD": "42ad88295b59755ae849cc895c05d407fbd6dfeb4f4a33261dd5eeb5f7a9505c",
+    "APP_PUBLIC_URL": "https://hrm.orangecloud.vn",
     "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY",
-    "EMAIL_FROM": "hrm@example.com",
+    "EMAIL_FROM": "hrm@orangecloud.vn",
     "EMAIL_FROM_NAME": "HR Management Platform",
     "LEGAL_REVIEW_REQUIRED": "true"
   },

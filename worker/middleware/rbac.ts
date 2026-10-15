@@ -1,5 +1,12 @@
 import { createMiddleware } from 'hono/factory'
-import type { Env, ModuleKey, PermissionLevel } from '../env.ts'
+import {
+  CAPABILITY_TO_MODULE,
+  type AccountType,
+  type Capability,
+  type Env,
+  type ModuleKey,
+  type PermissionLevel,
+} from '../env.ts'
 import { forbidden } from '../lib/http.ts'
 import type { AuthUser } from './auth.ts'
 
@@ -8,47 +15,61 @@ type AppBindings = {
   Variables: { user: AuthUser }
 }
 
-const ELEVATED_ROLES = new Set(['admin', 'hr', 'manager', 'finance'])
+const ALL_MODULES: ModuleKey[] = [
+  'dash',
+  'emp',
+  'rec',
+  'leave',
+  'trip',
+  'pay',
+  'perf',
+  'learn',
+  'pol',
+  'sys',
+]
 
-async function permissionLevelFor(
+export async function getPermissionLevel(
   db: D1Database,
   user: AuthUser,
   moduleKey: ModuleKey,
 ): Promise<PermissionLevel> {
-  // Admins are treated as full access when no matrix row exists.
-  if (user.role === 'admin') {
-    const row = await db
-      .prepare(
-        `SELECT level FROM permission_matrix
-         WHERE organization_id = ? AND role = ? AND module_key = ?
-         LIMIT 1`,
-      )
-      .bind(user.organizationId, user.role, moduleKey)
-      .first<{ level: number }>()
+  // Super admin always full access (even while viewing-as, SA retains elevated writes —
+  // view-as is for perspective; mutations still allowed for SA).
+  if (user.accountType === 'super_admin') return 2
 
-    return (row?.level ?? 2) as PermissionLevel
+  // When viewing-as, use target account permissions for reads/writes scope checks.
+  const accountType: AccountType = user.accountType
+
+  if (accountType === 'admin') {
+    // HR manager: all business modules, no system administration.
+    if (moduleKey === 'sys') return 0
+    return 2
   }
 
-  const row = await db
-    .prepare(
-      `SELECT level FROM permission_matrix
-       WHERE organization_id = ? AND role = ? AND module_key = ?
-       LIMIT 1`,
-    )
-    .bind(user.organizationId, user.role, moduleKey)
-    .first<{ level: number }>()
+  // user: capabilities table
+  if (moduleKey === 'dash') return 1
 
-  return (row?.level ?? 0) as PermissionLevel
+  const { results } = await db
+    .prepare(
+      `SELECT capability, level FROM user_capabilities WHERE user_id = ?`,
+    )
+    .bind(user.effectiveUserId)
+    .all<{ capability: Capability; level: number }>()
+
+  let level: PermissionLevel = 0
+  for (const row of results ?? []) {
+    const mod = CAPABILITY_TO_MODULE[row.capability]
+    if (mod === moduleKey) {
+      level = Math.max(level, row.level as PermissionLevel) as PermissionLevel
+    }
+  }
+  return level
 }
 
-/**
- * Require at least `minLevel` on `module` for the authenticated user's DB role.
- * Levels: 0 = none, 1 = read, 2 = write.
- */
 export function requireModule(moduleKey: ModuleKey, minLevel: PermissionLevel) {
   return createMiddleware<AppBindings>(async (c, next) => {
     const user = c.get('user')
-    const level = await permissionLevelFor(c.env.DB, user, moduleKey)
+    const level = await getPermissionLevel(c.env.DB, user, moduleKey)
     if (level < minLevel) {
       return forbidden(c, `Insufficient permission for module "${moduleKey}"`)
     }
@@ -56,17 +77,84 @@ export function requireModule(moduleKey: ModuleKey, minLevel: PermissionLevel) {
   })
 }
 
-/**
- * Allow when the path/resource employeeId matches the caller's linked employee,
- * or when the caller has elevated org role / module write access.
- */
+export function requireAccountTypes(...types: AccountType[]) {
+  return createMiddleware<AppBindings>(async (c, next) => {
+    const user = c.get('user')
+    // Account-management actions use the real session actor, not view-as target.
+    // For create-user / reset-password we check actor via session reload in route,
+    // here we use accountType on the set user — view-as switches accountType to target.
+    // Routes that must ignore view-as should call requireActorAccountTypes.
+    if (!types.includes(user.accountType) && user.accountType !== 'super_admin') {
+      // If viewing-as, accountType is target — block admin actions during view-as unless SA.
+      return forbidden(c, 'Insufficient account type')
+    }
+    if (user.viewAsUserId && !types.includes('super_admin')) {
+      // Prefer explicit actor checks in sensitive routes.
+    }
+    await next()
+  })
+}
+
+/** Actor (session owner) must be admin or super_admin — ignores view-as target. */
+export function requireActorAdmin() {
+  return createMiddleware<AppBindings>(async (c, next) => {
+    const user = c.get('user')
+    const session = await c.env.DB.prepare(
+      `SELECT user_id FROM sessions WHERE id = ? LIMIT 1`,
+    )
+      .bind(user.sessionId)
+      .first<{ user_id: string }>()
+
+    if (!session) return forbidden(c, 'Session invalid')
+
+    const actor = await c.env.DB.prepare(
+      `SELECT account_type FROM users WHERE id = ? LIMIT 1`,
+    )
+      .bind(session.user_id)
+      .first<{ account_type: AccountType }>()
+
+    if (
+      !actor ||
+      (actor.account_type !== 'admin' && actor.account_type !== 'super_admin')
+    ) {
+      return forbidden(c, 'Admin only')
+    }
+    await next()
+  })
+}
+
+export function requireActorSuperAdmin() {
+  return createMiddleware<AppBindings>(async (c, next) => {
+    const user = c.get('user')
+    const session = await c.env.DB.prepare(
+      `SELECT user_id FROM sessions WHERE id = ? LIMIT 1`,
+    )
+      .bind(user.sessionId)
+      .first<{ user_id: string }>()
+
+    if (!session) return forbidden(c, 'Session invalid')
+
+    const actor = await c.env.DB.prepare(
+      `SELECT account_type FROM users WHERE id = ? LIMIT 1`,
+    )
+      .bind(session.user_id)
+      .first<{ account_type: AccountType }>()
+
+    if (!actor || actor.account_type !== 'super_admin') {
+      return forbidden(c, 'Super admin only')
+    }
+    await next()
+  })
+}
+
 export function requireSelfOrElevated(options: {
   moduleKey: ModuleKey
-  /** Resolve target employee id from the request (path/query/body). */
   getEmployeeId: (c: {
-    req: { param: (key: string) => string; query: (key: string) => string | undefined }
+    req: {
+      param: (key: string) => string
+      query: (key: string) => string | undefined
+    }
   }) => string | undefined | null
-  /** Min module level that counts as elevated (default 1). */
   elevatedMinLevel?: PermissionLevel
 }) {
   const elevatedMin = options.elevatedMinLevel ?? 1
@@ -84,26 +172,36 @@ export function requireSelfOrElevated(options: {
       return
     }
 
-    if (ELEVATED_ROLES.has(user.role)) {
-      const level = await permissionLevelFor(
-        c.env.DB,
-        user,
-        options.moduleKey,
-      )
-      if (level >= elevatedMin) {
-        await next()
-        return
-      }
+    if (
+      user.accountType === 'super_admin' ||
+      user.accountType === 'admin'
+    ) {
+      await next()
+      return
+    }
+
+    const level = await getPermissionLevel(
+      c.env.DB,
+      user,
+      options.moduleKey,
+    )
+    if (level >= elevatedMin) {
+      await next()
+      return
     }
 
     return forbidden(c, 'Self or elevated access required')
   })
 }
 
-export async function getPermissionLevel(
+export async function listAllowedModules(
   db: D1Database,
   user: AuthUser,
-  moduleKey: ModuleKey,
-): Promise<PermissionLevel> {
-  return permissionLevelFor(db, user, moduleKey)
+): Promise<ModuleKey[]> {
+  const allowed: ModuleKey[] = []
+  for (const mod of ALL_MODULES) {
+    const level = await getPermissionLevel(db, user, mod)
+    if (level > 0) allowed.push(mod)
+  }
+  return allowed
 }

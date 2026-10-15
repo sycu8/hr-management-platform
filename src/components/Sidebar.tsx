@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { useAuth } from '../lib/auth'
 import { findNavModule, NAV_MAP } from '../lib/nav'
 
 type SidebarProps = {
@@ -10,7 +11,13 @@ type SidebarProps = {
 export function Sidebar({ open, onNavigate }: SidebarProps) {
   const { pathname } = useLocation()
   const activeModule = findNavModule(pathname)
+  const { user } = useAuth()
+  const allowed = new Set(user?.modules ?? [])
   const [userToggled, setUserToggled] = useState<Record<string, boolean>>({})
+
+  const modules = NAV_MAP.filter(
+    (m) => allowed.size === 0 || allowed.has(m.key),
+  )
 
   function isGroupOpen(key: string): boolean {
     if (Object.hasOwn(userToggled, key)) return userToggled[key]!
@@ -33,11 +40,11 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
         </div>
         <div>
           <b>HRM Portal</b>
-          <small>Quản lý nhân sự nội bộ</small>
+          <small>hrm.orangecloud.vn</small>
         </div>
       </div>
 
-      {NAV_MAP.map((mod) => (
+      {modules.map((mod) => (
         <details
           key={mod.key}
           className={`grp${mod.isNew ? ' hl' : ''}`}

@@ -1,10 +1,9 @@
-import type { AppRole } from '../env.ts'
 import { newId } from './ids.ts'
 
 export type WriteAuditEventInput = {
   organizationId: string
   actorUserId?: string | null
-  actorRole?: AppRole | string | null
+  actorRole?: string | null
   actorEmail?: string | null
   action: string
   entityType?: string | null

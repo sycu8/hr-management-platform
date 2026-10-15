@@ -1,14 +1,2 @@
-# Local development only. Copy to .dev.vars and fill values.
-# Never commit real tokens.
-
-# Local auth bypass when CF-Access-Jwt-Assertion / ctx.access is absent.
-# Must match a row in users.email after seeding.
-DEV_AUTH_EMAIL=quan.tri@vidu.vn
-ALLOW_DEV_AUTH=true
-
-# Production Access values live in wrangler.jsonc vars:
-# ACCESS_TEAM_DOMAIN=cloudspacevn.cloudflareaccess.com
-# ACCESS_AUD=42ad88295b59755ae849cc895c05d407fbd6dfeb4f4a33261dd5eeb5f7a9505c
-# JWKS: https://cloudspacevn.cloudflareaccess.com/cdn-cgi/access/certs
-
-# TURNSTILE_SECRET=replace-with-turnstile-secret
+# Local development only. Copy to .dev.vars — never commit secrets.
+# Password auth is used (Cloudflare Access removed).

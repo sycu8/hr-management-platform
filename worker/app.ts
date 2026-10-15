@@ -2,12 +2,13 @@ import { Hono } from 'hono'
 import type { Env } from './env.ts'
 import { apiError } from './lib/http.ts'
 import type { AuthUser } from './middleware/auth.ts'
+import auth from './routes/auth.ts'
+import dashboard from './routes/dashboard.ts'
 import employees from './routes/employees.ts'
 import health from './routes/health.ts'
-import me from './routes/me.ts'
 import payroll from './routes/payroll.ts'
 import trips from './routes/trips.ts'
-import dashboard from './routes/dashboard.ts'
+import users from './routes/users.ts'
 
 export type AppVariables = {
   user: AuthUser
@@ -30,7 +31,8 @@ export function createApp() {
 
   const api = new Hono<AppEnv>()
   api.route('/', health)
-  api.route('/', me)
+  api.route('/auth', auth)
+  api.route('/users', users)
   api.route('/employees', employees)
   api.route('/trips', trips)
   api.route('/payroll', payroll)

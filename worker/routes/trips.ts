@@ -33,7 +33,7 @@ trips.get('/', requireModule('trip', 1), async (c) => {
   // Employees only see their own trips unless elevated via permission_matrix.
   // Full self-scope filtering refinement lives with domain/services later.
   const employeeFilter =
-    user.role === 'employee' && user.employeeId ? user.employeeId : null
+    (user.accountType === 'user') && user.employeeId ? user.employeeId : null
 
   const { results } = await c.env.DB.prepare(
     `SELECT id, code, employee_id, origin, destination, zone, start_at, end_at, status, purpose
