@@ -1,12 +1,31 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchJson } from '../../lib/api'
+import { downloadTable } from '../../lib/exportTable'
 import { vnd } from '../../lib/format'
 import {
   LEGAL_REVIEW_STATUS,
   PAYROLL_STATUS,
   labelOf,
 } from '../../lib/labels'
+
+const PAYROLL_HEADERS = [
+  'Mã NV',
+  'Họ tên',
+  'Phòng ban',
+  'Thử việc',
+  'Lương cơ bản',
+  'Công hưởng',
+  'Công chuẩn',
+  'Lương theo công',
+  'Phụ cấp',
+  'Thưởng',
+  'Gross',
+  'BH NLĐ',
+  'TNCN',
+  'Thực nhận',
+  'BH DN',
+] as const
 
 type Run = {
   id: string
@@ -162,12 +181,39 @@ export function PayrollPage() {
   const displayPit = selected?.pit ?? sums.pit
   const displayCost = selected?.cost ?? sums.gross + sums.bhEr
 
+  function exportPayroll(format: 'csv' | 'excel') {
+    const rows = slips.map((r) => [
+      r.employee_code,
+      r.employee_name,
+      r.department,
+      r.probation,
+      r.base ?? '',
+      r.paid_days ?? '',
+      r.std_days ?? '',
+      r.salary_days ?? '',
+      r.allow ?? '',
+      r.bonus ?? '',
+      r.gross,
+      r.employee_insurance,
+      r.pit,
+      r.net,
+      r.employer_insurance,
+    ])
+    downloadTable(
+      format,
+      `bang-luong-${ym}`,
+      `BL ${ym}`,
+      [...PAYROLL_HEADERS],
+      rows,
+    )
+  }
+
   return (
     <div className="stack">
       <p className="page-lead muted">
         Kỳ lương theo tháng — tổng gross / TNCN / thực nhận, trạng thái chốt và
         duyệt pháp lý policy. Công tác phí quyết toán chi riêng, không gộp vào
-        bảng lương.
+        bảng lương. Tải CSV / Excel về máy để đối chiếu hoặc gửi kế toán.
       </p>
 
       <div className="card table-card">
@@ -235,6 +281,22 @@ export function PayrollPage() {
           </span>
         ) : null}
         <div className="sp" style={{ flex: 1 }} />
+        <button
+          type="button"
+          className="btn ghost"
+          disabled={slips.length === 0}
+          onClick={() => exportPayroll('csv')}
+        >
+          Tải CSV
+        </button>
+        <button
+          type="button"
+          className="btn ghost"
+          disabled={slips.length === 0}
+          onClick={() => exportPayroll('excel')}
+        >
+          Tải Excel
+        </button>
         <Link className="btn ghost" to={`/payroll/payslips?ym=${ym}`}>
           Phiếu lương
         </Link>

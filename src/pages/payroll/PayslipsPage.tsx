@@ -1,8 +1,32 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetchJson } from '../../lib/api'
+import { downloadTable, type ExportCell } from '../../lib/exportTable'
 import { vnd } from '../../lib/format'
 import { PAYROLL_STATUS, labelOf } from '../../lib/labels'
+
+const SLIP_LIST_HEADERS = [
+  'Mã NV',
+  'Họ tên',
+  'Phòng',
+  'Chức danh',
+  'Thử việc',
+  'LCB',
+  'Công hưởng',
+  'Công chuẩn',
+  'Lương theo công',
+  'Phụ cấp',
+  'Thưởng',
+  'Gross',
+  'BHXH NLĐ',
+  'BHYT NLĐ',
+  'BHTN NLĐ',
+  'BH NLĐ tổng',
+  'TNCN',
+  'Thực nhận',
+  'BH DN',
+  'Công tác phí (chi riêng)',
+] as const
 
 type Slip = {
   id: string
@@ -89,6 +113,86 @@ export function PayslipsPage() {
     [detail, items, selectedId],
   )
 
+  function slipListRows(list: Slip[]): ExportCell[][] {
+    return list.map((r) => [
+      r.employee_code,
+      r.employee_name,
+      r.department,
+      r.title ?? '',
+      r.probation,
+      r.base ?? '',
+      r.paid_days ?? '',
+      r.std_days ?? '',
+      r.salary_days ?? '',
+      r.allow ?? '',
+      r.bonus ?? '',
+      r.gross,
+      r.bhxh_emp ?? '',
+      r.bhyt_emp ?? '',
+      r.bhtn_emp ?? '',
+      r.employee_insurance,
+      r.pit,
+      r.net,
+      r.employer_insurance,
+      r.trip || '',
+    ])
+  }
+
+  function exportSlips(format: 'csv' | 'excel') {
+    downloadTable(
+      format,
+      `phieu-luong-${ym}`,
+      `PL ${ym}`,
+      [...SLIP_LIST_HEADERS],
+      slipListRows(items),
+    )
+  }
+
+  function exportSelected(format: 'csv' | 'excel') {
+    if (!selected) return
+    const headers = ['Hạng mục', 'Số tiền (VND)']
+    const rows: ExportCell[][] = [
+      ['Kỳ', selected.year_month],
+      ['Mã NV', selected.employee_code],
+      ['Họ tên', selected.employee_name],
+      ['Phòng ban', selected.department],
+      ['Chức danh', selected.title ?? ''],
+      ['Thử việc', selected.probation],
+      ['Lương cơ bản', selected.base ?? ''],
+      [
+        'Công',
+        selected.paid_days != null && selected.std_days != null
+          ? `${selected.paid_days}/${selected.std_days}`
+          : '',
+      ],
+      ['Lương theo công', selected.salary_days ?? ''],
+      ...(selected.ents ?? []).map((a) => [
+        String(a.type ?? a.title ?? 'Khoản thu nhập'),
+        a.amount ?? '',
+      ]),
+      ['Gross', selected.gross],
+      ['BHXH NLĐ', selected.bhxh_emp ?? ''],
+      ['BHYT NLĐ', selected.bhyt_emp ?? ''],
+      ['BHTN NLĐ', selected.bhtn_emp ?? ''],
+      ['BH NLĐ tổng', selected.employee_insurance],
+      ['TNCN', selected.pit],
+      ['Thực nhận', selected.net],
+      ['BH DN', selected.employer_insurance],
+      [
+        'Công tác phí (chi riêng)',
+        selected.trip ? selected.trip : 'Không phát sinh',
+      ],
+    ]
+    const code = selected.employee_code || 'nv'
+    downloadTable(
+      format,
+      `phieu-luong-${selected.year_month}-${code}`,
+      code,
+      headers,
+      rows,
+    )
+  }
+
   if (loading) {
     return (
       <div className="stack">
@@ -113,7 +217,7 @@ export function PayslipsPage() {
         BHYT / BHTN), TNCN và thực nhận. Công tác phí quyết toán chi riêng.
       </p>
 
-      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+      <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         {(months.length ? months : [ym]).map((m) => (
           <button
             key={m}
@@ -124,6 +228,23 @@ export function PayslipsPage() {
             {ymLabel(m)}
           </button>
         ))}
+        <div className="sp" style={{ flex: 1 }} />
+        <button
+          type="button"
+          className="btn ghost"
+          disabled={items.length === 0}
+          onClick={() => exportSlips('csv')}
+        >
+          Tải CSV
+        </button>
+        <button
+          type="button"
+          className="btn ghost"
+          disabled={items.length === 0}
+          onClick={() => exportSlips('excel')}
+        >
+          Tải Excel
+        </button>
       </div>
 
       <div className="card table-card">
@@ -213,6 +334,20 @@ export function PayslipsPage() {
             >
               {labelOf(PAYROLL_STATUS, selected.run_status)}
             </span>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => exportSelected('csv')}
+            >
+              CSV
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => exportSelected('excel')}
+            >
+              Excel
+            </button>
             <button
               type="button"
               className="btn ghost"
