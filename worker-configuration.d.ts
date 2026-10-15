@@ -17,10 +17,13 @@ interface __BaseEnv_Env {
 	APP_TIMEZONE: "Asia/Ho_Chi_Minh";
 	ACCESS_TEAM_DOMAIN: "REPLACE_WITH_TEAM.cloudflareaccess.com";
 	ACCESS_AUD: "REPLACE_WITH_ACCESS_APPLICATION_AUD";
-	TURNSTILE_SITE_KEY: "REPLACE_WITH_TURNSTILE_SITE_KEY";
+	TURNSTILE_SITE_KEY: "0x4AAAAAAFXVUItGMj42XMuY";
+	TURNSTILE_HOSTNAMES: "hrm.orangecloud.vn";
 	EMAIL_FROM: "hrm@example.com";
 	EMAIL_FROM_NAME: "HR Management Platform";
 	LEGAL_REVIEW_REQUIRED: "true";
+	TURNSTILE_SECRET?: string;
+	TURNSTILE_SECRET_KEY?: string;
 	REMINDER_WORKFLOW: Workflow<Parameters<import("./worker/index").ReminderWorkflow['run']>[0]['payload']>;
 	PAYROLL_CLOSE_WORKFLOW: Workflow<Parameters<import("./worker/index").PayrollCloseWorkflow['run']>[0]['payload']>;
 }

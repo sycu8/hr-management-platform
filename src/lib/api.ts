@@ -66,7 +66,11 @@ export function fetchMe(): Promise<MeUser> {
   return fetchJson<MeUser>('/api/auth/me')
 }
 
-export function login(email: string, password: string) {
+export function login(
+  email: string,
+  password: string,
+  turnstileToken: string,
+) {
   return fetchJson<{
     id: string
     email: string
@@ -75,7 +79,7 @@ export function login(email: string, password: string) {
     mustResetPassword: boolean
   }>('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, turnstileToken }),
   })
 }
 

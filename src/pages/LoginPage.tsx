@@ -1,8 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ApiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
+import {
+  fetchTurnstileConfig,
+  loadTurnstile,
+  type TurnstileApi,
+} from '../lib/turnstile'
 
 export function LoginPage() {
   const { state, login } = useAuth()
@@ -11,6 +16,50 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [turnstileReady, setTurnstileReady] = useState(false)
+
+  const widgetHostRef = useRef<HTMLDivElement | null>(null)
+  const widgetIdRef = useRef<string | null>(null)
+  const turnstileRef = useRef<TurnstileApi | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function mount() {
+      try {
+        const [api, config] = await Promise.all([
+          loadTurnstile(),
+          fetchTurnstileConfig(),
+        ])
+        if (cancelled || !widgetHostRef.current) return
+        turnstileRef.current = api
+        if (widgetIdRef.current) {
+          api.remove(widgetIdRef.current)
+          widgetIdRef.current = null
+        }
+        widgetIdRef.current = api.render(widgetHostRef.current, {
+          sitekey: config.siteKey,
+          action: config.action,
+          theme: 'light',
+        })
+        if (!cancelled) setTurnstileReady(true)
+      } catch {
+        if (!cancelled) {
+          setError('Không tải được xác minh bảo mật. Tải lại trang.')
+          setTurnstileReady(false)
+        }
+      }
+    }
+
+    void mount()
+    return () => {
+      cancelled = true
+      if (widgetIdRef.current && turnstileRef.current) {
+        turnstileRef.current.remove(widgetIdRef.current)
+        widgetIdRef.current = null
+      }
+    }
+  }, [])
 
   if (state.status === 'loading') {
     return (
@@ -32,7 +81,15 @@ export function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await login(email.trim(), password)
+      const api = turnstileRef.current
+      const widgetId = widgetIdRef.current
+      const token =
+        api && widgetId != null ? api.getResponse(widgetId) : ''
+      if (!token) {
+        setError('Hãy hoàn thành xác minh bảo mật trước khi đăng nhập.')
+        return
+      }
+      await login(email.trim(), password, token)
       navigate('/', { replace: true })
     } catch (err) {
       setError(
@@ -41,6 +98,9 @@ export function LoginPage() {
           : 'Không đăng nhập được. Thử lại.',
       )
     } finally {
+      const api = turnstileRef.current
+      const widgetId = widgetIdRef.current
+      if (api && widgetId != null) api.reset(widgetId)
       setSubmitting(false)
     }
   }
@@ -80,13 +140,24 @@ export function LoginPage() {
             />
           </label>
 
+          <div className="login-turnstile" aria-live="polite">
+            <div ref={widgetHostRef} />
+            {!turnstileReady && !error ? (
+              <p className="login-turnstile-hint">Đang tải xác minh…</p>
+            ) : null}
+          </div>
+
           {error ? (
             <div className="login-error" role="alert">
               {error}
             </div>
           ) : null}
 
-          <button type="submit" className="btn primary login-submit" disabled={submitting}>
+          <button
+            type="submit"
+            className="btn primary login-submit"
+            disabled={submitting || !turnstileReady}
+          >
             {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
           </button>
         </form>

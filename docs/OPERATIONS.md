@@ -24,8 +24,9 @@ Set through dashboard or `wrangler secret put`:
 | Access JWKS | — | `https://cloudspacevn.cloudflareaccess.com/cdn-cgi/access/certs` |
 
 Worker auth prefers `ctx.access.getIdentity()` when Access matched the request, then falls back to verifying `CF-Access-Jwt-Assertion` with the team JWKS.
-| `TURNSTILE_SITE_KEY` | var | Public widget key |
-| `TURNSTILE_SECRET` | secret | Siteverify secret |
+| `TURNSTILE_SITE_KEY` | var | Public widget key (`0x4AAAAAAFXVUItGMj42XMuY`) |
+| `TURNSTILE_HOSTNAMES` | var | Production: `hrm.orangecloud.vn` (never include localhost in prod) |
+| `TURNSTILE_SECRET` | secret | Siteverify secret (synced from GitHub `TURNSTILE_SECRET_KEY`) |
 | `EMAIL_FROM` | var | Address on an Email Sending–enabled domain |
 | `EMAIL_FROM_NAME` | var | Display name |
 

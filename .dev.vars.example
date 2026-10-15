@@ -1,2 +1,9 @@
 # Local development only. Copy to .dev.vars — never commit secrets.
 # Password auth is used (Cloudflare Access removed).
+
+# Turnstile — use widget secret from Cloudflare dashboard (Siteverify).
+# Domains on the widget must include localhost + 127.0.0.1 for local login.
+TURNSTILE_SECRET=
+# Optional alias used by some GitHub secrets naming:
+# TURNSTILE_SECRET_KEY=
+TURNSTILE_HOSTNAMES=localhost,127.0.0.1

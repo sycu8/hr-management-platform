@@ -6,6 +6,15 @@ export type Env = Cloudflare.Env & {
   SESSION_SECRET?: string
   /** Workers AI binding for policy document OCR (toMarkdown). */
   AI?: Ai
+  /** Turnstile Siteverify secret (preferred binding). */
+  TURNSTILE_SECRET?: string
+  /** Alias if synced from GitHub Actions secret TURNSTILE_SECRET_KEY. */
+  TURNSTILE_SECRET_KEY?: string
+  /**
+   * Comma-separated frontend hostnames allowed by Siteverify.
+   * Production must not include localhost / 127.0.0.1.
+   */
+  TURNSTILE_HOSTNAMES?: string
 }
 
 /** Login account types (authority). */

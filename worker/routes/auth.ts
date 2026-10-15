@@ -17,10 +17,14 @@ import {
   requireActorSuperAdmin,
 } from '../middleware/rbac.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
+import { verifyTurnstileToken } from '../lib/turnstile.ts'
+
+const LOGIN_TURNSTILE_ACTION = 'login'
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  turnstileToken: z.string().min(1).max(2048),
 })
 
 const changePasswordSchema = z.object({
@@ -50,12 +54,30 @@ function isSecureRequest(c: { req: { url: string } }): boolean {
   return new URL(c.req.url).protocol === 'https:'
 }
 
+auth.get('/turnstile', (c) => {
+  const siteKey = c.env.TURNSTILE_SITE_KEY
+  if (!siteKey || siteKey.startsWith('REPLACE_')) {
+    return apiError(c, 503, 'misconfigured', 'Turnstile site key missing')
+  }
+  return json(c, { siteKey, action: LOGIN_TURNSTILE_ACTION })
+})
+
 auth.post('/login', async (c) => {
   let body: z.infer<typeof loginSchema>
   try {
     body = loginSchema.parse(await c.req.json())
   } catch {
     return badRequest(c, 'Invalid login payload')
+  }
+
+  const turnstile = await verifyTurnstileToken({
+    env: c.env,
+    token: body.turnstileToken,
+    expectedAction: LOGIN_TURNSTILE_ACTION,
+    remoteIp: c.req.header('CF-Connecting-IP'),
+  })
+  if (!turnstile.ok) {
+    return unauthorized(c, 'Xác minh bảo mật thất bại. Thử lại.')
   }
 
   const row = await c.env.DB.prepare(
