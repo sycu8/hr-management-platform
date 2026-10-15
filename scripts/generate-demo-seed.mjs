@@ -1005,14 +1005,40 @@ const candidates = [
   ['c10', 'job2', 'Mai Xuân Bắc', 'Giới thiệu', 'screen', 3.0, 'bac.mx.demo@example.com', '0902 111 010', null, 'Giới thiệu từ e15'],
   ...handoffCandidates,
 ]
+const candidateExtras = {
+  c1: {
+    linkedin: 'https://www.linkedin.com/in/demo-phong-nv',
+    facebook: null,
+    cv: 'https://example.com/cv/phong-nv.pdf',
+    cvName: 'CV_NguyenVanPhong.pdf',
+    recruitment:
+      'Ứng viên Frontend mạnh React/TypeScript. Phỏng vấn vòng 1 tốt; chờ vòng kỹ thuật.',
+  },
+  c3: {
+    linkedin: 'https://www.linkedin.com/in/demo-thinh-ld',
+    facebook: 'https://facebook.com/demo.thinh.ld',
+    cv: 'https://example.com/cv/thinh-ld.pdf',
+    cvName: 'CV_LeDucThinh.pdf',
+    recruitment: 'Offer 24tr — chờ phản hồi. Đã gửi JD & phúc lợi chi tiết.',
+  },
+  c5: {
+    linkedin: 'https://www.linkedin.com/in/demo-quan-hm',
+    facebook: null,
+    cv: 'https://example.com/cv/quan-hm.pdf',
+    cvName: 'CV_HoangMinhQuan.pdf',
+    recruitment: 'SaaS 2 năm — phù hợp Product Ops. Lịch PV 16/10.',
+  },
+}
 push(`INSERT OR REPLACE INTO candidates (
-  id, organization_id, job_id, full_name, source, stage, score, email, phone, interview_at, note
+  id, organization_id, job_id, full_name, source, stage, score, email, phone, interview_at, note,
+  linkedin_url, facebook_url, cv_url, cv_file_name, recruitment_note
 ) VALUES`)
 push(
   candidates
     .map(([id, job, name, src, stage, score, email, phone, iv, note]) => {
       count('candidates')
-      return ` (${esc(id)},${esc(ORG)},${esc(job)},${esc(name)},${esc(src)},${esc(stage)},${score},${esc(email)},${esc(phone)},${iv ? esc(iv) : 'NULL'},${note ? esc(note) : 'NULL'})`
+      const ex = candidateExtras[id] ?? {}
+      return ` (${esc(id)},${esc(ORG)},${esc(job)},${esc(name)},${esc(src)},${esc(stage)},${score},${esc(email)},${esc(phone)},${iv ? esc(iv) : 'NULL'},${note ? esc(note) : 'NULL'},${ex.linkedin ? esc(ex.linkedin) : 'NULL'},${ex.facebook ? esc(ex.facebook) : 'NULL'},${ex.cv ? esc(ex.cv) : 'NULL'},${ex.cvName ? esc(ex.cvName) : 'NULL'},${ex.recruitment ? esc(ex.recruitment) : 'NULL'})`
     })
     .join(',\n') + ';\n',
 )
@@ -1035,13 +1061,19 @@ const ob3Tasks = onboardTasks([
   { title: 'Bàn giao sổ sách từ e12', done: true, due: '2025-09-05' },
   { title: 'Đào tạo quy trình lương', done: false, due: '2025-10-01' },
 ])
+const obReqs = JSON.stringify([
+  'Hoàn tất checklist onboarding',
+  'Đánh giá thử việc từ QL trực tiếp',
+  'Chuyển HĐ chính thức sau 3 tháng',
+])
 push(`INSERT OR REPLACE INTO onboarding_plans (
-  id, organization_id, candidate_id, employee_id, full_name, role_title, department, start_date, tasks_json
+  id, organization_id, candidate_id, employee_id, full_name, role_title, department,
+  start_date, tasks_json, probation_end, status, notes, requirements_json
 ) VALUES
- ('ob1',${esc(ORG)},'c3',NULL,${esc('Lê Đức Thịnh')},${esc('Kỹ sư Frontend')},${esc('Kỹ thuật')},'2026-11-03',${esc(ob1Tasks)}),
- ('ob2',${esc(ORG)},NULL,'e11',${esc('Lý Hải Nam')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-08-03',${esc(ob2Tasks)}),
- ('ob3',${esc(ORG)},NULL,'e21',${esc('Nguyễn Đức Anh')},${esc('Kế toán viên')},${esc('Kế toán')},'2025-09-01',${esc(ob3Tasks)}),
- ('ob4',${esc(ORG)},'c_h13',NULL,${esc('Cao Thị Nhàn')},${esc('Chuyên viên hành chính')},${esc('Nhân sự')},'2026-10-19',${esc(onboardingNhanTasks)});
+ ('ob1',${esc(ORG)},'c3',NULL,${esc('Lê Đức Thịnh')},${esc('Kỹ sư Frontend')},${esc('Kỹ thuật')},'2026-11-03',${esc(ob1Tasks)},'2027-02-03','in_progress',NULL,${esc(obReqs)}),
+ ('ob2',${esc(ORG)},NULL,'e11',${esc('Lý Hải Nam')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-07-10',${esc(ob2Tasks)},'2026-10-10','due_convert',${esc('Hết 3 tháng TV — nhắc chuyển hồ sơ NV chính thức')},${esc(obReqs)}),
+ ('ob3',${esc(ORG)},NULL,'e21',${esc('Nguyễn Đức Anh')},${esc('Kế toán viên')},${esc('Kế toán')},'2025-09-01',${esc(ob3Tasks)},'2025-12-01','converted',${esc('Đã chuyển hồ sơ nhân viên chính thức')},${esc(obReqs)}),
+ ('ob4',${esc(ORG)},'c_h13',NULL,${esc('Cao Thị Nhàn')},${esc('Chuyên viên hành chính')},${esc('Nhân sự')},'2026-10-19',${esc(onboardingNhanTasks)},'2027-01-19','in_progress',NULL,${esc(obReqs)});
 `)
 count('onboarding_plans', 4)
 

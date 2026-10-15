@@ -1211,39 +1211,41 @@ INSERT OR REPLACE INTO job_requisitions (
  ('job_h6','org_demo','Chuyên viên hành chính','Nhân sự',1,'Nhân viên','Hà Nội','9 – 12 triệu','closed','2026-06-01','2026-07-15','Đã tuyển đủ.','["Quản lý văn phòng phẩm, tài sản"]','["Cẩn thận, có trách nhiệm"]','["Thưởng lễ tết"]');
 
 INSERT OR REPLACE INTO candidates (
-  id, organization_id, job_id, full_name, source, stage, score, email, phone, interview_at, note
+  id, organization_id, job_id, full_name, source, stage, score, email, phone, interview_at, note,
+  linkedin_url, facebook_url, cv_url, cv_file_name, recruitment_note
 ) VALUES
- ('c1','org_demo','job1','Nguyễn Văn Phong','LinkedIn','interview',4.2,'phong.nv.demo@example.com','0902 111 001','2026-10-14T09:30:00+07:00','Vòng kỹ thuật tốt'),
- ('c2','org_demo','job1','Trần Mỹ Anh','TopCV','screen',3.5,'myanh.tran.demo@example.com','0902 111 002',NULL,'CV phù hợp React'),
- ('c3','org_demo','job1','Lê Đức Thịnh','Giới thiệu','offer',4.6,'thinh.ld.demo@example.com','0902 111 003','2026-10-08T14:00:00+07:00','Đề xuất offer 24tr'),
- ('c4','org_demo','job2','Phạm Thu Hà','VietnamWorks','new',0,'thuha.ph.demo@example.com','0902 111 004',NULL,NULL),
- ('c5','org_demo','job2','Hoàng Minh Quân','LinkedIn','interview',3.8,'quan.hm.demo@example.com','0902 111 005','2026-10-16T10:00:00+07:00','Kinh nghiệm SaaS 2 năm'),
- ('c6','org_demo','job3','Đỗ Lan Anh','Fanpage','screen',3.2,'lananh.do.demo@example.com','0902 111 006',NULL,'CS ngân hàng trước đây'),
- ('c7','org_demo','job3','Vũ Thành Công','TopCV','rejected',2.1,'cong.vt.demo@example.com','0902 111 007',NULL,'Thiếu kinh nghiệm SaaS'),
- ('c8','org_demo','job4','Ngô Bảo Ngọc','University','hired',4,'ngoc.nb.demo@example.com','0902 111 008',NULL,'Đã onboard thực tập 7/2026'),
- ('c9','org_demo','job1','Bùi Khánh Vy','LinkedIn','new',0,'vy.bk.demo@example.com','0902 111 009',NULL,NULL),
- ('c10','org_demo','job2','Mai Xuân Bắc','Giới thiệu','screen',3,'bac.mx.demo@example.com','0902 111 010',NULL,'Giới thiệu từ e15'),
- ('c_h1','org_demo','job_h1','Nguyễn Hữu Phước','LinkedIn','interview',8,'phuoc.nh.demo@example.com','0912 000 101','2026-10-14T14:00:00+07:00','4 năm Java, từng làm fintech'),
- ('c_h2','org_demo','job_h1','Lê Bảo Châu','Giới thiệu nội bộ','offer',9,'bao.chau.demo@example.com','0912 000 102',NULL,'Đề xuất mức 28 triệu'),
- ('c_h3','org_demo','job_h1','Trần Khánh Vy','TopCV','screen',6,'khanh.vy.demo@example.com','0912 000 103',NULL,NULL),
- ('c_h4','org_demo','job_h1','Phan Đình Quân','Website công ty','new',0,'dinh.quan.demo@example.com','0912 000 104',NULL,NULL),
- ('c_h5','org_demo','job_h2','Vũ Thị Hạnh','TopCV','interview',7,'thi.hanh.demo@example.com','0912 000 105','2026-10-15T10:00:00+07:00',NULL),
- ('c_h6','org_demo','job_h2','Đinh Công Minh','Facebook','screen',5,'cong.minh.demo@example.com','0912 000 106',NULL,NULL),
- ('c_h7','org_demo','job_h2','Lương Quốc Việt','LinkedIn','new',0,'quoc.viet.demo@example.com','0912 000 107',NULL,NULL),
- ('c_h8','org_demo','job_h2','Mai Thanh Hằng','Giới thiệu nội bộ','rejected',4,'thanh.hang.demo@example.com','0912 000 108',NULL,'Chưa phù hợp kinh nghiệm B2B'),
- ('c_h9','org_demo','job_h3','Hồ Diệu Linh','TopCV','interview',8,'dieu.linh.demo@example.com','0912 000 109','2026-10-13T15:30:00+07:00',NULL),
- ('c_h10','org_demo','job_h3','Kiều Anh Thư','Website công ty','new',0,'anh.thu.demo@example.com','0912 000 110',NULL,NULL),
- ('c_h11','org_demo','job_h4','Đoàn Mỹ Lệ','TopCV','offer',8,'my.le.demo@example.com','0912 000 111',NULL,NULL),
- ('c_h12','org_demo','job_h4','Tạ Quang Hải','Facebook','screen',6,'quang.hai.demo@example.com','0912 000 112',NULL,NULL),
- ('c_h13','org_demo','job_h6','Cao Thị Nhàn','TopCV','hired',8,'thi.nhan.demo@example.com','0912 000 113',NULL,'Đã nhận việc — onboarding 19/10');
+ ('c1','org_demo','job1','Nguyễn Văn Phong','LinkedIn','interview',4.2,'phong.nv.demo@example.com','0902 111 001','2026-10-14T09:30:00+07:00','Vòng kỹ thuật tốt','https://www.linkedin.com/in/demo-phong-nv',NULL,'https://example.com/cv/phong-nv.pdf','CV_NguyenVanPhong.pdf','Ứng viên Frontend mạnh React/TypeScript. Phỏng vấn vòng 1 tốt; chờ vòng kỹ thuật.'),
+ ('c2','org_demo','job1','Trần Mỹ Anh','TopCV','screen',3.5,'myanh.tran.demo@example.com','0902 111 002',NULL,'CV phù hợp React',NULL,NULL,NULL,NULL,NULL),
+ ('c3','org_demo','job1','Lê Đức Thịnh','Giới thiệu','offer',4.6,'thinh.ld.demo@example.com','0902 111 003','2026-10-08T14:00:00+07:00','Đề xuất offer 24tr','https://www.linkedin.com/in/demo-thinh-ld','https://facebook.com/demo.thinh.ld','https://example.com/cv/thinh-ld.pdf','CV_LeDucThinh.pdf','Offer 24tr — chờ phản hồi. Đã gửi JD & phúc lợi chi tiết.'),
+ ('c4','org_demo','job2','Phạm Thu Hà','VietnamWorks','new',0,'thuha.ph.demo@example.com','0902 111 004',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c5','org_demo','job2','Hoàng Minh Quân','LinkedIn','interview',3.8,'quan.hm.demo@example.com','0902 111 005','2026-10-16T10:00:00+07:00','Kinh nghiệm SaaS 2 năm','https://www.linkedin.com/in/demo-quan-hm',NULL,'https://example.com/cv/quan-hm.pdf','CV_HoangMinhQuan.pdf','SaaS 2 năm — phù hợp Product Ops. Lịch PV 16/10.'),
+ ('c6','org_demo','job3','Đỗ Lan Anh','Fanpage','screen',3.2,'lananh.do.demo@example.com','0902 111 006',NULL,'CS ngân hàng trước đây',NULL,NULL,NULL,NULL,NULL),
+ ('c7','org_demo','job3','Vũ Thành Công','TopCV','rejected',2.1,'cong.vt.demo@example.com','0902 111 007',NULL,'Thiếu kinh nghiệm SaaS',NULL,NULL,NULL,NULL,NULL),
+ ('c8','org_demo','job4','Ngô Bảo Ngọc','University','hired',4,'ngoc.nb.demo@example.com','0902 111 008',NULL,'Đã onboard thực tập 7/2026',NULL,NULL,NULL,NULL,NULL),
+ ('c9','org_demo','job1','Bùi Khánh Vy','LinkedIn','new',0,'vy.bk.demo@example.com','0902 111 009',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c10','org_demo','job2','Mai Xuân Bắc','Giới thiệu','screen',3,'bac.mx.demo@example.com','0902 111 010',NULL,'Giới thiệu từ e15',NULL,NULL,NULL,NULL,NULL),
+ ('c_h1','org_demo','job_h1','Nguyễn Hữu Phước','LinkedIn','interview',8,'phuoc.nh.demo@example.com','0912 000 101','2026-10-14T14:00:00+07:00','4 năm Java, từng làm fintech',NULL,NULL,NULL,NULL,NULL),
+ ('c_h2','org_demo','job_h1','Lê Bảo Châu','Giới thiệu nội bộ','offer',9,'bao.chau.demo@example.com','0912 000 102',NULL,'Đề xuất mức 28 triệu',NULL,NULL,NULL,NULL,NULL),
+ ('c_h3','org_demo','job_h1','Trần Khánh Vy','TopCV','screen',6,'khanh.vy.demo@example.com','0912 000 103',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h4','org_demo','job_h1','Phan Đình Quân','Website công ty','new',0,'dinh.quan.demo@example.com','0912 000 104',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h5','org_demo','job_h2','Vũ Thị Hạnh','TopCV','interview',7,'thi.hanh.demo@example.com','0912 000 105','2026-10-15T10:00:00+07:00',NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h6','org_demo','job_h2','Đinh Công Minh','Facebook','screen',5,'cong.minh.demo@example.com','0912 000 106',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h7','org_demo','job_h2','Lương Quốc Việt','LinkedIn','new',0,'quoc.viet.demo@example.com','0912 000 107',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h8','org_demo','job_h2','Mai Thanh Hằng','Giới thiệu nội bộ','rejected',4,'thanh.hang.demo@example.com','0912 000 108',NULL,'Chưa phù hợp kinh nghiệm B2B',NULL,NULL,NULL,NULL,NULL),
+ ('c_h9','org_demo','job_h3','Hồ Diệu Linh','TopCV','interview',8,'dieu.linh.demo@example.com','0912 000 109','2026-10-13T15:30:00+07:00',NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h10','org_demo','job_h3','Kiều Anh Thư','Website công ty','new',0,'anh.thu.demo@example.com','0912 000 110',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h11','org_demo','job_h4','Đoàn Mỹ Lệ','TopCV','offer',8,'my.le.demo@example.com','0912 000 111',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h12','org_demo','job_h4','Tạ Quang Hải','Facebook','screen',6,'quang.hai.demo@example.com','0912 000 112',NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ ('c_h13','org_demo','job_h6','Cao Thị Nhàn','TopCV','hired',8,'thi.nhan.demo@example.com','0912 000 113',NULL,'Đã nhận việc — onboarding 19/10',NULL,NULL,NULL,NULL,NULL);
 
 INSERT OR REPLACE INTO onboarding_plans (
-  id, organization_id, candidate_id, employee_id, full_name, role_title, department, start_date, tasks_json
+  id, organization_id, candidate_id, employee_id, full_name, role_title, department,
+  start_date, tasks_json, probation_end, status, notes, requirements_json
 ) VALUES
- ('ob1','org_demo','c3',NULL,'Lê Đức Thịnh','Kỹ sư Frontend','Kỹ thuật','2026-11-03','[{"title":"Ký HĐLĐ & nhận thiết bị","done":false,"due":"2026-11-03"},{"title":"Tạo tài khoản email / SSO","done":false,"due":"2026-11-03"},{"title":"Orientation văn hóa Orange Cloud","done":false,"due":"2026-11-04"},{"title":"Gặp mentor kỹ thuật (e7)","done":false,"due":"2026-11-05"}]'),
- ('ob2','org_demo',NULL,'e11','Lý Hải Nam','Kỹ sư phần mềm','Kỹ thuật','2026-08-03','[{"title":"Hoàn tất hồ sơ nhân sự","done":true,"due":"2026-08-03"},{"title":"Đào tạo nội quy & ATĐ","done":true,"due":"2026-08-04"},{"title":"Setup máy & repo","done":true,"due":"2026-08-05"},{"title":"Buddy check-in tuần 2","done":false,"due":"2026-08-17"}]'),
- ('ob3','org_demo',NULL,'e21','Nguyễn Đức Anh','Kế toán viên','Kế toán','2025-09-01','[{"title":"Ký HĐ thử việc","done":true,"due":"2025-09-01"},{"title":"Bàn giao sổ sách từ e12","done":true,"due":"2025-09-05"},{"title":"Đào tạo quy trình lương","done":false,"due":"2025-10-01"}]'),
- ('ob4','org_demo','c_h13',NULL,'Cao Thị Nhàn','Chuyên viên hành chính','Nhân sự','2026-10-19','[{"t":"Ký hợp đồng lao động","done":true},{"t":"Thu hồ sơ nhân sự (CCCD, bằng cấp, sổ BHXH)","done":true},{"t":"Tạo tài khoản email và hệ thống nội bộ","done":false},{"t":"Cấp thiết bị làm việc","done":false},{"t":"Giới thiệu nội quy và văn hóa công ty","done":false},{"t":"Gặp quản lý trực tiếp, thống nhất mục tiêu 30 ngày","done":false},{"t":"Đăng ký tham gia khóa đào tạo bắt buộc","done":false},{"t":"Đăng ký bảo hiểm xã hội","done":false}]');
+ ('ob1','org_demo','c3',NULL,'Lê Đức Thịnh','Kỹ sư Frontend','Kỹ thuật','2026-11-03','[{"title":"Ký HĐLĐ & nhận thiết bị","done":false,"due":"2026-11-03"},{"title":"Tạo tài khoản email / SSO","done":false,"due":"2026-11-03"},{"title":"Orientation văn hóa Orange Cloud","done":false,"due":"2026-11-04"},{"title":"Gặp mentor kỹ thuật (e7)","done":false,"due":"2026-11-05"}]','2027-02-03','in_progress',NULL,'["Hoàn tất checklist onboarding","Đánh giá thử việc từ QL trực tiếp","Chuyển HĐ chính thức sau 3 tháng"]'),
+ ('ob2','org_demo',NULL,'e11','Lý Hải Nam','Kỹ sư phần mềm','Kỹ thuật','2026-07-10','[{"title":"Hoàn tất hồ sơ nhân sự","done":true,"due":"2026-08-03"},{"title":"Đào tạo nội quy & ATĐ","done":true,"due":"2026-08-04"},{"title":"Setup máy & repo","done":true,"due":"2026-08-05"},{"title":"Buddy check-in tuần 2","done":false,"due":"2026-08-17"}]','2026-10-10','due_convert','Hết 3 tháng TV — nhắc chuyển hồ sơ NV chính thức','["Hoàn tất checklist onboarding","Đánh giá thử việc từ QL trực tiếp","Chuyển HĐ chính thức sau 3 tháng"]'),
+ ('ob3','org_demo',NULL,'e21','Nguyễn Đức Anh','Kế toán viên','Kế toán','2025-09-01','[{"title":"Ký HĐ thử việc","done":true,"due":"2025-09-01"},{"title":"Bàn giao sổ sách từ e12","done":true,"due":"2025-09-05"},{"title":"Đào tạo quy trình lương","done":false,"due":"2025-10-01"}]','2025-12-01','converted','Đã chuyển hồ sơ nhân viên chính thức','["Hoàn tất checklist onboarding","Đánh giá thử việc từ QL trực tiếp","Chuyển HĐ chính thức sau 3 tháng"]'),
+ ('ob4','org_demo','c_h13',NULL,'Cao Thị Nhàn','Chuyên viên hành chính','Nhân sự','2026-10-19','[{"t":"Ký hợp đồng lao động","done":true},{"t":"Thu hồ sơ nhân sự (CCCD, bằng cấp, sổ BHXH)","done":true},{"t":"Tạo tài khoản email và hệ thống nội bộ","done":false},{"t":"Cấp thiết bị làm việc","done":false},{"t":"Giới thiệu nội quy và văn hóa công ty","done":false},{"t":"Gặp quản lý trực tiếp, thống nhất mục tiêu 30 ngày","done":false},{"t":"Đăng ký tham gia khóa đào tạo bắt buộc","done":false},{"t":"Đăng ký bảo hiểm xã hội","done":false}]','2027-01-19','in_progress',NULL,'["Hoàn tất checklist onboarding","Đánh giá thử việc từ QL trực tiếp","Chuyển HĐ chính thức sau 3 tháng"]');
 
 INSERT OR REPLACE INTO review_cycles (id, organization_id, name, start_date, end_date, status) VALUES
  ('rc1','org_demo','Đánh giá năm 2025','2025-12-01','2026-01-31','closed'),

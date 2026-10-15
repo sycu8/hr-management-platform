@@ -14,7 +14,8 @@ lists.use('*', requireAuth)
 lists.get('/jobs', requireModule('rec', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
-    `SELECT id, title, department, headcount, status, posted_on, deadline, location, salary_display
+    `SELECT id, title, department, headcount, status, posted_on, deadline, location,
+            salary_display, level, summary
      FROM job_requisitions
      WHERE organization_id = ?
      ORDER BY CASE status WHEN 'open' THEN 0 WHEN 'draft' THEN 1 ELSE 2 END, posted_on DESC`,
@@ -27,8 +28,9 @@ lists.get('/jobs', requireModule('rec', 1), async (c) => {
 lists.get('/candidates', requireModule('rec', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
-    `SELECT c.id, c.full_name, c.source, c.stage, c.score, c.email, c.phone, c.interview_at,
-            j.title AS job_title
+    `SELECT c.id, c.job_id, c.full_name, c.source, c.stage, c.score, c.email, c.phone,
+            c.interview_at, c.note, c.recruitment_note, c.linkedin_url, c.facebook_url,
+            c.cv_url, c.cv_file_name, j.title AS job_title
      FROM candidates c
      LEFT JOIN job_requisitions j ON j.id = c.job_id
      WHERE c.organization_id = ?
@@ -41,26 +43,45 @@ lists.get('/candidates', requireModule('rec', 1), async (c) => {
 
 lists.get('/onboarding', requireModule('rec', 1), async (c) => {
   const user = c.get('user')
+  const today = new Date().toISOString().slice(0, 10)
   const { results } = await c.env.DB.prepare(
-    `SELECT id, full_name, role_title, department, start_date, tasks_json
+    `SELECT id, full_name, role_title, department, start_date, tasks_json,
+            probation_end, status, notes, requirements_json, employee_id, candidate_id,
+            CASE
+              WHEN status = 'converted' THEN 0
+              WHEN probation_end IS NOT NULL AND probation_end <= ? THEN 1
+              ELSE 0
+            END AS due_convert
      FROM onboarding_plans
      WHERE organization_id = ?
-     ORDER BY start_date`,
+     ORDER BY due_convert DESC, start_date`,
   )
-    .bind(user.organizationId)
+    .bind(today, user.organizationId)
     .all()
-  return json(c, { items: results ?? [] })
+
+  // Soft-flag due_convert in response for UI remind
+  const items = (results ?? []).map((r) => {
+    const due = (r.due_convert as number) === 1 && r.status !== 'converted'
+    return {
+      ...r,
+      remind_convert: due,
+      status:
+        due && r.status === 'in_progress' ? 'due_convert' : (r.status as string),
+    }
+  })
+  return json(c, { items })
 })
 
 lists.get('/leave-requests', requireModule('leave', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
     `SELECT l.id, l.leave_type, l.start_date, l.end_date, l.working_days, l.status, l.reason,
+            l.reject_note, l.employee_id,
             e.full_name AS employee_name, e.code AS employee_code
      FROM leave_requests l
      JOIN employees e ON e.id = l.employee_id
      WHERE l.organization_id = ?
-     ORDER BY l.start_date DESC
+     ORDER BY CASE l.status WHEN 'pending' THEN 0 ELSE 1 END, l.start_date DESC
      LIMIT 200`,
   )
     .bind(user.organizationId)
