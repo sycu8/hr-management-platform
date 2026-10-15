@@ -1,20 +1,21 @@
-/* Color & type tokens from HRM Portal handoff (:root + dark). Themes via data-theme. */
+/* Brand tokens — Orange Cloud / HR Management Platform */
 
 :root,
 :root[data-theme='light'] {
-  --bg: #f5f4fa;
-  --surface: #ffffff;
-  --ink: #1b1936;
-  --muted: #645f7e;
-  --line: #e2e0ee;
-  --accent: #534ab7;
-  --accent-ink: #ffffff;
-  --accent-soft: #eceafb;
-  --nav: #1e1b4b;
-  --nav-ink: #d9d6f5;
-  --nav-mut: #8e8ac4;
-  --nav-line: #322e6b;
-  --nav-hi: #2e2a66;
+  --bg: #f6f1eb;
+  --surface: #fffdfb;
+  --ink: #1a1520;
+  --muted: #635b55;
+  --line: #e6ddd4;
+  --accent: #e04e00;
+  --accent-ink: #fffaf6;
+  --accent-soft: #ffe8d9;
+  --brand: #e04e00;
+  --nav: #1f1712;
+  --nav-ink: #f4ebe3;
+  --nav-mut: #b9a99a;
+  --nav-line: #342820;
+  --nav-hi: #2c221b;
   --good: #1f7a4d;
   --good-bg: #e3f4ea;
   --warn: #935a08;
@@ -23,25 +24,27 @@
   --bad-bg: #fbe6e5;
   --info: #1f5fa6;
   --info-bg: #e2eefa;
-  --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font: 'Be Vietnam Pro', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --display: 'Sora', 'Be Vietnam Pro', sans-serif;
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --bg: #12111f;
-  --surface: #1b1a2e;
-  --ink: #ecebf7;
-  --muted: #a09ebc;
-  --line: #2e2c48;
-  --accent: #9c95f0;
-  --accent-ink: #14122b;
-  --accent-soft: #2a2750;
-  --nav: #0d0c1c;
-  --nav-ink: #d2d0ec;
-  --nav-mut: #7f7cae;
-  --nav-line: #25233f;
-  --nav-hi: #25233f;
+  --bg: #14110f;
+  --surface: #1e1916;
+  --ink: #f4ebe3;
+  --muted: #b5a89c;
+  --line: #35302c;
+  --accent: #ff8a3d;
+  --accent-ink: #1a1520;
+  --accent-soft: #3a2416;
+  --brand: #ff8a3d;
+  --nav: #0f0c0a;
+  --nav-ink: #f0e6dc;
+  --nav-mut: #9a8b7c;
+  --nav-line: #2a221c;
+  --nav-hi: #241c17;
   --good: #6fd39b;
   --good-bg: #16342a;
   --warn: #edb561;
@@ -53,23 +56,23 @@
   color-scheme: dark;
 }
 
-/* system / unset = follow OS preference */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='dark']),
   :root[data-theme='system'] {
-    --bg: #12111f;
-    --surface: #1b1a2e;
-    --ink: #ecebf7;
-    --muted: #a09ebc;
-    --line: #2e2c48;
-    --accent: #9c95f0;
-    --accent-ink: #14122b;
-    --accent-soft: #2a2750;
-    --nav: #0d0c1c;
-    --nav-ink: #d2d0ec;
-    --nav-mut: #7f7cae;
-    --nav-line: #25233f;
-    --nav-hi: #25233f;
+    --bg: #14110f;
+    --surface: #1e1916;
+    --ink: #f4ebe3;
+    --muted: #b5a89c;
+    --line: #35302c;
+    --accent: #ff8a3d;
+    --accent-ink: #1a1520;
+    --accent-soft: #3a2416;
+    --brand: #ff8a3d;
+    --nav: #0f0c0a;
+    --nav-ink: #f0e6dc;
+    --nav-mut: #9a8b7c;
+    --nav-line: #2a221c;
+    --nav-hi: #241c17;
     --good: #6fd39b;
     --good-bg: #16342a;
     --warn: #edb561;
@@ -82,28 +85,20 @@
   }
 }
 
-/* Force light even when OS prefers dark */
 :root[data-theme='light'] {
-  --bg: #f5f4fa;
-  --surface: #ffffff;
-  --ink: #1b1936;
-  --muted: #645f7e;
-  --line: #e2e0ee;
-  --accent: #534ab7;
-  --accent-ink: #ffffff;
-  --accent-soft: #eceafb;
-  --nav: #1e1b4b;
-  --nav-ink: #d9d6f5;
-  --nav-mut: #8e8ac4;
-  --nav-line: #322e6b;
-  --nav-hi: #2e2a66;
-  --good: #1f7a4d;
-  --good-bg: #e3f4ea;
-  --warn: #935a08;
-  --warn-bg: #fbefd9;
-  --bad: #b3302e;
-  --bad-bg: #fbe6e5;
-  --info: #1f5fa6;
-  --info-bg: #e2eefa;
+  --bg: #f6f1eb;
+  --surface: #fffdfb;
+  --ink: #1a1520;
+  --muted: #635b55;
+  --line: #e6ddd4;
+  --accent: #e04e00;
+  --accent-ink: #fffaf6;
+  --accent-soft: #ffe8d9;
+  --brand: #e04e00;
+  --nav: #1f1712;
+  --nav-ink: #f4ebe3;
+  --nav-mut: #b9a99a;
+  --nav-line: #342820;
+  --nav-hi: #2c221b;
   color-scheme: light;
 }

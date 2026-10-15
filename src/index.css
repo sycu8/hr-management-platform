@@ -1,4 +1,5 @@
 @import './styles/tokens.css';
+@import './styles/login.css';
 
 *,
 *::before,
@@ -55,10 +56,12 @@ textarea {
   padding: 4px 8px 16px;
 }
 
-.side .logo {
+.side .logo,
+.side .brand-logo {
   width: 34px;
   height: 34px;
   border-radius: 10px;
+  flex: none;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -66,9 +69,16 @@ textarea {
   color: var(--accent-ink);
 }
 
+.side .brand-logo {
+  background: transparent;
+  object-fit: cover;
+}
+
 .side .brand b {
   display: block;
-  font-size: 15px;
+  font-size: 12px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
 .side .brand small {

@@ -1,0 +1,217 @@
+/* Login branding — Orange Cloud / HR Management Platform */
+
+.login-page {
+  --login-ink: #1a1520;
+  --login-muted: #5c534c;
+  --login-line: #e8dfd6;
+  --login-surface: #fffaf6;
+  --login-accent: #e04e00;
+  --login-accent-ink: #fffaf6;
+  --login-display: 'Sora', 'Be Vietnam Pro', sans-serif;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 4vw, 40px);
+  color: var(--login-ink);
+  background-color: #f3ebe3;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgba(255, 138, 61, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 55% at 100% 10%, rgba(224, 78, 0, 0.14), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(26, 21, 32, 0.06), transparent 55%),
+    repeating-linear-gradient(
+      -18deg,
+      transparent,
+      transparent 22px,
+      rgba(26, 21, 32, 0.025) 22px,
+      rgba(26, 21, 32, 0.025) 23px
+    );
+  animation: login-in 0.55s ease-out both;
+}
+
+@keyframes login-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.login-stage {
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 22px;
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  animation: login-brand 0.7s 0.05s ease-out both;
+}
+
+@keyframes login-brand {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.login-logo {
+  width: 72px;
+  height: 72px;
+  display: block;
+  border-radius: 18px;
+  box-shadow: 0 14px 36px rgba(224, 78, 0, 0.28);
+}
+
+.login-product {
+  margin: 4px 0 0;
+  font-family: var(--login-display);
+  font-size: clamp(1.55rem, 4.2vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  color: var(--login-ink);
+}
+
+.login-org {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--login-accent);
+}
+
+.login-tagline {
+  margin: 0;
+  text-align: center;
+  color: var(--login-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 36ch;
+  align-self: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 20px 20px;
+  background: color-mix(in srgb, var(--login-surface) 92%, white);
+  border: 1px solid var(--login-line);
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+  animation: login-form 0.65s 0.12s ease-out both;
+}
+
+@keyframes login-form {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.login-form-title {
+  margin: 0 0 2px;
+  font-family: var(--login-display);
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.login-form .f {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--login-ink);
+}
+
+.login-form .f input {
+  background: #fff;
+  border: 1px solid var(--login-line);
+  border-radius: 10px;
+  padding: 11px 12px;
+  color: var(--login-ink);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-form .f input:focus {
+  border-color: color-mix(in srgb, var(--login-accent) 55%, var(--login-line));
+  box-shadow: 0 0 0 3px rgba(224, 78, 0, 0.15);
+}
+
+.login-form .f input::placeholder {
+  color: #a39890;
+}
+
+.login-error {
+  background: #fde8e4;
+  color: #9b2c1f;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13px;
+}
+
+.login-submit {
+  margin-top: 4px;
+  width: 100%;
+  background: var(--login-accent) !important;
+  border-color: transparent !important;
+  color: var(--login-accent-ink) !important;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.login-submit:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.login-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.login-status {
+  text-align: center;
+  color: var(--login-muted);
+  margin: 0;
+}
+
+.login-foot {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--login-muted);
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page,
+  .login-brand,
+  .login-form {
+    animation: none;
+  }
+}

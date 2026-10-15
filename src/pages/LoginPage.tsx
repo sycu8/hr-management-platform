@@ -15,7 +15,10 @@ export function LoginPage() {
   if (state.status === 'loading') {
     return (
       <div className="login-page">
-        <div className="login-card">Đang kiểm tra phiên đăng nhập…</div>
+        <div className="login-stage">
+          <BrandMark />
+          <p className="login-status">Đang kiểm tra phiên đăng nhập…</p>
+        </div>
       </div>
     )
   }
@@ -44,52 +47,68 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
-      <form className="login-card" onSubmit={onSubmit}>
-        <div className="login-brand">
-          <div className="logo" aria-hidden="true">
-            H
-          </div>
-          <div>
-            <b>HRM Portal</b>
-            <small>hrm.orangecloud.vn</small>
-          </div>
-        </div>
-        <h1>Đăng nhập</h1>
-        <p className="muted">
-          Super Admin · Admin (HR) · User theo chức năng phòng ban
+      <div className="login-stage">
+        <BrandMark />
+        <p className="login-tagline">
+          Hệ thống nhân sự nội bộ cho tổ chức — nghỉ phép, công tác, lương và
+          tuyển dụng trên một nền tảng.
         </p>
 
-        <label className="f">
-          Email
-          <input
-            type="email"
-            autoComplete="username"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label className="f">
-          Mật khẩu
-          <input
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
+        <form className="login-form" onSubmit={onSubmit} noValidate>
+          <h1 className="login-form-title">Đăng nhập</h1>
 
-        {error ? (
-          <div className="login-error" role="alert">
-            {error}
-          </div>
-        ) : null}
+          <label className="f">
+            Email
+            <input
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ban@orangecloud.vn"
+            />
+          </label>
+          <label className="f">
+            Mật khẩu
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </label>
 
-        <button type="submit" className="btn primary" disabled={submitting}>
-          {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
-        </button>
-      </form>
+          {error ? (
+            <div className="login-error" role="alert">
+              {error}
+            </div>
+          ) : null}
+
+          <button type="submit" className="btn primary login-submit" disabled={submitting}>
+            {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
+          </button>
+        </form>
+
+        <p className="login-foot">hrm.orangecloud.vn · Orange Cloud</p>
+      </div>
     </div>
+  )
+}
+
+function BrandMark() {
+  return (
+    <header className="login-brand">
+      <img
+        className="login-logo"
+        src="/logo.svg"
+        width={72}
+        height={72}
+        alt=""
+      />
+      <p className="login-product">HR Management Platform</p>
+      <p className="login-org">Orange Cloud</p>
+    </header>
   )
 }

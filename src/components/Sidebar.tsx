@@ -35,12 +35,10 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
       aria-label="Điều hướng"
     >
       <div className="brand">
-        <div className="logo" aria-hidden="true">
-          H
-        </div>
+        <img className="brand-logo" src="/logo.svg" width={34} height={34} alt="" />
         <div>
-          <b>HRM Portal</b>
-          <small>hrm.orangecloud.vn</small>
+          <b>HR Management Platform</b>
+          <small>Orange Cloud</small>
         </div>
       </div>
 
