@@ -1573,7 +1573,21 @@ INSERT OR REPLACE INTO objectives (id, organization_id, employee_id, period, obj
  ('obj_h2','org_demo','e4','Quý 4/2026','Đạt chỉ tiêu doanh thu phòng kinh doanh','[{"kr":"Doanh thu phòng","target":8000,"current":4300,"unit":"triệu ₫","progress":0.54},{"kr":"Số hợp đồng khung ký mới","target":6,"current":3,"unit":"hợp đồng","progress":0.5}]'),
  ('obj_h3','org_demo','e7','Quý 4/2026','Nâng độ ổn định nền tảng dịch vụ','[{"kr":"Thời gian hoạt động hệ thống","target":99.9,"current":99.7,"unit":"%","progress":0.9},{"kr":"Sự cố mức cao","target":0,"current":1,"unit":"sự cố","reverse":true,"progress":0},{"kr":"Độ phủ kiểm thử tự động","target":70,"current":58,"unit":"%","progress":0.83}]'),
  ('obj_h4','org_demo','e2','Quý 4/2026','Rút ngắn thời gian triển khai cho khách hàng','[{"kr":"Thời gian triển khai trung bình","target":12,"current":15,"unit":"ngày","reverse":true,"progress":0.6},{"kr":"Số dự án bàn giao đúng hạn","target":5,"current":3,"unit":"dự án","progress":0.6}]'),
- ('obj_h5','org_demo','e6','Quý 4/2026','Tăng nhận diện thương hiệu trên kênh số','[{"kr":"Lượt truy cập website","target":60000,"current":41500,"unit":"lượt","progress":0.69},{"kr":"Số khách hàng tiềm năng từ chiến dịch","target":400,"current":312,"unit":"khách","progress":0.78}]');
+ ('obj_h5','org_demo','e6','Quý 4/2026','Tăng nhận diện thương hiệu trên kênh số','[{"kr":"Lượt truy cập website","target":60000,"current":41500,"unit":"lượt","progress":0.69},{"kr":"Số khách hàng tiềm năng từ chiến dịch","target":400,"current":312,"unit":"khách","progress":0.78}]'),
+ ('obj_q1_e1','org_demo','e1','2026-Q1','Mở pipeline Q1','[{"kr":"Số lead đủ chuẩn","progress":0.9},{"kr":"Doanh số ký Q1","progress":0.85}]'),
+ ('obj_q1_e4','org_demo','e4','2026-Q1','Chốt kế hoạch doanh thu năm','[{"kr":"Phê duyệt forecast","progress":1},{"kr":"Align KPI team","progress":0.95}]'),
+ ('obj_q1_e7','org_demo','e7','2026-Q1','Ổn định release Q1','[{"kr":"0 P1 sau go-live","progress":0.8},{"kr":"Coverage >= 70%","progress":0.75}]'),
+ ('obj_q1_e8','org_demo','e8','2026-Q1','Đóng sổ lương đúng hạn','[{"kr":"Chốt kỳ đúng ngày","progress":1},{"kr":"0 sai sót PIT lớn","progress":0.9}]'),
+ ('obj_q1_e9','org_demo','e9','2026-Q1','Tuyển đủ headcount Q1','[{"kr":"Đóng 2 vị trí","progress":1},{"kr":"SLA tuyển ≤ 30 ngày","progress":0.7}]'),
+ ('obj_q2_e1','org_demo','e1','2026-Q2','Tăng upsell khách hiện hữu','[{"kr":"5 deal upsell","progress":0.6},{"kr":"NPS >= 40","progress":0.55}]'),
+ ('obj_q2_e8','org_demo','e8','2026-Q2','Chuẩn hóa quyết toán công tác','[{"kr":"SLA quyết toán ≤ 5 ngày","progress":0.5},{"kr":"Template thống nhất","progress":0.8}]'),
+ ('obj_q2_e9','org_demo','e9','2026-Q2','Cải thiện trải nghiệm ứng viên','[{"kr":"CSAT ứng viên >= 4.2","progress":0.4},{"kr":"Giảm no-show phỏng vấn","progress":0.35}]'),
+ ('obj_q3_e1','org_demo','e1','2026-Q3','Đạt 60% target H2 sớm','[{"kr":"Doanh số lũy kế","progress":0.7},{"kr":"Số hợp đồng mới","progress":0.65}]'),
+ ('obj_q3_e7','org_demo','e7','2026-Q3','Ship module Learning','[{"kr":"Release production","progress":0.9},{"kr":"Bug P1 = 0","progress":0.85}]'),
+ ('obj_q3_e8','org_demo','e8','2026-Q3','Đối soát BHXH nửa năm','[{"kr":"Báo cáo BH đúng hạn","progress":0.75},{"kr":"Đối soát 100% NV","progress":0.7}]'),
+ ('obj_q3_e9','org_demo','e9','2026-Q3','Xây talent pipeline kỹ thuật','[{"kr":"Pool ứng viên passive 50","progress":0.45},{"kr":"2 referral hire","progress":0.5}]'),
+ ('obj_q4_e8','org_demo','e8','2026-Q4','Đóng năm tài chính sạch','[{"kr":"Sổ lương 12/12 đúng hạn","progress":0.75},{"kr":"Audit payroll pass","progress":0.6}]'),
+ ('obj_q4_e9','org_demo','e9','2026-Q4','Hoàn tất headcount năm','[{"kr":"Đóng mọi vị trí open","progress":0.5},{"kr":"Onboarding NPS >= 4.5","progress":0.4}]');
 
 INSERT OR REPLACE INTO feedback_360 (id, organization_id, employee_id, period, competencies_json, scores_json) VALUES
  ('fb1','org_demo','e1','2026-H1','["Giao tiếp","Làm việc nhóm","Chuyên môn","Chủ động"]','{"peer":4.1,"manager":4.3,"self":4.0}'),

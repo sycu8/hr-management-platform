@@ -56,7 +56,9 @@ INSERT OR REPLACE INTO user_capabilities (user_id, capability, level) VALUES
  ('u_rec', 'dashboard', 1),
  ('u_rec', 'recruiting', 2),
  ('u_rec', 'employees', 1),
+ ('u_rec', 'performance', 1),
  ('u_pay', 'dashboard', 1),
  ('u_pay', 'payroll', 2),
  ('u_pay', 'benefits', 2),
- ('u_pay', 'employees', 1);
+ ('u_pay', 'employees', 1),
+ ('u_pay', 'performance', 1);
