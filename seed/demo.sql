@@ -43,6 +43,7 @@ DELETE FROM certificates WHERE organization_id = 'org_demo';
 DELETE FROM employee_careers WHERE organization_id = 'org_demo';
 DELETE FROM career_paths WHERE organization_id = 'org_demo';
 DELETE FROM courses WHERE organization_id = 'org_demo';
+DELETE FROM policy_attachments WHERE organization_id = 'org_demo';
 DELETE FROM policy_documents WHERE organization_id = 'org_demo';
 DELETE FROM permission_matrix WHERE organization_id = 'org_demo';
 -- Keep auth users from auth_users.sql; clear legacy demo-only users

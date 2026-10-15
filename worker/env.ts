@@ -4,6 +4,8 @@
  */
 export type Env = Cloudflare.Env & {
   SESSION_SECRET?: string
+  /** Workers AI binding for policy document OCR (toMarkdown). */
+  AI?: Ai
 }
 
 /** Login account types (authority). */

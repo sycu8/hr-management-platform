@@ -123,11 +123,17 @@ lists.get('/policies', requireModule('pol', 1), async (c) => {
   const category = c.req.query('category')
   const { results } = await c.env.DB.prepare(
     category
-      ? `SELECT id, category, code, title, version, effective_from, summary
+      ? `SELECT id, category, code, title, policy_type, version,
+                effective_from, effective_to, status, applicable_departments,
+                summary, content_text, file_name, r2_key, owner_name,
+                last_reviewed_at, updated_at
          FROM policy_documents
          WHERE organization_id = ? AND category = ?
          ORDER BY code`
-      : `SELECT id, category, code, title, version, effective_from, summary
+      : `SELECT id, category, code, title, policy_type, version,
+                effective_from, effective_to, status, applicable_departments,
+                summary, content_text, file_name, r2_key, owner_name,
+                last_reviewed_at, updated_at
          FROM policy_documents
          WHERE organization_id = ?
          ORDER BY category, code`,

@@ -56,6 +56,9 @@
       "bucket_name": "hrm-exports"
     }
   ],
+  "ai": {
+    "binding": "AI"
+  },
   "kv_namespaces": [
     {
       "binding": "CACHE",

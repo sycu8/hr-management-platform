@@ -14,6 +14,8 @@ import dataSources from './routes/data-sources.ts'
 import recruitment from './routes/recruitment.ts'
 import leave from './routes/leave.ts'
 import learning from './routes/learning.ts'
+import policies from './routes/policies.ts'
+import documents from './routes/documents.ts'
 
 export type AppVariables = {
   user: AuthUser
@@ -47,6 +49,8 @@ export function createApp() {
   api.route('/recruitment', recruitment)
   api.route('/leave', leave)
   api.route('/learning', learning)
+  api.route('/policies', policies)
+  api.route('/documents', documents)
 
   app.route('/api', api)
 
