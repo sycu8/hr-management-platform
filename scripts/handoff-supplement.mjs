@@ -136,7 +136,7 @@ export const handoffCandidates = [
   ['c_h10', 'job_h3', 'Kiều Anh Thư', 'Website công ty', 'new', 0, 'anh.thu.demo@example.com', '0912 000 110', null, null],
   ['c_h11', 'job_h4', 'Đoàn Mỹ Lệ', 'TopCV', 'offer', 8, 'my.le.demo@example.com', '0912 000 111', null, null],
   ['c_h12', 'job_h4', 'Tạ Quang Hải', 'Facebook', 'screen', 6, 'quang.hai.demo@example.com', '0912 000 112', null, null],
-  ['c_h13', 'job_h6', 'Cao Thị Nhàn', 'TopCV', 'hired', 8, 'thi.nhan.demo@example.com', '0912 000 113', null, 'Đã nhận việc — onboarding 19/10'],
+  ['c_h13', 'job_h6', 'Cao Thị Nhàn', 'TopCV', 'Nhận việc', 8, 'thi.nhan.demo@example.com', '0912 000 113', null, 'Đã nhận việc — onboarding 19/10'],
 ]
 
 /** Extra leave rows aligned with handoff narratives (ids avoid clash with existing l1–l42). */
@@ -163,48 +163,51 @@ export const handoffLeaves = [
   ],
 ]
 
+/** Course rows: id, code, title, type, hours, mandatory, skill, provider, desc, level, delivery, audience, status, start, end */
 export const handoffCourses = [
-  ['course7', 'An toàn thông tin cơ bản', 'Nội bộ', 2, 1, 'Bảo mật thông tin', 'Phòng CNTT', 'Nhận biết lừa đảo, quản lý mật khẩu, xử lý dữ liệu nội bộ.'],
-  ['course8', 'Phòng cháy chữa cháy tại nơi làm việc', 'Nội bộ', 3, 1, 'PCCC', 'Phòng Hành chính', 'Quy trình thoát hiểm và sử dụng thiết bị chữa cháy.'],
-  ['course9', 'Kỹ năng giao tiếp và thuyết trình', 'Nội bộ', 8, 0, 'Giao tiếp', 'Phòng Nhân sự', 'Cấu trúc bài trình bày, xử lý câu hỏi, giao tiếp liên phòng ban.'],
-  ['course10', 'Quản lý nhóm hiệu quả', 'Bên ngoài', 16, 0, 'Quản lý nhóm', 'Trung tâm đào tạo đối tác', 'Giao việc, phản hồi, xử lý xung đột cho cấp trưởng nhóm.'],
-  ['course11', 'Nền tảng điện toán đám mây', 'Bên ngoài', 24, 0, 'Cloud', 'Đối tác đào tạo công nghệ', 'Kiến thức nền về hạ tầng và dịch vụ đám mây.'],
-  ['course12', 'Quy trình bán hàng B2B', 'Nội bộ', 12, 0, 'Bán hàng B2B', 'Phòng Kinh doanh', 'Từ tìm kiếm khách hàng đến ký hợp đồng và chăm sóc sau bán.'],
-  ['course13', 'Luật lao động dành cho quản lý', 'Bên ngoài', 6, 0, 'Luật lao động', 'Hiệp hội nhân sự', 'Hợp đồng, kỷ luật, chấm dứt hợp đồng theo Bộ luật Lao động 2019.'],
-  ['course14', 'Excel nâng cao cho kế toán', 'Nội bộ', 10, 0, 'Excel nâng cao', 'Phòng Kế toán', 'Hàm nâng cao, bảng tổng hợp, đối chiếu số liệu.'],
-  ['course15', 'Digital marketing thực chiến', 'Bên ngoài', 20, 0, 'Digital Marketing', 'Học viện marketing', 'Quảng cáo trả phí, SEO, email marketing và đo lường.'],
+  ['course7', 'DT-007', 'An toàn thông tin cơ bản', 'E-learning', 2, 1, 'Bảo mật thông tin', 'Phòng CNTT', 'Nhận biết lừa đảo, quản lý mật khẩu, xử lý dữ liệu nội bộ.', 'Cơ bản', 'E-learning', 'Toàn công ty', 'active', '2026-01-01', '2026-12-31'],
+  ['course8', 'DT-008', 'Phòng cháy chữa cháy tại nơi làm việc', 'Workshop', 3, 1, 'PCCC', 'Phòng Hành chính', 'Quy trình thoát hiểm và sử dụng thiết bị chữa cháy.', 'Cơ bản', 'Trực tiếp', 'Toàn công ty', 'active', '2026-01-01', '2026-12-31'],
+  ['course9', 'DT-009', 'Kỹ năng giao tiếp và thuyết trình', 'Nội bộ', 8, 0, 'Giao tiếp', 'Phòng Nhân sự', 'Cấu trúc bài trình bày, xử lý câu hỏi, giao tiếp liên phòng ban.', 'Trung cấp', 'Trực tiếp', 'Chuyên viên trở lên', 'active', '2026-03-01', '2026-12-31'],
+  ['course10', 'DT-010', 'Quản lý nhóm hiệu quả', 'Bên ngoài', 16, 0, 'Quản lý nhóm', 'Trung tâm đào tạo đối tác', 'Giao việc, phản hồi, xử lý xung đột cho cấp trưởng nhóm.', 'Nâng cao', 'Kết hợp', 'Trưởng nhóm / quản lý', 'active', '2026-02-01', '2026-11-30'],
+  ['course11', 'DT-011', 'Nền tảng điện toán đám mây', 'Bên ngoài', 24, 0, 'Cloud', 'Đối tác đào tạo công nghệ', 'Kiến thức nền về hạ tầng và dịch vụ đám mây.', 'Trung cấp', 'Trực tuyến', 'Khối Kỹ thuật', 'active', '2026-01-15', '2026-10-31'],
+  ['course12', 'DT-012', 'Quy trình bán hàng B2B', 'Nội bộ', 12, 0, 'Bán hàng B2B', 'Phòng Kinh doanh', 'Từ tìm kiếm khách hàng đến ký hợp đồng và chăm sóc sau bán.', 'Trung cấp', 'Trực tiếp', 'Kinh doanh', 'active', '2026-01-01', '2026-12-31'],
+  ['course13', 'DT-013', 'Luật lao động dành cho quản lý', 'Bên ngoài', 6, 0, 'Luật lao động', 'Hiệp hội nhân sự', 'Hợp đồng, kỷ luật, chấm dứt hợp đồng theo Bộ luật Lao động 2019.', 'Nâng cao', 'Trực tiếp', 'Quản lý / HR', 'active', '2026-04-01', '2026-09-30'],
+  ['course14', 'DT-014', 'Excel nâng cao cho kế toán', 'Nội bộ', 10, 0, 'Excel nâng cao', 'Phòng Kế toán', 'Hàm nâng cao, bảng tổng hợp, đối chiếu số liệu.', 'Nâng cao', 'Trực tiếp', 'Kế toán', 'active', '2026-02-01', '2026-08-31'],
+  ['course15', 'DT-015', 'Digital marketing thực chiến', 'Workshop', 20, 0, 'Digital Marketing', 'Học viện marketing', 'Quảng cáo trả phí, SEO, email marketing và đo lường.', 'Trung cấp', 'Kết hợp', 'Marketing', 'active', '2026-03-01', '2026-11-30'],
 ]
 
+/** Enrollment: id, emp, course, progress, due, score, enrolled_on, completed_on */
 export const handoffEnrollments = [
-  ['en_h1', 'e1', 'course12', 60, '2026-11-30'],
-  ['en_h2', 'e1', 'course9', 30, '2026-12-15'],
-  ['en_h3', 'e2', 'course11', 100, '2026-05-31'],
-  ['en_h4', 'e2', 'course8', 100, '2026-06-30'],
-  ['en_h5', 'e3', 'course13', 100, '2026-04-30'],
-  ['en_h6', 'e3', 'course9', 100, '2026-03-31'],
-  ['en_h7', 'e4', 'course10', 45, '2026-12-20'],
-  ['en_h8', 'e5', 'course7', 90, '2026-06-30'],
-  ['en_h9', 'e6', 'course15', 100, '2026-08-31'],
-  ['en_h10', 'e6', 'course9', 20, '2026-12-31'],
-  ['en_h11', 'e7', 'course10', 100, '2026-02-28'],
-  ['en_h12', 'e7', 'course11', 100, '2025-11-30'],
-  ['en_h13', 'e8', 'course14', 100, '2026-03-31'],
-  ['en_h14', 'e9', 'course9', 70, '2026-11-30'],
-  ['en_h15', 'e9', 'course13', 0, '2026-12-31'],
-  ['en_h16', 'e10', 'course10', 100, '2025-12-31'],
-  ['en_h17', 'e10', 'course15', 100, '2025-09-30'],
-  ['en_h18', 'e11', 'course7', 0, '2026-10-20'],
-  ['en_h19', 'e11', 'course8', 0, '2026-10-20'],
+  ['en_h1', 'e1', 'course12', 60, '2026-11-30', null, '2026-09-01', null],
+  ['en_h2', 'e1', 'course9', 30, '2026-12-15', null, '2026-10-01', null],
+  ['en_h3', 'e2', 'course11', 100, '2026-05-31', 88, '2026-02-01', '2026-05-20'],
+  ['en_h4', 'e2', 'course8', 100, '2026-06-30', 100, '2026-04-01', '2026-06-15'],
+  ['en_h5', 'e3', 'course13', 100, '2026-04-30', 92, '2026-02-15', '2026-04-20'],
+  ['en_h6', 'e3', 'course9', 100, '2026-03-31', 85, '2026-01-10', '2026-03-25'],
+  ['en_h7', 'e4', 'course10', 45, '2026-12-20', null, '2026-09-15', null],
+  ['en_h8', 'e5', 'course7', 90, '2026-06-30', null, '2026-03-01', null],
+  ['en_h9', 'e6', 'course15', 100, '2026-08-31', 90, '2026-05-01', '2026-08-20'],
+  ['en_h10', 'e6', 'course9', 20, '2026-12-31', null, '2026-10-10', null],
+  ['en_h11', 'e7', 'course10', 100, '2026-02-28', 95, '2025-11-01', '2026-02-15'],
+  ['en_h12', 'e7', 'course11', 100, '2025-11-30', 91, '2025-08-01', '2025-11-20'],
+  ['en_h13', 'e8', 'course14', 100, '2026-03-31', 94, '2026-01-05', '2026-03-20'],
+  ['en_h14', 'e9', 'course9', 70, '2026-11-30', null, '2026-08-01', null],
+  ['en_h15', 'e9', 'course13', 0, '2026-12-31', null, '2026-10-01', null],
+  ['en_h16', 'e10', 'course10', 100, '2025-12-31', 87, '2025-09-01', '2025-12-15'],
+  ['en_h17', 'e10', 'course15', 100, '2025-09-30', 89, '2025-06-01', '2025-09-20'],
+  ['en_h18', 'e11', 'course7', 0, '2026-10-20', null, '2026-09-20', null],
+  ['en_h19', 'e11', 'course8', 0, '2026-10-20', null, '2026-09-20', null],
 ]
 
+/** Cert: id, emp, name, issuer, issued, expires, course_id, cert_number, file_name, file_url */
 export const handoffCerts = [
-  ['cert_h1', 'e7', 'PMP', 'PMI', '2023-05-20', '2026-05-20'],
-  ['cert_h2', 'e2', 'AWS Cloud Practitioner', 'Amazon Web Services', '2023-11-20', '2026-11-20'],
-  ['cert_h3', 'e5', 'IELTS Academic 7.5', 'British Council', '2025-02-10', '2027-02-10'],
-  ['cert_h4', 'e3', 'Chứng chỉ an toàn vệ sinh lao động', 'Trung tâm huấn luyện ATVSLĐ', '2025-10-30', '2026-10-30'],
-  ['cert_h5', 'e10', 'Google Ads Search', 'Google', '2025-12-01', '2026-12-01'],
-  ['cert_h6', 'e4', 'Chứng chỉ nội bộ: Chuyên gia bán hàng B2B', 'Phòng Kinh doanh', '2024-09-15', null],
-  ['cert_h7', 'e1', 'Chứng chỉ nội bộ: Bán hàng B2B cấp 1', 'Phòng Kinh doanh', '2025-04-20', '2027-04-20'],
+  ['cert_h1', 'e7', 'PMP', 'PMI', '2023-05-20', '2026-05-20', null, 'PMP-2023-8821', 'pmp-e7.pdf', null],
+  ['cert_h2', 'e2', 'AWS Cloud Practitioner', 'Amazon Web Services', '2023-11-20', '2026-11-20', 'course11', 'AWS-CP-2311', 'aws-cp-e2.pdf', null],
+  ['cert_h3', 'e5', 'IELTS Academic 7.5', 'British Council', '2025-02-10', '2027-02-10', null, 'IELTS-7525', 'ielts-e5.pdf', null],
+  ['cert_h4', 'e3', 'Chứng chỉ an toàn vệ sinh lao động', 'Trung tâm huấn luyện ATVSLĐ', '2025-10-30', '2026-10-30', 'course8', 'ATVSLD-2025-031', 'atvsld-e3.pdf', null],
+  ['cert_h5', 'e10', 'Google Ads Search', 'Google', '2025-12-01', '2026-12-01', 'course15', 'GADS-2025-10', 'gads-e10.pdf', null],
+  ['cert_h6', 'e4', 'Chứng chỉ nội bộ: Chuyên gia bán hàng B2B', 'Phòng Kinh doanh', '2024-09-15', null, 'course12', 'NB-BH-004', 'nb-bh-e4.pdf', null],
+  ['cert_h7', 'e1', 'Chứng chỉ nội bộ: Bán hàng B2B cấp 1', 'Phòng Kinh doanh', '2025-04-20', '2027-04-20', 'course12', 'NB-BH-001', 'nb-bh-e1.pdf', null],
 ]
 
 export const handoffEarnings = [

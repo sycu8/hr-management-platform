@@ -54,16 +54,27 @@ lists.get('/onboarding', requireModule('rec', 1), async (c) => {
             END AS due_convert
      FROM onboarding_plans
      WHERE organization_id = ?
-     ORDER BY due_convert DESC, start_date`,
+     ORDER BY
+       CASE WHEN status = 'converted' THEN 1 WHEN status = 'cancelled' THEN 2 ELSE 0 END,
+       due_convert DESC,
+       start_date`,
   )
     .bind(today, user.organizationId)
     .all()
 
-  // Soft-flag due_convert in response for UI remind
+  // Soft-flag due_convert; parse checklist for card UI
   const items = (results ?? []).map((r) => {
     const due = (r.due_convert as number) === 1 && r.status !== 'converted'
+    let tasks: unknown[] = []
+    try {
+      const parsed = JSON.parse((r.tasks_json as string) || '[]') as unknown
+      tasks = Array.isArray(parsed) ? parsed : []
+    } catch {
+      tasks = []
+    }
     return {
       ...r,
+      tasks,
       remind_convert: due,
       status:
         due && r.status === 'in_progress' ? 'due_convert' : (r.status as string),
@@ -129,10 +140,11 @@ lists.get('/policies', requireModule('pol', 1), async (c) => {
 lists.get('/courses', requireModule('learn', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
-    `SELECT id, title, course_type, hours, mandatory, skill, provider
+    `SELECT id, code, title, course_type, level, hours, delivery_mode, audience,
+            mandatory, skill, provider, status, start_date, end_date, description
      FROM courses
      WHERE organization_id = ?
-     ORDER BY title`,
+     ORDER BY COALESCE(code, title)`,
   )
     .bind(user.organizationId)
     .all()
@@ -142,12 +154,15 @@ lists.get('/courses', requireModule('learn', 1), async (c) => {
 lists.get('/certificates', requireModule('learn', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
-    `SELECT c.id, c.name, c.issuer, c.issued_on, c.expires_on,
-            e.full_name AS employee_name
+    `SELECT c.id, c.name, c.cert_number, c.issuer, c.issued_on, c.expires_on,
+            c.course_id, c.file_name, c.file_url,
+            e.full_name AS employee_name, e.code AS employee_code,
+            co.title AS course_title
      FROM certificates c
      JOIN employees e ON e.id = c.employee_id
+     LEFT JOIN courses co ON co.id = c.course_id
      WHERE c.organization_id = ?
-     ORDER BY c.expires_on`,
+     ORDER BY c.expires_on IS NULL, c.expires_on, e.code`,
   )
     .bind(user.organizationId)
     .all()
@@ -347,8 +362,9 @@ lists.get('/feedback-360', requireModule('perf', 1), async (c) => {
 lists.get('/enrollments', requireModule('learn', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
-    `SELECT en.id, en.progress, en.due_on,
-            c.title AS course_title,
+    `SELECT en.id, en.employee_id, en.course_id, en.progress, en.score,
+            en.due_on, en.enrolled_on, en.completed_on,
+            c.title AS course_title, c.mandatory AS course_mandatory,
             e.full_name AS employee_name, e.code AS employee_code
      FROM enrollments en
      JOIN courses c ON c.id = en.course_id
@@ -368,6 +384,23 @@ lists.get('/careers', requireModule('learn', 1), async (c) => {
      FROM career_paths
      WHERE organization_id = ?
      ORDER BY name`,
+  )
+    .bind(user.organizationId)
+    .all()
+  return json(c, { items: results ?? [] })
+})
+
+lists.get('/employee-careers', requireModule('learn', 1), async (c) => {
+  const user = c.get('user')
+  const { results } = await c.env.DB.prepare(
+    `SELECT ec.employee_id AS id, ec.employee_id, ec.path_id, ec.level_index,
+            e.full_name AS employee_name, e.code AS employee_code,
+            e.department, p.name AS path_name, p.levels_json
+     FROM employee_careers ec
+     JOIN employees e ON e.id = ec.employee_id
+     JOIN career_paths p ON p.id = ec.path_id
+     WHERE ec.organization_id = ?
+     ORDER BY e.code`,
   )
     .bind(user.organizationId)
     .all()

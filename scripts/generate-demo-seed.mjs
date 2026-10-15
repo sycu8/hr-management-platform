@@ -1054,41 +1054,247 @@ INSERT OR REPLACE INTO payroll_runs (
 count('payroll_runs', 3)
 
 const CAP = 20 * 2340000
-const BH_EMP_RATE = 0.105
-const BH_ER_RATE = 0.215
+const BH_EMP = { bhxh: 0.08, bhyt: 0.015, bhtn: 0.01 }
+const BH_ER = { bhxh: 0.14, om: 0.03, tnld: 0.005, bhyt: 0.03, bhtn: 0.01 }
+const SELF_DED = 15500000
+const DEP_DED = 6200000
+const MEAL = 730000
+
+/** Golden locked totals for e1/e4/e5/e11 Sep 2026 — do not change money columns. */
 const goldenPaySep = {
-  e1: { gross: 24730000, bhEmp: 1890000, pit: 20500, net: 22819500, er: 3870000 },
-  e4: { gross: 64184545, bhEmp: 4725000, pit: 2665909, net: 56793636, er: 9675000 },
-  e5: { gross: 86530000, bhEmp: 4914000, pit: 7097200, net: 74518800, er: 10059000 },
-  e11: { gross: 12730000, bhEmp: 0, pit: 0, net: 12730000, er: 0 },
+  e1: {
+    paid: 22,
+    salaryDays: 18000000,
+    allow: 730000,
+    bonus: 6000000,
+    exempt: 730000,
+    gross: 24730000,
+    bhEmp: 1890000,
+    pit: 20500,
+    net: 22819500,
+    er: 3870000,
+    taxable: 6610500,
+    dependents: 1,
+    trip: 6990000,
+    ents: [
+      { type: 'Ăn trưa', kind: 'allowance', amount: 730000 },
+      { type: 'Thưởng KPI quý 3', kind: 'bonus', amount: 6000000 },
+    ],
+  },
+  e4: {
+    paid: 21,
+    salaryDays: 42954545,
+    allow: 6230000,
+    bonus: 15000000,
+    exempt: 730000,
+    gross: 64184545,
+    bhEmp: 4725000,
+    pit: 2665909,
+    net: 56793636,
+    er: 9675000,
+    taxable: 30833636,
+    dependents: 2,
+    trip: 0,
+    ents: [
+      { type: 'Ăn trưa', kind: 'allowance', amount: 730000 },
+      { type: 'Điện thoại', kind: 'allowance', amount: 500000 },
+      { type: 'Trách nhiệm', kind: 'allowance', amount: 5000000 },
+      { type: 'Thưởng KPI quý 3', kind: 'bonus', amount: 15000000 },
+    ],
+  },
+  e5: {
+    paid: 22,
+    salaryDays: 85000000,
+    allow: 1530000,
+    bonus: 0,
+    exempt: 730000,
+    gross: 86530000,
+    bhEmp: 4914000,
+    pit: 7097200,
+    net: 74518800,
+    er: 10059000,
+    taxable: 52986000,
+    dependents: 2,
+    trip: 0,
+    ents: [
+      { type: 'Ăn trưa', kind: 'allowance', amount: 730000 },
+      { type: 'Điện thoại', kind: 'allowance', amount: 800000 },
+    ],
+  },
+  e11: {
+    paid: 22,
+    salaryDays: 12000000,
+    allow: 730000,
+    bonus: 0,
+    exempt: 730000,
+    gross: 12730000,
+    bhEmp: 0,
+    pit: 0,
+    net: 12730000,
+    er: 0,
+    taxable: 0,
+    dependents: 0,
+    trip: 0,
+    prob: true,
+    ents: [{ type: 'Ăn trưa', kind: 'allowance', amount: 730000 }],
+  },
 }
-function approxPay(base, probation) {
-  const meal = 730000
-  const gross = base + meal
+
+function roundVnd(n) {
+  return Math.round(n)
+}
+
+function splitBh(base, probation) {
   if (probation) {
-    return { gross, bhEmp: 0, pit: 0, net: gross, er: 0 }
+    return {
+      bhBase: 0,
+      be: { bhxh: 0, bhyt: 0, bhtn: 0 },
+      bhEmp: 0,
+      er: { bhxh: 0, om: 0, tnld: 0, bhyt: 0, bhtn: 0 },
+      bhEr: 0,
+    }
   }
-  const capped = Math.min(base, CAP)
-  const bhEmp = Math.round(capped * BH_EMP_RATE)
-  const er = Math.round(capped * BH_ER_RATE)
-  const taxable = Math.max(0, gross - bhEmp - 15500000)
-  let pit = 0
-  let remain = taxable
+  const bhBase = Math.min(base, CAP)
+  const be = {
+    bhxh: roundVnd(bhBase * BH_EMP.bhxh),
+    bhyt: roundVnd(bhBase * BH_EMP.bhyt),
+    bhtn: roundVnd(bhBase * BH_EMP.bhtn),
+  }
+  const er = {
+    bhxh: roundVnd(bhBase * BH_ER.bhxh),
+    om: roundVnd(bhBase * BH_ER.om),
+    tnld: roundVnd(bhBase * BH_ER.tnld),
+    bhyt: roundVnd(bhBase * BH_ER.bhyt),
+    bhtn: roundVnd(bhBase * BH_ER.bhtn),
+  }
+  return {
+    bhBase,
+    be,
+    bhEmp: be.bhxh + be.bhyt + be.bhtn,
+    er,
+    bhEr: er.bhxh + er.om + er.tnld + er.bhyt + er.bhtn,
+  }
+}
+
+function approxPit(taxable) {
+  let tax = 0
+  let low = 0
   const brackets = [
     [10000000, 0.05],
-    [20000000, 0.1],
-    [30000000, 0.15],
-    [40000000, 0.2],
-    [1e15, 0.25],
+    [30000000, 0.1],
+    [60000000, 0.2],
+    [100000000, 0.3],
+    [1e15, 0.35],
   ]
-  for (const [w, r] of brackets) {
-    const slice = Math.min(remain, w)
-    if (slice <= 0) break
-    pit += Math.round(slice * r)
-    remain -= slice
+  for (const [cap, r] of brackets) {
+    if (taxable > low) tax += (Math.min(taxable, cap) - low) * r
+    low = cap
+    if (taxable <= cap) break
   }
-  return { gross, bhEmp, pit, net: gross - bhEmp - pit, er }
+  return roundVnd(tax)
 }
+
+/** Approximate pay for non-golden rows; BH split always present for insurance UI. */
+function approxPay(base, deps, probation, paid = 22, std = 22) {
+  const salaryDays = roundVnd(base * paid / std)
+  const allow = MEAL
+  const bonus = 0
+  const exempt = MEAL
+  const gross = salaryDays + allow + bonus
+  const bh = splitBh(base, probation)
+  if (probation) {
+    return {
+      paid,
+      std,
+      salaryDays,
+      allow,
+      bonus,
+      exempt,
+      gross,
+      ...bh,
+      pit: 0,
+      net: gross,
+      taxable: 0,
+      dependents: deps,
+      ents: [{ type: 'Ăn trưa', kind: 'allowance', amount: MEAL }],
+      trip: 0,
+    }
+  }
+  const ded = SELF_DED + deps * DEP_DED
+  const taxable = Math.max(0, gross - exempt - bh.bhEmp - ded)
+  const pitAmt = approxPit(taxable)
+  return {
+    paid,
+    std,
+    salaryDays,
+    allow,
+    bonus,
+    exempt,
+    gross,
+    ...bh,
+    pit: pitAmt,
+    net: gross - bh.bhEmp - pitAmt,
+    taxable,
+    dependents: deps,
+    ents: [{ type: 'Ăn trưa', kind: 'allowance', amount: MEAL }],
+    trip: 0,
+  }
+}
+
+function buildSnap(runYm, e, pay, probation) {
+  const [, code, name, , , , , , dept, title, , , base] = e
+  const isProb = !!(probation || pay.prob)
+  const bh = pay.be && pay.erComponents
+    ? {
+        bhBase: pay.bhBase,
+        be: pay.be,
+        bhEmp: pay.bhEmp,
+        er: pay.erComponents,
+        bhEr: pay.bhErTotal,
+      }
+    : splitBh(base, isProb)
+  return {
+    ym: runYm,
+    code,
+    name,
+    department: dept,
+    title,
+    base,
+    paidDays: pay.paid ?? 22,
+    stdDays: pay.std ?? 22,
+    salaryDays: pay.salaryDays ?? roundVnd((base * (pay.paid ?? 22)) / 22),
+    allow: pay.allow ?? MEAL,
+    bonus: pay.bonus ?? 0,
+    exempt: pay.exempt ?? MEAL,
+    gross: pay.gross,
+    be: bh.be,
+    bhEmp: pay.bhEmp,
+    er: bh.er,
+    bhEr: pay.bhErTotal ?? bh.bhEr,
+    pit: pay.pit,
+    net: pay.net,
+    taxable: pay.taxable ?? null,
+    ded: SELF_DED + (pay.dependents ?? 0) * DEP_DED,
+    dependents: pay.dependents ?? 0,
+    prob: isProb,
+    bhBase: bh.bhBase,
+    trip: pay.trip ?? 0,
+    ents: pay.ents ?? [{ type: 'Ăn trưa', kind: 'allowance', amount: MEAL }],
+  }
+}
+
+// Attach BH component splits onto golden rows (money totals stay locked).
+for (const [eid, g] of Object.entries(goldenPaySep)) {
+  const emp = employees.find((x) => x[0] === eid)
+  const base = emp ? emp[12] : 0
+  const bh = splitBh(base, !!g.prob)
+  g.be = bh.be
+  g.erComponents = bh.er
+  g.bhBase = bh.bhBase
+  g.bhErTotal = g.er // original employer total (number)
+  g.std = 22
+}
+
 const payItemRows = []
 let pi = 1
 for (const run of [
@@ -1096,27 +1302,22 @@ for (const run of [
   { id: 'pr_2026_09', ym: '2026-09', useGolden: true },
 ]) {
   for (const e of employees) {
-    const [id, , name, , , , , , dept, title, , , base, , status, joined, left, ctype] = e
+    const [id, , , , , , , , , , , , base, deps, status, joined, left, ctype] = e
     if (status === 'left' && left && left < `${run.ym}-01`) continue
     if (joined > `${run.ym}-28`) continue
     if (status === 'left' && left && left.slice(0, 7) === run.ym && left < `${run.ym}-15`) continue
     const probation = ctype === 'Thử việc'
-    const g =
-      run.useGolden && goldenPaySep[id]
-        ? goldenPaySep[id]
-        : approxPay(base, probation)
-    const snap = {
-      ym: run.ym,
-      code: e[1],
-      name,
-      department: dept,
-      title,
-      base,
-      paidDays: 22,
-      stdDays: 22,
+    let g
+    if (run.useGolden && goldenPaySep[id]) {
+      g = goldenPaySep[id]
+    } else {
+      g = approxPay(base, deps, probation)
+      g.erComponents = g.er
+      g.bhErTotal = g.bhEr
     }
+    const snap = buildSnap(run.ym, e, g, probation)
     payItemRows.push(
-      ` ('pi${pi++}',${esc(run.id)},${esc(id)},${esc(JSON.stringify(snap))},${g.gross},${g.bhEmp},${g.pit},${g.net},${g.er})`,
+      ` ('pi${pi++}',${esc(run.id)},${esc(id)},${esc(JSON.stringify(snap))},${g.gross},${g.bhEmp},${g.pit},${g.net},${snap.bhEr})`,
     )
     count('payroll_items')
   }
@@ -1228,37 +1429,38 @@ push(
 )
 
 const onboardTasks = (items) => JSON.stringify(items)
-const ob1Tasks = onboardTasks([
-  { title: 'Ký HĐLĐ & nhận thiết bị', done: false, due: '2026-11-03' },
-  { title: 'Tạo tài khoản email / SSO', done: false, due: '2026-11-03' },
-  { title: 'Orientation văn hóa Orange Cloud', done: false, due: '2026-11-04' },
-  { title: 'Gặp mentor kỹ thuật (e7)', done: false, due: '2026-11-05' },
-])
-const ob2Tasks = onboardTasks([
-  { title: 'Hoàn tất hồ sơ nhân sự', done: true, due: '2026-08-03' },
-  { title: 'Đào tạo nội quy & ATĐ', done: true, due: '2026-08-04' },
-  { title: 'Setup máy & repo', done: true, due: '2026-08-05' },
-  { title: 'Buddy check-in tuần 2', done: false, due: '2026-08-17' },
-])
-const ob3Tasks = onboardTasks([
-  { title: 'Ký HĐ thử việc', done: true, due: '2025-09-01' },
-  { title: 'Bàn giao sổ sách từ e12', done: true, due: '2025-09-05' },
-  { title: 'Đào tạo quy trình lương', done: false, due: '2025-10-01' },
-])
+/** Standard 8-item checklist (handoff onTemplate). */
+const onTemplate = [
+  'Ký hợp đồng lao động',
+  'Thu hồ sơ nhân sự (CCCD, bằng cấp, sổ BHXH)',
+  'Tạo tài khoản email và hệ thống nội bộ',
+  'Cấp thiết bị làm việc',
+  'Giới thiệu nội quy và văn hóa công ty',
+  'Gặp quản lý trực tiếp, thống nhất mục tiêu 30 ngày',
+  'Đăng ký tham gia khóa đào tạo bắt buộc',
+  'Đăng ký bảo hiểm xã hội',
+]
+const checklist = (doneCount) =>
+  onboardTasks(onTemplate.map((t, i) => ({ t, done: i < doneCount })))
+const ob1Tasks = checklist(0)
+const ob2Tasks = checklist(6) // Lý Hải Nam — 6/8
+const ob3Tasks = checklist(8)
+const ob5Tasks = checklist(4)
 const obReqs = JSON.stringify([
   'Hoàn tất checklist onboarding',
   'Đánh giá thử việc từ QL trực tiếp',
   'Chuyển HĐ chính thức sau 3 tháng',
 ])
-push(`INSERT OR REPLACE INTO onboarding_plans (
+push(`-- Onboarding checklist cards (handoff: Lý Hải Nam 6/8, Cao Thị Nhàn 2/8)
+INSERT OR REPLACE INTO onboarding_plans (
   id, organization_id, candidate_id, employee_id, full_name, role_title, department,
   start_date, tasks_json, probation_end, status, notes, requirements_json
 ) VALUES
  ('ob1',${esc(ORG)},'c3',NULL,${esc('Lê Đức Thịnh')},${esc('Kỹ sư Frontend')},${esc('Kỹ thuật')},'2026-11-03',${esc(ob1Tasks)},'2027-02-03','in_progress',NULL,${esc(obReqs)}),
- ('ob2',${esc(ORG)},NULL,'e11',${esc('Lý Hải Nam')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-07-10',${esc(ob2Tasks)},'2026-10-10','due_convert',${esc('Hết 3 tháng TV — nhắc chuyển hồ sơ NV chính thức')},${esc(obReqs)}),
+ ('ob2',${esc(ORG)},NULL,'e11',${esc('Lý Hải Nam')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-08-03',${esc(ob2Tasks)},'2026-10-31','due_convert',${esc('Hết 3 tháng TV — nhắc chuyển hồ sơ NV chính thức')},${esc(obReqs)}),
  ('ob3',${esc(ORG)},NULL,'e21',${esc('Nguyễn Đức Anh')},${esc('Kế toán viên')},${esc('Kế toán')},'2025-09-01',${esc(ob3Tasks)},'2025-12-01','converted',${esc('Đã chuyển hồ sơ nhân viên chính thức')},${esc(obReqs)}),
  ('ob4',${esc(ORG)},'c_h13',NULL,${esc('Cao Thị Nhàn')},${esc('Chuyên viên hành chính')},${esc('Nhân sự')},'2026-10-19',${esc(onboardingNhanTasks)},'2027-01-19','in_progress',NULL,${esc(obReqs)}),
- ('ob5',${esc(ORG)},NULL,'e35',${esc('Tạ Minh Khôi')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-09-15',${esc(ob2Tasks)},'2026-12-14','in_progress',${esc('Đang thử việc — buddy e17')},${esc(obReqs)});
+ ('ob5',${esc(ORG)},NULL,'e35',${esc('Tạ Minh Khôi')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-09-15',${esc(ob5Tasks)},'2026-12-14','in_progress',${esc('Đang thử việc — buddy e17')},${esc(obReqs)});
 `)
 count('onboarding_plans', 5)
 
@@ -1325,80 +1527,127 @@ push(
 )
 
 // --- learning ---
+/** id, code, title, type, hours, mand, skill, provider, desc, level, delivery, audience, status, start, end */
 const courses = [
-  ['course1', 'An toàn thông tin bắt buộc 2026', 'Bắt buộc', 4, 1, 'Bảo mật', 'Nội bộ', 'Khóa bắt buộc hàng năm cho toàn bộ nhân viên.'],
-  ['course2', 'Kỹ năng bán hàng B2B Cloud', 'Chuyên môn', 8, 0, 'Bán hàng B2B', 'Orange Academy', 'Pipeline, demo, đàm phán hợp đồng SaaS.'],
-  ['course3', 'Cloudflare Workers & D1 thực chiến', 'Chuyên môn', 12, 0, 'Cloud', 'Orange Academy', 'Xây dựng ứng dụng trên Cloudflare.'],
-  ['course4', 'Luật lao động cập nhật 2026', 'Tuân thủ', 6, 1, 'Luật lao động', 'Đối tác pháp lý', 'Dành cho HR và quản lý.'],
-  ['course5', 'Customer Success playbook', 'Chuyên môn', 6, 0, 'CSM', 'Orange Academy', 'Onboarding, QBR, chống churn.'],
-  ['course6', 'Excel & báo cáo lương', 'Chuyên môn', 5, 0, 'Payroll', 'Nội bộ', 'Công thức, đối soát BHXH/PIT.'],
+  ['course1', 'DT-001', 'An toàn thông tin bắt buộc 2026', 'E-learning', 4, 1, 'Bảo mật', 'Nội bộ', 'Khóa bắt buộc hàng năm cho toàn bộ nhân viên.', 'Cơ bản', 'E-learning', 'Toàn công ty', 'active', '2026-01-01', '2026-12-31'],
+  ['course2', 'DT-002', 'Kỹ năng bán hàng B2B Cloud', 'Workshop', 8, 0, 'Bán hàng B2B', 'Orange Academy', 'Pipeline, demo, đàm phán hợp đồng SaaS.', 'Trung cấp', 'Kết hợp', 'Kinh doanh', 'active', '2026-02-01', '2026-11-30'],
+  ['course3', 'DT-003', 'Cloudflare Workers & D1 thực chiến', 'Workshop', 12, 0, 'Cloud', 'Orange Academy', 'Xây dựng ứng dụng trên Cloudflare.', 'Nâng cao', 'Trực tuyến', 'Khối Kỹ thuật', 'active', '2026-03-01', '2026-12-15'],
+  ['course4', 'DT-004', 'Luật lao động cập nhật 2026', 'Bên ngoài', 6, 1, 'Luật lao động', 'Đối tác pháp lý', 'Dành cho HR và quản lý.', 'Trung cấp', 'Trực tiếp', 'HR / Quản lý', 'active', '2026-01-15', '2026-06-30'],
+  ['course5', 'DT-005', 'Customer Success playbook', 'Nội bộ', 6, 0, 'CSM', 'Orange Academy', 'Onboarding, QBR, chống churn.', 'Trung cấp', 'Trực tiếp', 'Customer Success', 'active', '2026-02-01', '2026-12-31'],
+  ['course6', 'DT-006', 'Excel & báo cáo lương', 'Nội bộ', 5, 0, 'Payroll', 'Nội bộ', 'Công thức, đối soát BHXH/PIT.', 'Trung cấp', 'Trực tiếp', 'Kế toán / Payroll', 'active', '2026-01-01', '2026-09-30'],
   ...handoffCourses,
 ]
-push(`INSERT OR REPLACE INTO courses (id, organization_id, title, course_type, hours, mandatory, skill, provider, description) VALUES`)
+push(`INSERT OR REPLACE INTO courses (id, organization_id, code, title, course_type, hours, mandatory, skill, provider, description, level, delivery_mode, audience, status, start_date, end_date) VALUES`)
 push(
   courses
-    .map(([id, title, type, hours, mand, skill, provider, desc]) => {
-      count('courses')
-      return ` (${esc(id)},${esc(ORG)},${esc(title)},${esc(type)},${hours},${mand},${esc(skill)},${esc(provider)},${esc(desc)})`
-    })
+    .map(
+      ([
+        id,
+        code,
+        title,
+        type,
+        hours,
+        mand,
+        skill,
+        provider,
+        desc,
+        level,
+        delivery,
+        audience,
+        status,
+        start,
+        end,
+      ]) => {
+        count('courses')
+        return ` (${esc(id)},${esc(ORG)},${esc(code)},${esc(title)},${esc(type)},${hours},${mand},${esc(skill)},${esc(provider)},${esc(desc)},${esc(level)},${esc(delivery)},${esc(audience)},${esc(status)},${esc(start)},${esc(end)})`
+      },
+    )
     .join(',\n') + ';\n',
 )
 
+/** id, emp, course, progress, due, score, enrolled_on, completed_on */
 const enrollments = [
-  ['en1', 'e1', 'course1', 100, '2026-03-31'],
-  ['en2', 'e1', 'course2', 80, '2026-10-31'],
-  ['en3', 'e2', 'course1', 100, '2026-03-31'],
-  ['en4', 'e2', 'course3', 60, '2026-11-30'],
-  ['en5', 'e3', 'course1', 100, '2026-03-31'],
-  ['en6', 'e3', 'course4', 100, '2026-06-30'],
-  ['en7', 'e7', 'course3', 90, '2026-09-30'],
-  ['en8', 'e8', 'course6', 70, '2026-10-31'],
-  ['en9', 'e9', 'course1', 100, '2026-03-31'],
-  ['en10', 'e11', 'course1', 40, '2026-10-31'],
-  ['en11', 'e24', 'course5', 85, '2026-10-15'],
-  ['en12', 'e25', 'course5', 50, '2026-11-15'],
-  ['en13', 'e4', 'course2', 100, '2026-08-31'],
-  ['en14', 'e17', 'course3', 75, '2026-12-15'],
-  ['en15', 'e20', 'course4', 60, '2026-11-30'],
-  ['en16', 'e6', 'course1', 100, '2026-03-31'],
-  ['en17', 'e29', 'course6', 100, '2026-05-31'],
-  ['en18', 'e15', 'course2', 55, '2026-11-30'],
+  ['en1', 'e1', 'course1', 100, '2026-03-31', 96, '2026-01-10', '2026-02-28'],
+  ['en2', 'e1', 'course2', 80, '2026-10-31', null, '2026-07-01', null],
+  ['en3', 'e2', 'course1', 100, '2026-03-31', 100, '2026-01-10', '2026-03-01'],
+  ['en4', 'e2', 'course3', 60, '2026-11-30', null, '2026-08-01', null],
+  ['en5', 'e3', 'course1', 100, '2026-03-31', 98, '2026-01-10', '2026-02-15'],
+  ['en6', 'e3', 'course4', 100, '2026-06-30', 90, '2026-04-01', '2026-06-20'],
+  ['en7', 'e7', 'course3', 90, '2026-09-30', null, '2026-06-01', null],
+  ['en8', 'e8', 'course6', 70, '2026-10-31', null, '2026-07-15', null],
+  ['en9', 'e9', 'course1', 100, '2026-03-31', 94, '2026-01-10', '2026-03-10'],
+  ['en10', 'e11', 'course1', 40, '2026-10-31', null, '2026-09-01', null],
+  ['en11', 'e24', 'course5', 85, '2026-10-15', null, '2026-07-01', null],
+  ['en12', 'e25', 'course5', 50, '2026-11-15', null, '2026-08-01', null],
+  ['en13', 'e4', 'course2', 100, '2026-08-31', 88, '2026-05-01', '2026-08-20'],
+  ['en14', 'e17', 'course3', 75, '2026-12-15', null, '2026-09-01', null],
+  ['en15', 'e20', 'course4', 60, '2026-11-30', null, '2026-08-15', null],
+  ['en16', 'e6', 'course1', 100, '2026-03-31', 97, '2026-01-10', '2026-03-05'],
+  ['en17', 'e29', 'course6', 100, '2026-05-31', 93, '2026-02-01', '2026-05-20'],
+  ['en18', 'e15', 'course2', 55, '2026-11-30', null, '2026-09-01', null],
   ...handoffEnrollments,
 ]
-push(`INSERT OR REPLACE INTO enrollments (id, organization_id, employee_id, course_id, progress, due_on) VALUES`)
+push(`INSERT OR REPLACE INTO enrollments (id, organization_id, employee_id, course_id, progress, due_on, score, enrolled_on, completed_on) VALUES`)
 push(
   enrollments
-    .map(([id, emp, course, prog, due]) => {
+    .map(([id, emp, course, prog, due, score, enrolled, completed]) => {
       count('enrollments')
-      return ` (${esc(id)},${esc(ORG)},${esc(emp)},${esc(course)},${prog},${esc(due)})`
+      return ` (${esc(id)},${esc(ORG)},${esc(emp)},${esc(course)},${prog},${esc(due)},${score == null ? 'NULL' : score},${esc(enrolled)},${completed ? esc(completed) : 'NULL'})`
     })
     .join(',\n') + ';\n',
 )
 
+/** id, emp, name, issuer, issued, exp, course_id, cert_number, file_name, file_url */
 const certs = [
-  ['cert1', 'e7', 'AWS Solutions Architect Associate', 'Amazon', '2024-05-12', '2027-05-12'],
-  ['cert2', 'e19', 'CKA — Certified Kubernetes Administrator', 'CNCF', '2025-02-20', '2028-02-20'],
-  ['cert3', 'e3', 'SHRM-CP', 'SHRM', '2023-11-01', '2026-11-01'],
-  ['cert4', 'e8', 'Chứng chỉ kế toán viên', 'Bộ Tài chính', '2022-08-15', null],
-  ['cert5', 'e29', 'Chứng chỉ kế toán trưởng', 'Bộ Tài chính', '2020-03-10', null],
-  ['cert6', 'e10', 'Google Analytics Individual Qualification', 'Google', '2025-09-01', '2026-09-01'],
+  ['cert1', 'e7', 'AWS Solutions Architect Associate', 'Amazon', '2024-05-12', '2027-05-12', 'course3', 'AWS-SAA-2405', 'aws-saa-e7.pdf', null],
+  ['cert2', 'e19', 'CKA — Certified Kubernetes Administrator', 'CNCF', '2025-02-20', '2028-02-20', null, 'CKA-2025-019', 'cka-e19.pdf', null],
+  ['cert3', 'e3', 'SHRM-CP', 'SHRM', '2023-11-01', '2026-11-01', 'course4', 'SHRM-CP-2311', 'shrm-e3.pdf', null],
+  ['cert4', 'e8', 'Chứng chỉ kế toán viên', 'Bộ Tài chính', '2022-08-15', null, 'course6', 'BTC-KTV-2208', 'ktv-e8.pdf', null],
+  ['cert5', 'e29', 'Chứng chỉ kế toán trưởng', 'Bộ Tài chính', '2020-03-10', null, null, 'BTC-KTT-2003', 'ktt-e29.pdf', null],
+  ['cert6', 'e10', 'Google Analytics Individual Qualification', 'Google', '2025-09-01', '2026-09-01', 'course15', 'GAIQ-2025-09', 'gaiq-e10.pdf', null],
   ...handoffCerts,
 ]
-push(`INSERT OR REPLACE INTO certificates (id, organization_id, employee_id, name, issuer, issued_on, expires_on) VALUES`)
+push(`INSERT OR REPLACE INTO certificates (id, organization_id, employee_id, name, issuer, issued_on, expires_on, course_id, cert_number, file_name, file_url) VALUES`)
 push(
   certs
-    .map(([id, emp, name, issuer, issued, exp]) => {
+    .map(([id, emp, name, issuer, issued, exp, courseId, certNo, fileName, fileUrl]) => {
       count('certificates')
-      return ` (${esc(id)},${esc(ORG)},${esc(emp)},${esc(name)},${esc(issuer)},${esc(issued)},${exp ? esc(exp) : 'NULL'})`
+      return ` (${esc(id)},${esc(ORG)},${esc(emp)},${esc(name)},${esc(issuer)},${esc(issued)},${exp ? esc(exp) : 'NULL'},${courseId ? esc(courseId) : 'NULL'},${certNo ? esc(certNo) : 'NULL'},${fileName ? esc(fileName) : 'NULL'},${fileUrl ? esc(fileUrl) : 'NULL'})`
     })
     .join(',\n') + ';\n',
 )
 
+const careerPathLevels = {
+  cp_eng: [
+    { t: 'Kỹ sư', yrs: '0 – 2 năm', req: ['Bảo mật thông tin'] },
+    { t: 'Kỹ sư cao cấp', yrs: '2 – 5 năm', req: ['Cloud', 'Bảo mật thông tin'] },
+    { t: 'Trưởng nhóm kỹ thuật', yrs: '4 – 7 năm', req: ['Cloud', 'Quản lý nhóm', 'Giao tiếp'] },
+    { t: 'Trưởng phòng kỹ thuật', yrs: '7 năm trở lên', req: ['Quản lý nhóm', 'Giao tiếp', 'Luật lao động'] },
+  ],
+  cp_sales: [
+    { t: 'Chuyên viên kinh doanh', yrs: '0 – 2 năm', req: ['Bán hàng B2B'] },
+    { t: 'Chuyên viên kinh doanh cao cấp', yrs: '2 – 5 năm', req: ['Bán hàng B2B', 'Giao tiếp'] },
+    { t: 'Trưởng nhóm kinh doanh', yrs: '4 – 6 năm', req: ['Bán hàng B2B', 'Quản lý nhóm', 'Giao tiếp'] },
+    { t: 'Giám đốc kinh doanh', yrs: '6 năm trở lên', req: ['Bán hàng B2B', 'Quản lý nhóm', 'Giao tiếp'] },
+  ],
+  cp_hr: [
+    { t: 'Chuyên viên nhân sự', yrs: '0 – 2 năm', req: ['Giao tiếp'] },
+    { t: 'Chuyên viên cao cấp', yrs: '3 – 5 năm', req: ['Giao tiếp', 'Luật lao động'] },
+    { t: 'HRBP / Trưởng nhóm', yrs: '5 – 7 năm', req: ['Luật lao động', 'Quản lý nhóm', 'Giao tiếp'] },
+    { t: 'Trưởng phòng nhân sự', yrs: '6 năm trở lên', req: ['Luật lao động', 'Quản lý nhóm', 'Giao tiếp'] },
+  ],
+  cp_cs: [
+    { t: 'CS Associate', yrs: '0 – 2 năm', req: ['Giao tiếp'] },
+    { t: 'CSM', yrs: '2 – 4 năm', req: ['CSM', 'Giao tiếp'] },
+    { t: 'Senior CSM', yrs: '4 – 6 năm', req: ['CSM', 'Giao tiếp', 'Quản lý nhóm'] },
+    { t: 'CS Manager', yrs: '6 năm trở lên', req: ['CSM', 'Quản lý nhóm', 'Giao tiếp'] },
+  ],
+}
 push(`INSERT OR REPLACE INTO career_paths (id, organization_id, name, levels_json) VALUES
- ('cp_eng',${esc(ORG)},${esc('Lộ trình Kỹ thuật')},${esc(JSON.stringify(['Junior','Mid','Senior','Tech Lead','Engineering Manager']))}),
- ('cp_sales',${esc(ORG)},${esc('Lộ trình Kinh doanh')},${esc(JSON.stringify(['AE','Senior AE','Team Lead','Sales Manager','Sales Director']))}),
- ('cp_hr',${esc(ORG)},${esc('Lộ trình Nhân sự')},${esc(JSON.stringify(['HR Exec','HR Specialist','HRBP','HR Manager','HR Director']))}),
- ('cp_cs',${esc(ORG)},${esc('Lộ trình Customer Success')},${esc(JSON.stringify(['CS Associate','CSM','Senior CSM','CS Manager','Head of CS']))});
+ ('cp_eng',${esc(ORG)},${esc('Lộ trình Kỹ thuật')},${esc(JSON.stringify(careerPathLevels.cp_eng))}),
+ ('cp_sales',${esc(ORG)},${esc('Lộ trình Kinh doanh')},${esc(JSON.stringify(careerPathLevels.cp_sales))}),
+ ('cp_hr',${esc(ORG)},${esc('Lộ trình Nhân sự')},${esc(JSON.stringify(careerPathLevels.cp_hr))}),
+ ('cp_cs',${esc(ORG)},${esc('Lộ trình Customer Success')},${esc(JSON.stringify(careerPathLevels.cp_cs))});
 `)
 count('career_paths', 4)
 
@@ -1409,7 +1658,7 @@ const careers = [
   ['e17', 'cp_eng', 2],
   ['e1', 'cp_sales', 1],
   ['e15', 'cp_sales', 2],
-  ['e4', 'cp_sales', 4],
+  ['e4', 'cp_sales', 3],
   ['e9', 'cp_hr', 1],
   ['e3', 'cp_hr', 3],
   ['e20', 'cp_hr', 1],
@@ -1526,6 +1775,8 @@ push(
     })
     .join(',\n') + ';\n',
 )
+// Enriched policy fields (type/status/owner/…) live in seed/policies_enrich.sql
+// so learning/payroll seed changes stay isolated from policy management data.
 
 // --- permission matrix (legacy roles) ---
 const modules = ['dash', 'emp', 'rec', 'leave', 'trip', 'pay', 'perf', 'learn', 'pol', 'sys']

@@ -34,3 +34,30 @@ export const EMP_STATUS = [
   { value: 'active', label: 'Đang làm việc' },
   { value: 'left', label: 'Đã nghỉ việc' },
 ] as const
+
+/** Loại khóa học / chương trình đào tạo */
+export const COURSE_TYPES = [
+  'Nội bộ',
+  'Bên ngoài',
+  'E-learning',
+  'Workshop',
+] as const
+
+/** Mức độ khóa học */
+export const COURSE_LEVELS = ['Cơ bản', 'Trung cấp', 'Nâng cao'] as const
+
+/** Hình thức tổ chức */
+export const COURSE_DELIVERY = [
+  'Trực tiếp',
+  'Trực tuyến',
+  'Kết hợp',
+  'E-learning',
+] as const
+
+/** Trạng thái danh mục khóa */
+export const COURSE_STATUS = [
+  { value: 'draft', label: 'Nháp' },
+  { value: 'active', label: 'Đang mở' },
+  { value: 'completed', label: 'Đã kết thúc' },
+  { value: 'archived', label: 'Lưu trữ' },
+] as const
