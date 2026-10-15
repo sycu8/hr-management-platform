@@ -1,5 +1,9 @@
 # Operations guide
 
+For a non-technical overview (CEO / leadership), start with [FOR_EXECUTIVES.md](./FOR_EXECUTIVES.md) and the [README](../README.md).
+
+> **Auth note:** Production at `hrm.orangecloud.vn` uses **public email/password sessions**. Cloudflare Access entries below are optional/legacy if you re-enable Zero Trust later.
+
 ## Required GitHub Actions secrets
 
 | Secret | Purpose |
