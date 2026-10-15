@@ -12,6 +12,7 @@ PRAGMA foreign_keys = ON;
 -- Child tables first (org-scoped cleanup for re-seed)
 DELETE FROM notification_outbox WHERE organization_id = 'org_demo';
 DELETE FROM audit_events WHERE organization_id = 'org_demo';
+DELETE FROM data_sources WHERE organization_id = 'org_demo';
 DELETE FROM export_jobs WHERE organization_id = 'org_demo';
 DELETE FROM trip_receipts WHERE organization_id = 'org_demo';
 DELETE FROM trip_history WHERE trip_id IN (SELECT id FROM trips WHERE organization_id = 'org_demo');
@@ -1498,6 +1499,16 @@ INSERT OR REPLACE INTO notification_outbox (
  ('no3','org_demo','email','gia.huy@orangecloud.vn','Yêu cầu nghỉ phép chờ duyệt','Trần Quốc Bảo đã hủy l34; có yêu cầu mới từ Đinh Công Thành (l32).',NULL,'pending',NULL,NULL),
  ('no4','org_demo','email','thu.ha@orangecloud.vn','Ứng viên chuyển offer','Pipeline Frontend: Lê Đức Thịnh ở giai đoạn offer — cần duyệt lương đề xuất.',NULL,'pending',NULL,NULL),
  ('no5','org_demo','email','minh.anh@orangecloud.vn','Quyết toán CT-2026-0001 đã hoàn tất','Số tiền quyết toán: 6.990.000 ₫. Tạm ứng 6.000.000 ₫ — chênh lệch sẽ chi cùng kỳ lương.',NULL,'sent',NULL,'2026-09-19T11:05:00Z');
+
+INSERT OR REPLACE INTO data_sources (
+  id, organization_id, name, kind, description, enabled, config_json
+) VALUES
+ ('ds1','org_demo','Máy chấm công vân tay','Chấm công','Đồng bộ giờ vào ra từ thiết bị tại văn phòng.',0,'{}'),
+ ('ds2','org_demo','Phần mềm kế toán','Kế toán','Đẩy bút toán lương và công tác phí sang hệ thống kế toán.',0,'{}'),
+ ('ds3','org_demo','Cổng bảo hiểm xã hội điện tử','Bảo hiểm','Lập hồ sơ tăng giảm lao động và kê khai đóng bảo hiểm.',0,'{}'),
+ ('ds4','org_demo','Email công ty','Thông báo','Gửi thông báo duyệt và nhắc việc qua email.',1,'{}'),
+ ('ds5','org_demo','Lịch làm việc','Lịch','Đồng bộ lịch nghỉ, công tác và phỏng vấn lên lịch cá nhân.',1,'{}'),
+ ('ds6','org_demo','Đăng nhập một lần (SSO)','Xác thực','Đăng nhập bằng tài khoản công ty (tuỳ chọn).',0,'{}');
 
 INSERT OR REPLACE INTO app_meta(key, value) VALUES
  ('seeded_demo', 'true'),

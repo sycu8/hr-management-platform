@@ -254,18 +254,23 @@ auth.get('/me', requireAuth, async (c) => {
   if (!actor) return unauthorized(c, 'User missing')
 
   const modules = await listAllowedModules(c.env.DB, user)
+  const actorType = actor.account_type as 'super_admin' | 'admin' | 'user'
 
   return json(c, {
     id: actor.id,
     organizationId: user.organizationId,
     email: actor.email,
     displayName: actor.display_name,
-    accountType: actor.account_type,
+    accountType: actorType,
     employeeId: actor.employee_id,
     mustResetPassword: actor.must_reset_password === 1,
     viewAsUserId: session?.view_as_user_id ?? null,
     effectiveUserId: user.effectiveUserId,
     modules,
+    /** Admin + Super Admin may edit HR / user records. */
+    canEditData: actorType === 'super_admin' || actorType === 'admin',
+    /** Only Super Admin may manage data-source integrations. */
+    canManageDataSources: actorType === 'super_admin',
   })
 })
 

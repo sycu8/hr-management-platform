@@ -121,7 +121,11 @@ export const NAV_MAP: NavModule[] = [
     items: [
       { id: 'perms', title: 'Phân quyền người dùng', path: '/admin/permissions' },
       { id: 'security', title: 'Bảo mật dữ liệu', path: '/admin/security' },
-      { id: 'integ', title: 'Tích hợp hệ thống', path: '/admin/integrations' },
+      {
+        id: 'integ',
+        title: 'Tích hợp nguồn dữ liệu',
+        path: '/admin/integrations',
+      },
       { id: 'export', title: 'Báo cáo & xuất dữ liệu', path: '/admin/exports' },
     ],
   },

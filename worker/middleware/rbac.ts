@@ -41,8 +41,10 @@ export async function getPermissionLevel(
   const accountType: AccountType = user.accountType
 
   if (accountType === 'admin') {
-    // HR manager: all business modules, no system administration.
-    if (moduleKey === 'sys') return 0
+    // HR Admin: full edit on business modules.
+    // System nav (users / security / exports) at level 1 — data-source
+    // integrations remain Super Admin only (enforced on those routes).
+    if (moduleKey === 'sys') return 1
     return 2
   }
 

@@ -39,6 +39,12 @@ const resetPasswordSchema = z.object({
   newPassword: z.string().min(8),
 })
 
+const patchUserSchema = z.object({
+  displayName: z.string().min(1).max(200).optional(),
+  isActive: z.boolean().optional(),
+  employeeId: z.string().nullable().optional(),
+})
+
 const users = new Hono<{
   Bindings: Env
   Variables: { user: AuthUser }
@@ -145,6 +151,90 @@ users.post('/', requireActorAdmin(), async (c) => {
   })
 
   return json(c, { id, email: body.email.toLowerCase() }, 201)
+})
+
+users.patch('/:id', requireActorAdmin(), async (c) => {
+  const actor = c.get('user')
+  const targetId = c.req.param('id')
+  let body: z.infer<typeof patchUserSchema>
+  try {
+    body = patchUserSchema.parse(await c.req.json())
+  } catch {
+    return badRequest(c, 'Invalid user update')
+  }
+
+  const target = await c.env.DB.prepare(
+    `SELECT id, organization_id, account_type, email FROM users WHERE id = ?`,
+  )
+    .bind(targetId)
+    .first<{
+      id: string
+      organization_id: string
+      account_type: AccountType
+      email: string
+    }>()
+
+  if (!target || target.organization_id !== actor.organizationId) {
+    return apiError(c, 404, 'not_found', 'User not found')
+  }
+
+  // Resolve real actor type (ignore view-as)
+  const session = await c.env.DB.prepare(
+    `SELECT user_id FROM sessions WHERE id = ?`,
+  )
+    .bind(actor.sessionId)
+    .first<{ user_id: string }>()
+  const actorRow = session
+    ? await c.env.DB.prepare(`SELECT account_type, email FROM users WHERE id = ?`)
+        .bind(session.user_id)
+        .first<{ account_type: AccountType; email: string }>()
+    : null
+  if (!actorRow) return forbidden(c, 'Actor missing')
+
+  if (
+    target.account_type === 'super_admin' &&
+    actorRow.account_type !== 'super_admin'
+  ) {
+    return forbidden(c, 'Cannot edit super admin')
+  }
+
+  const fields: string[] = []
+  const values: unknown[] = []
+  if (body.displayName !== undefined) {
+    fields.push('display_name = ?')
+    values.push(body.displayName)
+  }
+  if (body.isActive !== undefined) {
+    fields.push('is_active = ?')
+    values.push(body.isActive ? 1 : 0)
+  }
+  if (body.employeeId !== undefined) {
+    fields.push('employee_id = ?')
+    values.push(body.employeeId)
+  }
+  if (fields.length === 0) return badRequest(c, 'No fields to update')
+
+  fields.push(`updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`)
+  values.push(targetId)
+
+  await c.env.DB.prepare(
+    `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+  )
+    .bind(...values)
+    .run()
+
+  await writeAuditEvent(c.env.DB, {
+    organizationId: actor.organizationId,
+    actorUserId: session!.user_id,
+    actorRole: actorRow.account_type,
+    actorEmail: actorRow.email,
+    action: 'users.update',
+    entityType: 'user',
+    entityId: targetId,
+    detail: `Updated ${target.email}: ${Object.keys(body).join(', ')}`,
+  })
+
+  return json(c, { ok: true })
 })
 
 users.post('/:id/reset-password', requireActorAdmin(), async (c) => {

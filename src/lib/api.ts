@@ -56,6 +56,10 @@ export type MeUser = {
   viewAsUserId: string | null
   effectiveUserId: string
   modules: string[]
+  /** Admin + Super Admin: edit HR / account info. */
+  canEditData: boolean
+  /** Super Admin only: connect / toggle data sources. */
+  canManageDataSources: boolean
 }
 
 export function fetchMe(): Promise<MeUser> {

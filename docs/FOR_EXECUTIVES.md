@@ -47,6 +47,14 @@ Tổng quan repo: [README.md](../README.md).
 
 ---
 
+## Phân quyền vận hành (quan trọng)
+
+| Vai trò | Được làm | Không được |
+| --- | --- | --- |
+| **Admin (HR)** | Sửa hồ sơ nhân sự, quản lý / khóa tài khoản user | Cấu hình **tích hợp nguồn dữ liệu** (máy chấm công, kế toán, SSO…) |
+| **Super Admin** | Toàn quyền + **bật/tắt / thêm nguồn dữ liệu** | — (vẫn nên hạn chế số người) |
+| **User** | Theo module được cấp | Sửa dữ liệu hệ thống / tích hợp |
+
 ## Quyết định lãnh đạo cần nắm
 
 | Chủ đề | Khuyến nghị |
@@ -55,6 +63,7 @@ Tổng quan repo: [README.md](../README.md).
 | Khi nào bật lương “thật”? | Sau legal review tham số BHXH/PIT và chạy song song 1 kỳ. |
 | Dữ liệu demo | Chỉ để demo/training; production dùng import nhân sự thật. |
 | Thay đổi công thức tiền | Phải có phê duyệt bằng văn bản / ticket; đội kỹ thuật cập nhật + test. |
+| Ai nối hệ thống bên ngoài? | Chỉ Super Admin (menu *Tích hợp nguồn dữ liệu*). |
 
 ---
 

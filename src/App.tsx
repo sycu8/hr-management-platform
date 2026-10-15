@@ -3,6 +3,7 @@ import { AppShell } from './components/AppShell'
 import { RequireAuth } from './components/RequireAuth'
 import { AuthProvider } from './lib/auth'
 import { LoginPage } from './pages/LoginPage'
+import { RequireSuperAdmin } from './components/RequireSuperAdmin'
 import { ExportsPage } from './pages/admin/ExportsPage'
 import { IntegrationsPage } from './pages/admin/IntegrationsPage'
 import { PermissionsPage } from './pages/admin/PermissionsPage'
@@ -90,7 +91,14 @@ export default function App() {
               <Route path="policies/legal" element={<LegalPage />} />
               <Route path="admin/permissions" element={<PermissionsPage />} />
               <Route path="admin/security" element={<SecurityPage />} />
-              <Route path="admin/integrations" element={<IntegrationsPage />} />
+              <Route
+                path="admin/integrations"
+                element={
+                  <RequireSuperAdmin>
+                    <IntegrationsPage />
+                  </RequireSuperAdmin>
+                }
+              />
               <Route path="admin/exports" element={<ExportsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

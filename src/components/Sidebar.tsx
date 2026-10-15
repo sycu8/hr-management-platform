@@ -17,7 +17,15 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
 
   const modules = NAV_MAP.filter(
     (m) => allowed.size === 0 || allowed.has(m.key),
-  )
+  ).map((mod) => {
+    if (mod.key !== 'sys') return mod
+    // Data-source integrations: Super Admin only
+    const items = mod.items.filter(
+      (item) =>
+        item.id !== 'integ' || !!user?.canManageDataSources,
+    )
+    return { ...mod, items }
+  })
 
   function isGroupOpen(key: string): boolean {
     if (Object.hasOwn(userToggled, key)) return userToggled[key]!

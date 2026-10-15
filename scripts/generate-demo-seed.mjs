@@ -107,6 +107,7 @@ PRAGMA foreign_keys = ON;
 -- Child tables first (org-scoped cleanup for re-seed)
 DELETE FROM notification_outbox WHERE organization_id = ${esc(ORG)};
 DELETE FROM audit_events WHERE organization_id = ${esc(ORG)};
+DELETE FROM data_sources WHERE organization_id = ${esc(ORG)};
 DELETE FROM export_jobs WHERE organization_id = ${esc(ORG)};
 DELETE FROM trip_receipts WHERE organization_id = ${esc(ORG)};
 DELETE FROM trip_history WHERE trip_id IN (SELECT id FROM trips WHERE organization_id = ${esc(ORG)});
@@ -1385,6 +1386,26 @@ push(
 
 // Mark pending count correctly — 4 pending + 1 sent
 // Fix no5 status already sent
+
+const dataSources = [
+  ['ds1', 'Máy chấm công vân tay', 'Chấm công', 'Đồng bộ giờ vào ra từ thiết bị tại văn phòng.', 0],
+  ['ds2', 'Phần mềm kế toán', 'Kế toán', 'Đẩy bút toán lương và công tác phí sang hệ thống kế toán.', 0],
+  ['ds3', 'Cổng bảo hiểm xã hội điện tử', 'Bảo hiểm', 'Lập hồ sơ tăng giảm lao động và kê khai đóng bảo hiểm.', 0],
+  ['ds4', 'Email công ty', 'Thông báo', 'Gửi thông báo duyệt và nhắc việc qua email.', 1],
+  ['ds5', 'Lịch làm việc', 'Lịch', 'Đồng bộ lịch nghỉ, công tác và phỏng vấn lên lịch cá nhân.', 1],
+  ['ds6', 'Đăng nhập một lần (SSO)', 'Xác thực', 'Đăng nhập bằng tài khoản công ty (tuỳ chọn).', 0],
+]
+push(`INSERT OR REPLACE INTO data_sources (
+  id, organization_id, name, kind, description, enabled, config_json
+) VALUES`)
+push(
+  dataSources
+    .map(([id, name, kind, desc, en]) => {
+      count('data_sources')
+      return ` (${esc(id)},${esc(ORG)},${esc(name)},${esc(kind)},${esc(desc)},${en},'{}')`
+    })
+    .join(',\n') + ';\n',
+)
 
 push(`INSERT OR REPLACE INTO app_meta(key, value) VALUES
  ('seeded_demo', 'true'),
