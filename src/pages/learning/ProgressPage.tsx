@@ -21,7 +21,11 @@ export function ProgressPage() {
         {
           key: 'progress',
           header: 'Tiến độ',
-          render: (r) => `${Math.round((r.progress ?? 0) * 100)}%`,
+          render: (r) => {
+            const p = r.progress ?? 0
+            const pct = p <= 1 ? Math.round(p * 100) : Math.round(p)
+            return `${pct}%`
+          },
           className: 'mono',
         },
         { key: 'due_on', header: 'Hạn', render: (r) => r.due_on ?? '—' },

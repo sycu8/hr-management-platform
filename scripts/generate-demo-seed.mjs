@@ -5,6 +5,21 @@
 import { writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  handoffJobs,
+  handoffCandidates,
+  handoffLeaves,
+  handoffCourses,
+  handoffEnrollments,
+  handoffCerts,
+  handoffEarnings,
+  handoffObjectives,
+  handoffFeedback360,
+  handoffPolicies,
+  handoffTrips,
+  handoffAudits,
+  onboardingNhanTasks,
+} from './handoff-supplement.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const outPath = join(__dirname, '..', 'seed', 'demo.sql')
@@ -83,7 +98,8 @@ push(`-- =======================================================================
 -- Fictional Vietnamese HR data only. No real personal data. No passwords here
 -- (see seed/auth_users.sql). Idempotent for wrangler d1 execute --file.
 -- Golden locks preserved: e1–e12 payroll bases, CT-2026-0001, Sep 2026 earnings,
--- holidays 2026, leave l1/l8/l9. Closed payroll_run omitted (headcount expanded).
+-- holidays 2026, leave l1/l8/l9. Handoff portal data merged via handoff-supplement.mjs.
+-- Closed payroll_runs Aug/Sep present for UI; item lines not expanded to full headcount.
 -- =============================================================================
 
 PRAGMA foreign_keys = ON;
@@ -373,6 +389,7 @@ const leaves = [
   ['l40', 'e4', 'annual', '2026-10-08', '2026-10-09', 2, 'approved', 'Nghỉ phép', 'e5', '2026-10-01T10:00:00Z'],
   ['l41', 'e8', 'sick', '2026-09-25', '2026-09-25', 1, 'approved', 'Khám bệnh', 'e29', '2026-09-25T07:50:00Z'],
   ['l42', 'e26', 'annual', '2026-10-01', '2026-10-02', 2, 'approved', 'Nghỉ phép', 'e24', '2026-09-20T09:00:00Z'],
+  ...handoffLeaves,
 ]
 
 push(`INSERT OR REPLACE INTO leave_requests (
@@ -382,7 +399,13 @@ push(
   leaves
     .map(([id, emp, type, from, to, days, status, reason, approver, at]) => {
       count('leave_requests')
-      const reject = status === 'rejected' ? esc('Trùng lịch sự kiện khách hàng — vui lòng chọn tuần khác') : 'NULL'
+      let reject = 'NULL'
+      if (status === 'rejected') {
+        reject =
+          id === 'l_h9'
+            ? esc('Trùng đợt chốt số liệu cuối năm, đề nghị chọn tuần khác.')
+            : esc('Trùng lịch sự kiện khách hàng — vui lòng chọn tuần khác')
+      }
       return ` (${esc(id)},${esc(ORG)},${esc(emp)},${esc(type)},${esc(from)},${esc(to)},${days},${esc(status)},${esc(reason)},${reject},${approver ? esc(approver) : 'NULL'},${at ? esc(at) : 'NULL'})`
     })
     .join(',\n') + ';\n',
@@ -411,6 +434,12 @@ const tripRanges = [
   ['e19', '2026-04-15', '2026-04-18'],
   ['e25', '2026-03-02', '2026-03-04'],
   ['e31', '2026-10-08', '2026-10-10'],
+  // Handoff portal trips (index.html)
+  ['e4', '2026-10-12', '2026-10-16'],
+  ['e6', '2026-10-08', '2026-10-09'],
+  ['e3', '2026-10-20', '2026-10-22'],
+  ['e5', '2026-10-26', '2026-10-30'],
+  ['e2', '2026-10-28', '2026-10-29'],
 ]
 const travelDaysByEmp = new Map()
 for (const [emp, from, to] of tripRanges) {
@@ -823,6 +852,7 @@ const trips = [
     act: null,
     reject: 'Sự kiện đã chuyển sang online — không cần công tác',
   },
+  ...handoffTrips,
 ]
 
 push(`INSERT OR REPLACE INTO trips (
@@ -914,22 +944,30 @@ const earnings = [
   ['a16', 'e16', '*', 'allowance', 'Điện thoại', 400000, 1],
   ['a17', 'e15', '2026-09', 'bonus', 'Thưởng doanh số', 5000000, 1],
   ['a18', 'e24', '2026-09', 'bonus', 'Thưởng CSAT quý 3', 4000000, 1],
+  ...handoffEarnings.map(([id, emp, ym, kind, title, amount, taxable]) => [id, emp, ym, kind, title, amount, taxable]),
 ]
+const earningNotes = Object.fromEntries(handoffEarnings.map(([id, , , , , , , note]) => [id, note]))
 push(`INSERT OR REPLACE INTO earnings (id, organization_id, employee_id, year_month, kind, title, amount, taxable, note) VALUES`)
 push(
   earnings
     .map(([id, emp, ym, kind, title, amount, taxable]) => {
       count('earnings')
-      return ` (${esc(id)},${esc(ORG)},${emp ? esc(emp) : 'NULL'},${esc(ym)},${esc(kind)},${esc(title)},${amount},${taxable},NULL)`
+      const note = earningNotes[id]
+      return ` (${esc(id)},${esc(ORG)},${emp ? esc(emp) : 'NULL'},${esc(ym)},${esc(kind)},${esc(title)},${amount},${taxable},${note ? esc(note) : 'NULL'})`
     })
     .join(',\n') + ';\n',
 )
 
 push(`
--- No closed payroll_run: company Sep 2026 golden totals (375.420.909 gross) are for the
--- original 12-employee set. Expanded headcount would diverge. Earnings + policy are seeded
--- so payroll can be calculated in-app after legal review approval.
+-- Closed payroll runs for Aug/Sep 2026 (handoff payClosed). Company Sep totals in
+-- shared/fixtures/golden.ts apply to e1–e12 only; items not expanded for full headcount.
+INSERT OR REPLACE INTO payroll_runs (
+  id, organization_id, year_month, status, policy_version_id, totals_json, closed_by, closed_at, created_at
+) VALUES
+ ('pr_2026_08',${esc(ORG)},'2026-08','closed','paypol_v1',${esc(JSON.stringify({ note: 'Closed sample Aug 2026 (e1–e12 cohort)', headcount: 12 }))},'u_pay','2026-09-03T10:00:00Z','2026-08-28T02:00:00Z'),
+ ('pr_2026_09',${esc(ORG)},'2026-09','closed','paypol_v1',${esc(JSON.stringify({ note: 'Closed sample Sep 2026 — golden e1–e12 cohort', headcount: 12, gross: 375420909, pit: 11978109, net: 333853800 }))},'u_pay','2026-10-02T10:00:00Z','2026-09-28T02:00:00Z');
 `)
+count('payroll_runs', 2)
 
 // --- recruiting ---
 const jobs = [
@@ -938,6 +976,7 @@ const jobs = [
   ['job3', 'Chuyên viên Customer Success', 'Customer Success', 1, 'Junior', 'Hà Nội', '13–18 triệu', 'open', '2026-09-20', '2026-11-30', 'Hỗ trợ khách hàng onboarding và gia hạn.', '["Onboarding khách","Theo dõi health score","Phối hợp kỹ thuật"]', '["Kinh nghiệm CS/support","CRM","Giao tiếp"]', '["Đào tạo nội bộ","Lộ trình thăng tiến"]'],
   ['job4', 'Thực tập sinh Marketing', 'Marketing', 2, 'Intern', 'Hà Nội', '5–7 triệu', 'closed', '2026-06-01', '2026-07-31', 'Kỳ thực tập hè — đã đóng.', '["Hỗ trợ content","Báo cáo chiến dịch"]', '["Sinh viên năm 3–4","Yêu thích digital"]', '["Mentor","Certificate"]'],
   ['job5', 'Kế toán tổng hợp', 'Kế toán', 1, 'Mid', 'Hà Nội', '16–22 triệu', 'draft', null, null, 'Dự phòng tuyển khi hết hạn HĐLĐ.', '["Hạch toán","Báo cáo tháng"]', '["Chứng chỉ kế toán","2+ năm kinh nghiệm"]', '["BHXH","Thưởng Tết"]'],
+  ...handoffJobs,
 ]
 push(`INSERT OR REPLACE INTO job_requisitions (
   id, organization_id, title, department, headcount, level, location, salary_display, status, posted_on, deadline, summary, duties_json, requirements_json, benefits_json
@@ -963,6 +1002,7 @@ const candidates = [
   ['c8', 'job4', 'Ngô Bảo Ngọc', 'University', 'hired', 4.0, 'ngoc.nb.demo@example.com', '0902 111 008', null, 'Đã onboard thực tập 7/2026'],
   ['c9', 'job1', 'Bùi Khánh Vy', 'LinkedIn', 'new', 0, 'vy.bk.demo@example.com', '0902 111 009', null, null],
   ['c10', 'job2', 'Mai Xuân Bắc', 'Giới thiệu', 'screen', 3.0, 'bac.mx.demo@example.com', '0902 111 010', null, 'Giới thiệu từ e15'],
+  ...handoffCandidates,
 ]
 push(`INSERT OR REPLACE INTO candidates (
   id, organization_id, job_id, full_name, source, stage, score, email, phone, interview_at, note
@@ -999,9 +1039,10 @@ push(`INSERT OR REPLACE INTO onboarding_plans (
 ) VALUES
  ('ob1',${esc(ORG)},'c3',NULL,${esc('Lê Đức Thịnh')},${esc('Kỹ sư Frontend')},${esc('Kỹ thuật')},'2026-11-03',${esc(ob1Tasks)}),
  ('ob2',${esc(ORG)},NULL,'e11',${esc('Lý Hải Nam')},${esc('Kỹ sư phần mềm')},${esc('Kỹ thuật')},'2026-08-03',${esc(ob2Tasks)}),
- ('ob3',${esc(ORG)},NULL,'e21',${esc('Nguyễn Đức Anh')},${esc('Kế toán viên')},${esc('Kế toán')},'2025-09-01',${esc(ob3Tasks)});
+ ('ob3',${esc(ORG)},NULL,'e21',${esc('Nguyễn Đức Anh')},${esc('Kế toán viên')},${esc('Kế toán')},'2025-09-01',${esc(ob3Tasks)}),
+ ('ob4',${esc(ORG)},'c_h13',NULL,${esc('Cao Thị Nhàn')},${esc('Chuyên viên hành chính')},${esc('Nhân sự')},'2026-10-19',${esc(onboardingNhanTasks)});
 `)
-count('onboarding_plans', 3)
+count('onboarding_plans', 4)
 
 // --- performance ---
 push(`INSERT OR REPLACE INTO review_cycles (id, organization_id, name, start_date, end_date, status) VALUES
@@ -1035,6 +1076,7 @@ const objectives = [
   ['obj6', 'e8', '2026-H2', 'Chuẩn hóa quy trình lương & quyết toán', '[{"kr":"Đóng lương đúng hạn 12/12 tháng","progress":0.75},{"kr":"0 sai sót PIT nghiêm trọng","progress":0.9}]'],
   ['obj7', 'e4', '2026-H2', 'Doanh thu phòng Kinh doanh vượt 120% kế hoạch', '[{"kr":"Pipeline >= 15 tỷ","progress":0.7},{"kr":"Win-rate >= 28%","progress":0.45}]'],
   ['obj8', 'e17', '2026-H2', 'Hoàn thành module API v2', '[{"kr":"Ship 100% epic Q4","progress":0.5},{"kr":"Coverage unit >= 80%","progress":0.6}]'],
+  ...handoffObjectives,
 ]
 push(`INSERT OR REPLACE INTO objectives (id, organization_id, employee_id, period, objective, key_results_json) VALUES`)
 push(
@@ -1052,6 +1094,7 @@ const fb360 = [
   ['fb3', 'e3', '2026-H1', '["Luật lao động","Giao tiếp","Công bằng","Lãnh đạo"]', '{"peer":4.6,"manager":4.7,"self":4.4}'],
   ['fb4', 'e24', '2026-H1', '["CSM","Đồng cảm","Giải quyết vấn đề","Làm việc nhóm"]', '{"peer":4.2,"manager":4.0,"self":4.1}'],
   ['fb5', 'e10', '2026-H1', '["Sáng tạo","Chiến lược","Giao tiếp","Quản lý nhóm"]', '{"peer":3.9,"manager":4.1,"self":4.0}'],
+  ...handoffFeedback360,
 ]
 push(`INSERT OR REPLACE INTO feedback_360 (id, organization_id, employee_id, period, competencies_json, scores_json) VALUES`)
 push(
@@ -1071,6 +1114,7 @@ const courses = [
   ['course4', 'Luật lao động cập nhật 2026', 'Tuân thủ', 6, 1, 'Luật lao động', 'Đối tác pháp lý', 'Dành cho HR và quản lý.'],
   ['course5', 'Customer Success playbook', 'Chuyên môn', 6, 0, 'CSM', 'Orange Academy', 'Onboarding, QBR, chống churn.'],
   ['course6', 'Excel & báo cáo lương', 'Chuyên môn', 5, 0, 'Payroll', 'Nội bộ', 'Công thức, đối soát BHXH/PIT.'],
+  ...handoffCourses,
 ]
 push(`INSERT OR REPLACE INTO courses (id, organization_id, title, course_type, hours, mandatory, skill, provider, description) VALUES`)
 push(
@@ -1101,6 +1145,7 @@ const enrollments = [
   ['en16', 'e6', 'course1', 100, '2026-03-31'],
   ['en17', 'e29', 'course6', 100, '2026-05-31'],
   ['en18', 'e15', 'course2', 55, '2026-11-30'],
+  ...handoffEnrollments,
 ]
 push(`INSERT OR REPLACE INTO enrollments (id, organization_id, employee_id, course_id, progress, due_on) VALUES`)
 push(
@@ -1119,6 +1164,7 @@ const certs = [
   ['cert4', 'e8', 'Chứng chỉ kế toán viên', 'Bộ Tài chính', '2022-08-15', null],
   ['cert5', 'e29', 'Chứng chỉ kế toán trưởng', 'Bộ Tài chính', '2020-03-10', null],
   ['cert6', 'e10', 'Google Analytics Individual Qualification', 'Google', '2025-09-01', '2026-09-01'],
+  ...handoffCerts,
 ]
 push(`INSERT OR REPLACE INTO certificates (id, organization_id, employee_id, name, issuer, issued_on, expires_on) VALUES`)
 push(
@@ -1249,6 +1295,7 @@ const policies = [
       sections: [{ h: 'Trách nhiệm', b: 'Không chia sẻ mật khẩu; báo cáo sự cố trong 24 giờ.' }],
     }),
   ],
+  ...handoffPolicies(),
 ]
 push(`INSERT OR REPLACE INTO policy_documents (
   id, organization_id, category, code, title, version, effective_from, summary, body_json
@@ -1291,6 +1338,18 @@ const audits = [
   ['ae6', '2026-09-13T09:00:00Z', 'u_hr_admin', 'hr', 'admin@orangecloud.vn', 'leave.approve', 'leave_request', 'l8', 'Duyệt nghỉ việc riêng e9', '14.241.0.1'],
   ['ae7', '2026-10-01T01:00:00Z', 'u_super', 'admin', 'super@orangecloud.vn', 'security.update', 'security_settings', 'org_demo', 'session_minutes=480', '10.0.0.1'],
   ['ae8', '2026-08-15T10:30:00Z', 'u_hr_admin', 'hr', 'admin@orangecloud.vn', 'employee.leave', 'employee', 'e12', 'Xác nhận nghỉ việc Trịnh Mỹ Duyên', '14.241.0.1'],
+  ...handoffAudits.map(([id, at, uid, role, email, action, et, eid, detail, ip]) => [
+    id,
+    at,
+    uid || 'u_hr_admin',
+    role,
+    email || 'admin@orangecloud.vn',
+    action,
+    et,
+    eid,
+    detail,
+    ip || '14.241.0.1',
+  ]),
 ]
 push(`INSERT OR REPLACE INTO audit_events (
   id, organization_id, at, actor_user_id, actor_role, actor_email, action, entity_type, entity_id, detail, ip, request_id
@@ -1330,9 +1389,10 @@ push(
 push(`INSERT OR REPLACE INTO app_meta(key, value) VALUES
  ('seeded_demo', 'true'),
  ('seeded_demo_brand', 'Orange Cloud'),
- ('seeded_demo_at', '2026-10-12T09:00:00Z');
+ ('seeded_demo_at', '2026-10-12T09:00:00Z'),
+ ('seeded_handoff_supplement', 'true');
 `)
-count('app_meta', 3)
+count('app_meta', 4)
 
 push(`
 -- =============================================================================
