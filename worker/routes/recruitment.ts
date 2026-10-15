@@ -4,6 +4,12 @@ import type { Env } from '../env.ts'
 import { badRequest, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
+import {
+  addDays,
+  addMonths,
+  defaultOnboardingTasks,
+  isHiredStage,
+} from '../lib/onboarding.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
 
@@ -69,12 +75,6 @@ const recruitment = new Hono<{
 }>()
 
 recruitment.use('*', requireAuth)
-
-function addMonths(isoDate: string, months: number): string {
-  const d = new Date(`${isoDate}T12:00:00Z`)
-  d.setUTCMonth(d.getUTCMonth() + months)
-  return d.toISOString().slice(0, 10)
-}
 
 function emptyToNull(v: string | null | undefined): string | null {
   if (v === undefined || v === null || v === '') return null
@@ -259,10 +259,21 @@ recruitment.patch('/candidates/:id', requireModule('rec', 2), async (c) => {
     return badRequest(c, 'Invalid candidate update')
   }
   const existing = await c.env.DB.prepare(
-    `SELECT id FROM candidates WHERE organization_id = ? AND id = ?`,
+    `SELECT c.id, c.full_name, c.stage, c.job_id,
+            j.title AS job_title, j.department AS job_department
+     FROM candidates c
+     LEFT JOIN job_requisitions j ON j.id = c.job_id
+     WHERE c.organization_id = ? AND c.id = ?`,
   )
     .bind(user.organizationId, id)
-    .first()
+    .first<{
+      id: string
+      full_name: string
+      stage: string
+      job_id: string
+      job_title: string | null
+      job_department: string | null
+    }>()
   if (!existing) return notFound(c, 'Candidate not found')
 
   const fields: string[] = []
@@ -298,7 +309,29 @@ recruitment.patch('/candidates/:id', requireModule('rec', 2), async (c) => {
     .bind(...values)
     .run()
   await audit(c, user, 'candidate.update', 'candidate', id, 'Cập nhật ứng viên')
-  return json(c, { ok: true })
+
+  let onboardingId: string | null = null
+  const nextStage = body.stage ?? existing.stage
+  if (
+    body.stage !== undefined &&
+    isHiredStage(body.stage) &&
+    !isHiredStage(existing.stage)
+  ) {
+    onboardingId = await ensureOnboardingForCandidate(c.env.DB, user, {
+      candidateId: id,
+      fullName: body.full_name ?? existing.full_name,
+      roleTitle: existing.job_title,
+      department: existing.job_department,
+    })
+  }
+
+  return json(c, {
+    ok: true,
+    ...(onboardingId ? { onboarding_id: onboardingId } : {}),
+    ...(isHiredStage(nextStage) && onboardingId
+      ? { message: 'Đã chuyển sang Nhận việc và tạo danh sách onboarding' }
+      : {}),
+  })
 })
 
 /* ---------- Onboarding ---------- */
@@ -333,16 +366,6 @@ recruitment.post('/onboarding', requireModule('rec', 2), async (c) => {
   }
   const id = newId()
   const probationEnd = body.probation_end ?? addMonths(body.start_date, 3)
-  const defaultTasks = [
-    { t: 'Ký hợp đồng thử việc / HĐLĐ', done: false },
-    { t: 'Thu hồ sơ (CCCD, bằng cấp, sổ BHXH)', done: false },
-    { t: 'Tạo email & tài khoản hệ thống', done: false },
-    { t: 'Cấp thiết bị làm việc', done: false },
-    { t: 'Orientation nội quy & văn hóa', done: false },
-    { t: 'Gặp QL trực tiếp — mục tiêu 30/60/90 ngày', done: false },
-    { t: 'Đăng ký BHXH / BHYT', done: false },
-    { t: 'Hoàn thành khóa đào tạo bắt buộc', done: false },
-  ]
   await c.env.DB.prepare(
     `INSERT INTO onboarding_plans (
        id, organization_id, candidate_id, employee_id, full_name, role_title, department,
@@ -358,7 +381,7 @@ recruitment.post('/onboarding', requireModule('rec', 2), async (c) => {
       body.role_title ?? null,
       body.department ?? null,
       body.start_date,
-      JSON.stringify(body.tasks ?? defaultTasks),
+      JSON.stringify(body.tasks ?? defaultOnboardingTasks()),
       probationEnd,
       body.status ?? 'in_progress',
       body.notes ?? null,
@@ -461,6 +484,70 @@ function parseJsonArray(raw: string): unknown[] {
   } catch {
     return []
   }
+}
+
+/** Auto-create checklist when candidate moves to Nhận việc / hired. */
+async function ensureOnboardingForCandidate(
+  db: Env['DB'],
+  user: AuthUser,
+  opts: {
+    candidateId: string
+    fullName: string
+    roleTitle: string | null
+    department: string | null
+  },
+): Promise<string | null> {
+  const existing = await db
+    .prepare(
+      `SELECT id FROM onboarding_plans
+       WHERE organization_id = ? AND candidate_id = ? LIMIT 1`,
+    )
+    .bind(user.organizationId, opts.candidateId)
+    .first<{ id: string }>()
+  if (existing) return existing.id
+
+  const id = newId()
+  const today = new Date().toISOString().slice(0, 10)
+  const startDate = addDays(today, 14)
+  const probationEnd = addMonths(startDate, 3)
+  await db
+    .prepare(
+      `INSERT INTO onboarding_plans (
+         id, organization_id, candidate_id, employee_id, full_name, role_title, department,
+         start_date, tasks_json, probation_end, status, notes, requirements_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      user.organizationId,
+      opts.candidateId,
+      null,
+      opts.fullName,
+      opts.roleTitle,
+      opts.department,
+      startDate,
+      JSON.stringify(defaultOnboardingTasks()),
+      probationEnd,
+      'in_progress',
+      null,
+      JSON.stringify([
+        'Hoàn tất checklist onboarding',
+        'Đánh giá thử việc từ QL trực tiếp',
+        'Chuyển HĐ chính thức sau 3 tháng',
+      ]),
+    )
+    .run()
+  await writeAuditEvent(db, {
+    organizationId: user.organizationId,
+    actorUserId: user.id,
+    actorRole: user.accountType,
+    actorEmail: user.email,
+    action: 'onboarding.create',
+    entityType: 'onboarding_plan',
+    entityId: id,
+    detail: `Tự tạo onboarding khi nhận việc: ${opts.fullName}`,
+  })
+  return id
 }
 
 async function audit(

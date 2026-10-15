@@ -64,6 +64,10 @@ export default function App() {
               <Route path="recruitment/jobs" element={<JobListingsPage />} />
               <Route path="recruitment/candidates" element={<CandidatesPage />} />
               <Route path="recruitment/onboarding" element={<OnboardingPage />} />
+              <Route
+                path="onboarding"
+                element={<Navigate to="/recruitment/onboarding" replace />}
+              />
               <Route path="leave" element={<LeaveRequestPage />} />
               <Route path="leave/quota" element={<LeaveQuotaPage />} />
               <Route path="attendance" element={<AttendancePage />} />

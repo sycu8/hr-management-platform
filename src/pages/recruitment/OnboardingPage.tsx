@@ -2,12 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { fetchJson } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { DEPARTMENTS } from '../../lib/hr-options'
-
-type Task = { t?: string; title?: string; done: boolean }
-
-function taskLabel(task: Task): string {
-  return (task.t ?? task.title ?? '').trim()
-}
+import {
+  defaultOnboardingTasks,
+  daysUntil,
+  formatJoinDate,
+  parseTasks,
+  taskLabel,
+  type OnboardingTask,
+} from '../../lib/onboarding'
 
 type Plan = {
   id: string
@@ -22,7 +24,8 @@ type Plan = {
   requirements_json?: string
   remind_convert?: boolean
   employee_id?: string | null
-  tasks?: Task[]
+  candidate_id?: string | null
+  tasks?: OnboardingTask[]
   requirements?: string[]
 }
 
@@ -32,18 +35,23 @@ function addMonths(iso: string, m: number): string {
   return d.toISOString().slice(0, 10)
 }
 
+function planTasks(p: Plan): OnboardingTask[] {
+  if (p.tasks && p.tasks.length) return p.tasks
+  return parseTasks(p.tasks_json)
+}
+
 export function OnboardingPage() {
   const { user } = useAuth()
   const canEdit = !!user?.canEditData
   const [items, setItems] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [editing, setEditing] = useState<Partial<Plan> & {
-    tasksText?: string
-    reqText?: string
-  } | null>(null)
+  const [editing, setEditing] = useState<
+    (Partial<Plan> & { tasksText?: string; reqText?: string }) | null
+  >(null)
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [toggling, setToggling] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
 
   const load = useCallback(() => {
@@ -66,9 +74,11 @@ export function OnboardingPage() {
   async function openEdit(id: string) {
     setMsg(null)
     setEditId(id)
-    const res = await fetchJson<{ plan: Plan }>(`/api/recruitment/onboarding/${id}`)
+    const res = await fetchJson<{ plan: Plan }>(
+      `/api/recruitment/onboarding/${id}`,
+    )
     const p = res.plan
-    const tasks = (p.tasks as Task[]) ?? []
+    const tasks = (p.tasks as OnboardingTask[]) ?? []
     const reqs = (p.requirements as string[]) ?? []
     setEditing({
       ...p,
@@ -129,6 +139,30 @@ export function OnboardingPage() {
       setMsg(ex instanceof Error ? ex.message : 'Không lưu được')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function toggleTask(plan: Plan, index: number) {
+    if (!canEdit) return
+    const tasks = planTasks(plan).map((t, i) => ({
+      t: taskLabel(t) || `Việc ${i + 1}`,
+      done: i === index ? !t.done : Boolean(t.done),
+    }))
+    const key = `${plan.id}:${index}`
+    setToggling(key)
+    // Optimistic update
+    setItems((prev) =>
+      prev.map((p) => (p.id === plan.id ? { ...p, tasks } : p)),
+    )
+    try {
+      await fetchJson(`/api/recruitment/onboarding/${plan.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ tasks }),
+      })
+    } catch {
+      load()
+    } finally {
+      setToggling(null)
     }
   }
 
@@ -231,7 +265,7 @@ export function OnboardingPage() {
             <label className="span2">
               Checklist onboarding ([x] = hoàn thành)
               <textarea
-                rows={6}
+                rows={8}
                 value={editing.tasksText ?? ''}
                 onChange={(e) =>
                   setEditing({ ...editing, tasksText: e.target.value })
@@ -281,102 +315,211 @@ export function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="card empty">
-        <h2>Onboarding</h2>
-        <p>Đang tải…</p>
+      <div className="onboarding-page">
+        <header className="onboarding-page__head">
+          <h2>Onboarding</h2>
+          <p className="muted">Đang tải…</p>
+        </header>
       </div>
     )
   }
   if (error) {
     return (
-      <div className="card empty">
-        <h2>Onboarding</h2>
-        <p>{error}</p>
+      <div className="onboarding-page">
+        <header className="onboarding-page__head">
+          <h2>Onboarding</h2>
+          <p className="warn-text">{error}</p>
+        </header>
       </div>
     )
   }
 
-  const dueCount = items.filter(
-    (p) => p.remind_convert || p.status === 'due_convert',
-  ).length
+  const active = items.filter((p) => p.status !== 'cancelled')
+  const cards = active.filter((p) => p.status !== 'converted')
+  const converted = active.filter((p) => p.status === 'converted')
 
   return (
-    <div className="card">
-      <div className="toolbar">
-        <div>
-          <h2>Onboarding ({items.length})</h2>
-          <p className="muted">
-            {dueCount > 0
-              ? `⚠ ${dueCount} người sắp/đã hết 3 tháng thử việc — cần chuyển hồ sơ NV chính thức.`
-              : 'Theo dõi checklist & mốc chuyển chính thức sau thử việc.'}
-          </p>
+    <div className="onboarding-page">
+      <header className="onboarding-page__head">
+        <div className="toolbar" style={{ marginBottom: 0 }}>
+          <div>
+            <h2>Onboarding</h2>
+            <p className="muted onboarding-page__lead">
+              Danh sách việc cho nhân viên mới. Khi ứng viên chuyển sang bước
+              Nhận việc, hệ thống tự tạo danh sách.
+            </p>
+          </div>
+          {canEdit ? (
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => {
+                const start = new Date().toISOString().slice(0, 10)
+                const tasks = defaultOnboardingTasks()
+                setEditId(null)
+                setEditing({
+                  full_name: '',
+                  role_title: '',
+                  department: 'Kỹ thuật',
+                  start_date: start,
+                  probation_end: addMonths(start, 3),
+                  status: 'in_progress',
+                  tasksText: tasks
+                    .map((t) => `[ ] ${t.t}`)
+                    .join('\n'),
+                  reqText: [
+                    'Hoàn tất checklist onboarding',
+                    'Đánh giá thử việc từ QL trực tiếp',
+                    'Chuyển HĐ chính thức sau 3 tháng',
+                  ].join('\n'),
+                })
+              }}
+            >
+              + Thêm onboarding
+            </button>
+          ) : null}
         </div>
-        {canEdit ? (
-          <button
-            type="button"
-            className="btn primary"
-            onClick={() => {
-              const start = new Date().toISOString().slice(0, 10)
-              setEditId(null)
-              setEditing({
-                full_name: '',
-                role_title: '',
-                department: 'Kỹ thuật',
-                start_date: start,
-                probation_end: addMonths(start, 3),
-                status: 'in_progress',
-                tasksText: [
-                  '[ ] Ký hợp đồng thử việc / HĐLĐ',
-                  '[ ] Thu hồ sơ (CCCD, bằng cấp, sổ BHXH)',
-                  '[ ] Tạo email & tài khoản hệ thống',
-                  '[ ] Cấp thiết bị làm việc',
-                  '[ ] Orientation nội quy & văn hóa',
-                  '[ ] Gặp QL — mục tiêu 30/60/90 ngày',
-                  '[ ] Đăng ký BHXH / BHYT',
-                  '[ ] Hoàn thành khóa đào tạo bắt buộc',
-                ].join('\n'),
-                reqText: [
-                  'Hoàn tất checklist onboarding',
-                  'Đánh giá thử việc từ QL trực tiếp',
-                  'Chuyển HĐ chính thức sau 3 tháng',
-                ].join('\n'),
-              })
-            }}
-          >
-            + Thêm onboarding
-          </button>
-        ) : null}
-      </div>
-      {items.length === 0 ? (
-        <p>Không có dữ liệu</p>
+      </header>
+
+      {cards.length === 0 ? (
+        <div className="card empty">
+          <p>Chưa có nhân viên mới cần onboarding.</p>
+        </div>
       ) : (
-        <div className="table-wrap">
-          <table className="data">
-            <thead>
-              <tr>
-                <th>Họ tên</th>
-                <th>Vị trí</th>
-                <th>Phòng ban</th>
-                <th>Bắt đầu</th>
-                <th>Hết TV</th>
-                <th>TT</th>
-                {canEdit ? <th /> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((p) => {
-                const due = p.remind_convert || p.status === 'due_convert'
-                return (
-                  <tr key={p.id} className={due ? 'row-warn' : undefined}>
+        <div className="grid g2 onboarding-grid">
+          {cards.map((p) => {
+            const tasks = planTasks(p)
+            const done = tasks.filter((t) => t.done).length
+            const total = tasks.length || 1
+            const pct = Math.round((done / total) * 100)
+            const days = daysUntil(p.start_date)
+            const due = p.remind_convert || p.status === 'due_convert'
+            const meta = [
+              p.role_title || '—',
+              p.department || '—',
+              `nhận việc ${formatJoinDate(p.start_date)}`,
+            ].join(' · ')
+
+            return (
+              <article
+                key={p.id}
+                className={`card onboarding-card${due ? ' onboarding-card--due' : ''}`}
+              >
+                <div className="onboarding-card__top">
+                  <div className="onboarding-card__identity">
+                    <h3 className="onboarding-card__name">{p.full_name}</h3>
+                    <p className="muted small onboarding-card__meta">
+                      {meta}
+                      {days > 0 ? (
+                        <span className="onboarding-card__remain">
+                          {' '}
+                          (còn {days} ngày)
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+                  <span
+                    className={`onboarding-card__badge${pct === 100 ? ' is-done' : ''}`}
+                    aria-label={`${done} trên ${total} việc hoàn thành`}
+                  >
+                    {done}/{total}
+                  </span>
+                </div>
+
+                <div
+                  className="onboarding-card__bar"
+                  role="progressbar"
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <i style={{ width: `${pct}%` }} />
+                </div>
+
+                <ul className="onboarding-checklist">
+                  {tasks.map((t, i) => {
+                    const label = taskLabel(t) || `Việc ${i + 1}`
+                    const busy = toggling === `${p.id}:${i}`
+                    return (
+                      <li key={`${p.id}-${i}`}>
+                        <label
+                          className={`onboarding-check${t.done ? ' is-done' : ''}${!canEdit ? ' is-readonly' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={Boolean(t.done)}
+                            disabled={!canEdit || busy}
+                            onChange={() => void toggleTask(p, i)}
+                          />
+                          <span className="onboarding-check__box" aria-hidden />
+                          <span className="onboarding-check__label">{label}</span>
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
+
+                {canEdit ? (
+                  <div className="onboarding-card__actions">
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      onClick={() => void openEdit(p.id)}
+                    >
+                      Sửa
+                    </button>
+                    {due && p.status !== 'converted' ? (
+                      <button
+                        type="button"
+                        className="btn primary"
+                        onClick={() => void markConvert(p.id, true)}
+                      >
+                        Đã chuyển NV
+                      </button>
+                    ) : null}
+                    {!due && p.status === 'in_progress' ? (
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        onClick={() => void markConvert(p.id, false)}
+                      >
+                        Nhắc convert
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </article>
+            )
+          })}
+        </div>
+      )}
+
+      {converted.length > 0 ? (
+        <details className="onboarding-converted">
+          <summary className="muted small">
+            Đã chuyển hồ sơ NV ({converted.length})
+          </summary>
+          <div className="table-wrap" style={{ marginTop: 10 }}>
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>Họ tên</th>
+                  <th>Vị trí</th>
+                  <th>Bắt đầu</th>
+                  <th>Hết TV</th>
+                  {canEdit ? <th /> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {converted.map((p) => (
+                  <tr key={p.id}>
                     <td>{p.full_name}</td>
                     <td>{p.role_title ?? '—'}</td>
-                    <td>{p.department ?? '—'}</td>
-                    <td>{p.start_date}</td>
-                    <td>{p.probation_end ?? '—'}</td>
+                    <td>{formatJoinDate(p.start_date)}</td>
                     <td>
-                      {due && p.status !== 'converted'
-                        ? 'Cần chuyển chính thức'
-                        : p.status}
+                      {p.probation_end
+                        ? formatJoinDate(p.probation_end)
+                        : '—'}
                     </td>
                     {canEdit ? (
                       <td className="actions-cell">
@@ -387,33 +530,15 @@ export function OnboardingPage() {
                         >
                           Sửa
                         </button>
-                        {due && p.status !== 'converted' ? (
-                          <button
-                            type="button"
-                            className="btn primary"
-                            onClick={() => void markConvert(p.id, true)}
-                          >
-                            Đã chuyển NV
-                          </button>
-                        ) : null}
-                        {!due && p.status === 'in_progress' ? (
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={() => void markConvert(p.id, false)}
-                          >
-                            Nhắc convert
-                          </button>
-                        ) : null}
                       </td>
                     ) : null}
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      ) : null}
     </div>
   )
 }
