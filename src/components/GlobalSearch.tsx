@@ -149,9 +149,10 @@ export function GlobalSearch() {
           ref={inputRef}
           className="gs-input"
           type="search"
-          placeholder="Tìm trang, nhân viên, chính sách… (Ctrl+K)"
+          placeholder="Tìm trang, nhân viên, chính sách…"
           value={q}
           autoComplete="off"
+          enterKeyHint="search"
           onFocus={() => setOpen(true)}
           onChange={(e) => {
             setQ(e.target.value)
@@ -159,7 +160,9 @@ export function GlobalSearch() {
           }}
           onKeyDown={onKeyDown}
         />
-        <kbd className="gs-kbd">Ctrl K</kbd>
+        <kbd className="gs-kbd" title="Phím tắt máy tính">
+          Ctrl K
+        </kbd>
       </label>
 
       {open ? (

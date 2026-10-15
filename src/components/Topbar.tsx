@@ -5,6 +5,7 @@ import { GlobalSearch } from './GlobalSearch'
 
 type TopbarProps = {
   onMenuClick: () => void
+  menuOpen?: boolean
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -13,7 +14,7 @@ const TYPE_LABEL: Record<string, string> = {
   user: 'User',
 }
 
-export function Topbar({ onMenuClick }: TopbarProps) {
+export function Topbar({ onMenuClick, menuOpen = false }: TopbarProps) {
   const { pathname } = useLocation()
   const title = pageTitle(pathname)
   const mod = findNavModule(pathname)
@@ -25,19 +26,29 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <button
           type="button"
           className="burger"
-          aria-label="Mở menu"
+          aria-label={menuOpen ? 'Đóng menu' : 'Mở menu'}
+          aria-expanded={menuOpen}
+          aria-controls="side"
           onClick={onMenuClick}
         >
-          ☰
+          <span className="burger-icon" aria-hidden>
+            {menuOpen ? '✕' : '☰'}
+          </span>
         </button>
         <div className="top-titles">
           <h1>{title}</h1>
           {mod ? (
             <nav className="crumbs" aria-label="Breadcrumb">
-              <Link to="/">Trang chủ</Link>
-              <span aria-hidden>/</span>
-              <span>{mod.name}</span>
-              <span aria-hidden>/</span>
+              <Link to="/" className="crumbs-home">
+                Trang chủ
+              </Link>
+              <span className="crumbs-sep" aria-hidden>
+                /
+              </span>
+              <span className="crumbs-mod">{mod.name}</span>
+              <span className="crumbs-sep crumbs-sep--full" aria-hidden>
+                /
+              </span>
               <span className="crumbs-current">{title}</span>
             </nav>
           ) : null}
@@ -57,7 +68,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             </div>
             <button
               type="button"
-              className="linkish"
+              className="btn logout-btn"
               onClick={() => void logout()}
             >
               Đăng xuất
