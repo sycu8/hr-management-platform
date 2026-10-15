@@ -17,7 +17,8 @@
     "cf-typegen": "wrangler types",
     "db:migrate:local": "wrangler d1 migrations apply HRM_DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply HRM_DB --remote",
-    "db:seed:local": "wrangler d1 execute HRM_DB --local --file=./seed/demo.sql",`n    "db:provision": "node scripts/provision-cloudflare.mjs"
+    "db:seed:local": "wrangler d1 execute HRM_DB --local --file=./seed/demo.sql",
+    "db:provision": "node scripts/provision-cloudflare.mjs"
   },
   "dependencies": {
     "date-fns": "^4.4.0",
