@@ -1,193 +1,298 @@
 # HR Management Platform
 
-**Hệ thống quản lý nhân sự nội bộ** cho doanh nghiệp Việt Nam — dùng tại [hrm.orangecloud.vn](https://hrm.orangecloud.vn).
+<p align="center">
+  <img src="public/logo.svg" alt="Orange Cloud HR" width="72" height="72" />
+</p>
 
-Tài liệu này viết cho **lãnh đạo / CEO** (không cần nền tảng kỹ thuật) và cho đội kỹ thuật khi triển khai.
+<p align="center">
+  <strong>Cổng nhân sự nội bộ cho doanh nghiệp Việt Nam</strong><br/>
+  Nghỉ phép · Công tác · Lương · Tuyển dụng · OKR · Đào tạo — một nền tảng
+</p>
+
+<p align="center">
+  <a href="https://hrm.orangecloud.vn"><img src="https://img.shields.io/badge/Live-hrm.orangecloud.vn-E04E00?style=for-the-badge" alt="Live demo" /></a>
+  <a href="https://github.com/sycu8/hr-management-platform/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/sycu8/hr-management-platform/deploy.yml?branch=main&style=for-the-badge&label=Deploy" alt="Deploy" /></a>
+  <a href="https://github.com/sycu8/hr-management-platform/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/sycu8/hr-management-platform/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI" /></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white" alt="Workers" />
+  <img src="https://img.shields.io/badge/D1-SQL-0051C3" alt="D1" />
+  <img src="https://img.shields.io/badge/R2-Storage-F6821F" alt="R2" />
+  <img src="https://img.shields.io/badge/locale-vi--VN-green" alt="vi-VN" />
+  <img src="https://img.shields.io/badge/currency-VND-lightgrey" alt="VND" />
+</p>
 
 ---
 
-## Hệ thống này làm gì?
+## Bản đồ nhanh (30 giây)
 
-Thay cho nhiều file Excel / email rời rạc, nền tảng gom **toàn bộ vòng đời nhân sự** vào một cổng web:
+```mermaid
+flowchart LR
+  accTitle: Bản đồ nền tảng HR
+  accDescr: Người dùng vào cổng web, API kiểm soát quyền, dữ liệu lưu D1/R2
 
-| Nhóm nghiệp vụ | Việc lãnh đạo / HR thấy được |
-| --- | --- |
-| **Bảng điều khiển** | Tổng quan headcount, cảnh báo, sự kiện sắp tới |
-| **Nhân viên** | Hồ sơ, hợp đồng, lịch sử công việc, tài liệu |
-| **Tuyển dụng** | Đăng JD, theo dõi ứng viên, onboarding |
-| **Nghỉ phép & chấm công** | Đăng ký phép, số dư, chấm công, lịch team |
-| **Công tác & công tác phí** | Đề nghị → duyệt → tạm ứng → quyết toán (có định mức) |
-| **Lương & phúc lợi** | Bảng lương tháng, phụ cấp/thưởng, BHXH/BHYT |
-| **Hiệu suất** | Chu kỳ đánh giá, KPI/OKR, 360°, lịch sử |
-| **Đào tạo** | Khóa học, tiến độ, chứng chỉ, lộ trình nghề |
-| **Chính sách nội bộ** | Quy định, SOP, văn bản pháp lý tham chiếu |
-| **Quản trị** | Phân quyền tài khoản, bảo mật, xuất dữ liệu |
-
-Giao diện tiếng Việt; tiền tệ VND; múi giờ Việt Nam.
-
----
-
-## Vì sao chọn kiến trúc này? (góc nhìn CEO)
-
-Hãy nghĩ hệ thống như một **tòa nhà văn phòng số**:
-
-```text
-  Nhân viên / HR / Kế toán
-           │
-           ▼
-   ┌───────────────────┐
-   │  Cổng web (giao diện)  │  ← màn hình mọi người dùng mỗi ngày
-   └─────────┬─────────┘
-             │
-             ▼
-   ┌───────────────────┐
-   │  Bộ não trung tâm (API) │  ← kiểm tra quyền, tính toán nghiệp vụ
-   └─────────┬─────────┘
-             │
-     ┌───────┼───────┬──────────┐
-     ▼       ▼       ▼          ▼
-  Cơ sở    Kho tệp  Hàng đợi   Email /
-  dữ liệu  (PDF…)   việc nền   lịch tự động
+  U["Nhân viên / HR / Kế toán"] --> SPA["Cổng web React"]
+  SPA --> API["Worker API + RBAC"]
+  API --> D1[(D1 · sổ chính)]
+  API --> R2[(R2 · tệp PDF)]
+  API --> Q[[Queues · mail / job]]
+  API --> AI["Workers AI · 360°"]
 ```
 
-| Phần | Ví dụ đời thường | Vai trò trong dự án |
-| --- | --- | --- |
-| **Cổng web** | Quầy lễ tân + form | React — màn hình tiếng Việt |
-| **API** | Quy trình nội bộ “ai được làm gì” | Cloudflare Worker + Hono |
-| **Cơ sở dữ liệu** | Sổ cái chính thức | Cloudflare D1 (SQL) |
-| **Kho tệp** | Tủ hồ sơ / kho chứng từ | Cloudflare R2 (hợp đồng, xuất báo cáo) |
-| **Bộ nhớ tạm** | Giấy nhớ / cache | Cloudflare KV |
-| **Hàng đợi** | Hộp việc “làm sau” | Queues (gửi mail, job nặng) |
-| **Lịch tự động** | Lịch nhắc hàng ngày | Cron (nhắc việc, kiểm tra hạn) |
-| **Email** | Phòng thư | Cloudflare Email |
-| **Chống bot** | Bảo vệ form công khai | Turnstile (khi bật) |
-
-**Lợi ích kinh doanh:**
-
-1. **Một nền tảng đám mây** (Cloudflare) — ít máy chủ tự quản, scale theo lưu lượng.  
-2. **Triển khai gần người dùng toàn cầu** — mở app nhanh, kể cả ngoài văn phòng.  
-3. **Phân quyền thật trên máy chủ** — không tin nút “chọn vai trò” phía trình duyệt.  
-4. **Số liệu lương / công tác phí được khóa bằng kiểm thử tự động** — thay đổi công thức phải được duyệt, tránh lệch số tiền.  
-5. **Tham số lương có cổng pháp lý** — chỉ đóng bảng lương thanh toán khi tham số đã được review.
+| Bạn cần… | Đi tới |
+| --- | --- |
+| Dùng thử | [hrm.orangecloud.vn](https://hrm.orangecloud.vn) |
+| Hiểu giá trị kinh doanh | [docs/FOR_EXECUTIVES.md](docs/FOR_EXECUTIVES.md) |
+| Kiến trúc kỹ thuật | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Vận hành / secrets | [docs/OPERATIONS.md](docs/OPERATIONS.md) |
+| Inventory QA | [docs/QA_INVENTORY.md](docs/QA_INVENTORY.md) |
 
 ---
 
-## Ai dùng hệ thống? (3 loại tài khoản)
+## 10 module nghiệp vụ
 
-| Loại | Ai thường dùng | Quyền chính |
+```mermaid
+mindmap
+  root((HR Platform))
+    Bảng điều khiển
+      KPI
+      Cảnh báo
+      Sự kiện
+    Nhân viên
+      Hồ sơ + ảnh
+      HĐLĐ
+      Tài liệu
+    Tuyển dụng
+      JD
+      Pipeline
+      Onboarding
+    Nghỉ phép
+      Đơn phép
+      Số dư
+      Chấm công
+    Công tác
+      Đề nghị
+      Duyệt
+      Quyết toán
+    Lương
+      Bảng tháng
+      Phiếu lương
+      BHXH
+    Hiệu suất
+      OKR
+      360° + AI
+    Đào tạo
+      Khóa học
+      Chứng chỉ
+    Chính sách
+      Quy định
+      SOP
+      Pháp lý
+    Quản trị
+      Phân quyền
+      Bảo mật
+```
+
+| Module | Việc lãnh đạo thấy được |
+| --- | --- |
+| **Bảng điều khiển** | Headcount, cảnh báo, sự kiện sắp tới |
+| **Nhân viên** | Hồ sơ, HĐ, lịch sử, tài liệu, ảnh thẻ |
+| **Tuyển dụng** | JD, pipeline ứng viên, onboarding checklist |
+| **Nghỉ phép** | Đơn phép, số dư, chấm công, lịch team |
+| **Công tác** | Đề nghị → duyệt → tạm ứng → quyết toán |
+| **Lương** | Bảng tháng, CSV/Excel, phụ cấp, BH |
+| **Hiệu suất** | OKR theo quý/năm, 360° radar + AI |
+| **Đào tạo** | Catalog, tiến độ, chứng chỉ, career path |
+| **Chính sách** | Quy định / SOP / pháp lý + OCR upload |
+| **Quản trị** | Phân quyền, bảo mật, xuất dữ liệu |
+
+---
+
+## Ai dùng hệ thống?
+
+```mermaid
+flowchart TB
+  accTitle: Ba loại tài khoản
+  accDescr: Super Admin toàn quyền, Admin HR nghiệp vụ, User theo module
+
+  SA["Super Admin"] --> ALL["Mọi module + tích hợp nguồn dữ liệu + view-as"]
+  AD["Admin · HR"] --> BIZ["Toàn bộ nghiệp vụ HR · sửa hồ sơ · duyệt phép"]
+  US["User"] --> CAP["Chỉ module được cấp\nvd. Tuyển dụng hoặc Lương"]
+```
+
+| Loại | Ai dùng | Quyền chính |
 | --- | --- | --- |
-| **Super Admin** | Chủ hệ thống / IT nội bộ | Toàn quyền + “xem như” người khác (view-as) |
-| **Admin (HR)** | Nhân sự | Tạo user, quản lý dữ liệu, reset mật khẩu (không phải system admin) |
-| **User** | Nhân viên theo chức năng | Chỉ các module được cấp (vd. tuyển dụng, hoặc lương) |
+| **Super Admin** | IT / chủ hệ thống | Toàn quyền + view-as + tích hợp |
+| **Admin (HR)** | Nhân sự | Quản lý dữ liệu, user, duyệt (không cấu hình nguồn) |
+| **User** | Nhân viên theo chức năng | Module được cấp (read/write theo level) |
 
-Đăng nhập bằng **email + mật khẩu** (cổng công khai).  
-Ứng dụng demo: **https://hrm.orangecloud.vn**
+**Demo** (chỉ môi trường thử — **đổi mật khẩu trên production**):
 
-| Vai trò demo | Email | Mật khẩu |
+| Vai trò | Email | Mật khẩu demo |
 | --- | --- | --- |
 | Super Admin | `super@orangecloud.vn` | `SuperAdmin!2026` |
-| Admin (HR) | `admin@orangecloud.vn` | `Admin!2026` |
+| Admin HR | `admin@orangecloud.vn` | `Admin!2026` |
 | User tuyển dụng | `user.tuyendung@orangecloud.vn` | `User!2026` |
 | User lương | `user.luong@orangecloud.vn` | `User!2026` |
 
-> Tài khoản demo chỉ dùng môi trường thử nghiệm. Production thật cần đổi mật khẩu và quy trình cấp phát chính thức.
-
 ---
 
-## Luồng dữ liệu quan trọng (dễ hình dung)
+## Dữ liệu mẫu dễ đọc (golden / khóa bằng test)
 
-### Công tác phí
+Số liệu dưới đây lấy từ seed demo tháng **09/2026** và chuyến công tác mẫu — được **khóa bằng Vitest** để tránh lệch công thức.
 
-1. Nhân viên tạo **đề nghị** → hệ thống tính **dự toán** theo vùng / cấp bậc.  
-2. Quản lý / Nhân sự **duyệt** → có thể **tạm ứng**.  
-3. Sau chuyến đi → **quyết toán** kèm chứng từ.  
-4. Kế toán xác nhận chênh lệch.
+### Lương tháng 09/2026 (nhóm gốc)
 
-Số liệu chuyến mẫu `CT-2026-0001` (dự toán **6.870.000 ₫** / quyết toán **6.990.000 ₫**) được **khóa bằng test tự động**.
-
-### Lương tháng
-
-1. Chấm công + phụ cấp/thưởng + tham số BHXH/PIT.  
-2. Tính bảng lương.  
-3. Chỉ **đóng để chi trả** khi tham số pháp lý đã được duyệt (`LEGAL_REVIEW_REQUIRED`).
-
-Tổng lương mẫu tháng **09/2026** (nhóm nhân viên gốc) cũng được khóa bằng test.
-
----
-
-## Tech stack (tóm tắt cho lãnh đạo + chi tiết cho kỹ thuật)
-
-### Phiên bản “một trang” (CEO)
-
-| Hạng mục | Công nghệ | Ý nghĩa |
-| --- | --- | --- |
-| Giao diện | React + Vite | Web app hiện đại, build nhanh |
-| Máy chủ ứng dụng | Cloudflare Workers | Chạy logic gần người dùng, không cần thuê VPS riêng |
-| API | Hono | Bộ định tuyến HTTP nhẹ trên Worker |
-| Database | Cloudflare D1 | SQL trên biên; lưu hồ sơ, phép, lương… |
-| File | Cloudflare R2 | Lưu PDF / xuất báo cáo (tương tự “ổ đĩa đối tượng”) |
-| Cache | KV | Lưu ngắn hạn, tăng tốc |
-| Việc nền | Queues + Workflows | Gửi thông báo, quy trình nhiều bước |
-| Lịch | Cron | Nhắc việc theo ngày |
-| Ngôn ngữ code | TypeScript | Giảm lỗi kiểu dữ liệu |
-| Kiểm thử | Vitest (+ Playwright e2e) | Bảo vệ công thức nghiệp vụ |
-| CI/CD | GitHub Actions | Đẩy code → kiểm tra → migrate → seed → deploy |
-
-### Sơ đồ triển khai
-
-```text
-GitHub (mã nguồn)
-    │  push main
-    ▼
-GitHub Actions
-    │  typecheck → test → migrate D1 → seed → deploy
-    ▼
-Cloudflare
-    ├── Worker + SPA  →  https://hrm.orangecloud.vn
-    ├── D1  (HRM_DB)
-    ├── R2  (documents, exports)
-    ├── KV / Queues / Cron / Email
-    └── Observability (logs + traces)
+```mermaid
+pie showData
+  title Cơ cấu chi phí lương mẫu (₫)
+  "Thực nhận · net" : 333853800
+  "BH NLĐ + PIT + khác" : 41567109
 ```
 
-Chi tiết kỹ thuật đầy đủ: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**  
-Vận hành / secrets: **[docs/OPERATIONS.md](docs/OPERATIONS.md)**  
-Tham số pháp lý lương: **[docs/LEGAL_PARAMETERS.md](docs/LEGAL_PARAMETERS.md)**
+| Chỉ số | Giá trị | Ý nghĩa |
+| --- | --- | --- |
+| **Gross** | **375.420.909 ₫** | Tổng thu nhập trước khấu trừ |
+| **Net** | **333.853.800 ₫** | Thực nhận nhân viên |
+| Chênh lệch | ~41,6 triệu ₫ | BH + PIT (và phần còn lại trong snapshot) |
+| Headcount mẫu | 31 | Cohort golden e1–e12 mở rộng |
+
+Ví dụ phiếu cá nhân (đã khóa test):
+
+| NV | Ngày công | Gross | BH NLĐ | PIT | Net |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| e1 | 22 | 24.730.000 | 1.890.000 | 20.500 | 22.819.500 |
+| e4 | 21 | 64.184.545 | 4.725.000 | 2.665.909 | 56.793.636 |
+| e5 | 22 | 86.530.000 | 4.914.000 | 7.097.200 | 74.518.800 |
+
+### Công tác phí — chuyến `CT-2026-0001`
+
+```mermaid
+xychart-beta
+  title "Dự toán vs quyết toán (nghìn ₫)"
+  x-axis ["Dự toán", "Quyết toán"]
+  y-axis "Nghìn đồng" 0 --> 7500
+  bar [6870, 6990]
+```
+
+| Bước | Số tiền | Ghi chú |
+| --- | ---: | --- |
+| Dự toán | **6.870.000 ₫** | Theo vùng / cấp bậc / chính sách |
+| Quyết toán | **6.990.000 ₫** | Sau chứng từ thực tế (+120.000 ₫) |
+
+```mermaid
+flowchart LR
+  accTitle: Luồng công tác phí
+  A[Đề nghị] --> B[Dự toán tự động]
+  B --> C[Duyệt PM / PH]
+  C --> D[Tạm ứng]
+  D --> E[Quyết toán + chứng từ]
+  E --> F[Kế toán chốt]
+```
+
+### Lương — cổng pháp lý
+
+```mermaid
+stateDiagram-v2
+  [*] --> Draft: Tính bảng lương
+  Draft --> LegalReview: Gửi tham số BH/PIT
+  LegalReview --> Approved: Legal duyệt
+  LegalReview --> Rejected: Từ chối
+  Rejected --> LegalReview: Sửa tham số
+  Approved --> Closed: Đóng kỳ · chi trả
+  note right of LegalReview
+    LEGAL_REVIEW_REQUIRED
+    chặn đóng khi chưa approved
+  end note
+```
 
 ---
 
-## Quick start (đội kỹ thuật)
+## Phân quyền & bảo mật (tóm tắt)
+
+```mermaid
+flowchart TB
+  accTitle: Mô hình quyền
+  Login[Đăng nhập + Turnstile] --> Session[Cookie HttpOnly · SameSite=Lax]
+  Session --> Modules[Module capabilities]
+  Modules --> Scope{account_type?}
+  Scope -->|admin / SA| Org[Toàn tổ chức]
+  Scope -->|user| Team[Chỉ bản thân + cấp dưới trực tiếp]
+```
+
+- **RBAC trên server** — sidebar chỉ ẩn UI; API mới là cổng thật.  
+- **User** không thấy directory / phiếu lương / 360 của cả công ty.  
+- **Turnstile** test keys chỉ hợp lệ khi hostname = `localhost` / `127.0.0.1`.  
+- Chi tiết vận hành: [docs/OPERATIONS.md](docs/OPERATIONS.md).
+
+---
+
+## Kiến trúc kỹ thuật
+
+```mermaid
+flowchart TB
+  accTitle: Cloudflare deployment
+  GH[GitHub main] -->|push| GHA[GitHub Actions]
+  GHA -->|typecheck · unit · build| CF[Cloudflare]
+  CF --> W[Worker + SPA]
+  CF --> D1[(D1 HRM_DB)]
+  CF --> R2[(R2 documents / exports)]
+  CF --> KV[(KV)]
+  CF --> QU[Queues + Cron + Email]
+  W --> URL["https://hrm.orangecloud.vn"]
+```
+
+| Tầng | Công nghệ | Vai trò |
+| --- | --- | --- |
+| UI | React 19 + Vite | SPA tiếng Việt |
+| API | Hono trên Workers | RBAC, nghiệp vụ, Turnstile |
+| DB | D1 | Hồ sơ, phép, lương, OKR… |
+| File | R2 | Ảnh NV, PDF chính sách, export |
+| AI | Workers AI + AI Gateway | Phân tích 360° |
+| CI/CD | GitHub Actions | Test → migrate → deploy |
+
+---
+
+## Quick start (kỹ thuật)
 
 ```bash
 npm install
-cp .dev.vars.example .dev.vars
+cp .dev.vars.example .dev.vars   # Turnstile always-pass keys · localhost only
 npm run db:migrate:local
-npm run db:seed:local
-npm run db:seed:auth:local
+npm run db:seed:local:all
 npm run dev
 ```
 
 | Script | Mục đích |
 | --- | --- |
-| `npm run dev` | Chạy local (SPA + Worker) |
-| `npm run test:unit` | Test nghiệp vụ (golden travel / payroll) |
-| `npm run build` | Build production |
-| `npm run deploy` | Build + deploy Worker |
-| `npm run db:migrate:local` / `:remote` | Áp migration D1 |
+| `npm run dev` | SPA + Worker local |
+| `npm run qa:local` | typecheck + unit + e2e |
+| `npm run test:unit` | Golden travel / payroll / scope / Turnstile |
+| `npm run test:e2e` | Playwright inventory |
+| `npm run deploy` | Build + `wrangler deploy` (local operator) |
 
-Deploy production: push lên `main` → workflow **Deploy Cloudflare** (cần secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`). Xem [docs/GITHUB_SECRETS.md](docs/GITHUB_SECRETS.md).
+Production: push `main` → workflow **Deploy Cloudflare**  
+Secrets: [docs/GITHUB_SECRETS.md](docs/GITHUB_SECRETS.md)
 
----
-
-## Nguyên tắc tương thích & tuân thủ
-
-- Giữ kết quả tính **công tác** và **lương mẫu** khớp handoff cho đến khi có **phê duyệt thay đổi chính sách** (có hiệu lực theo ngày).  
-- Tham số BHXH / PIT / giảm trừ… chỉ dùng để **chi trả** sau khi legal review = approved.  
-- Không dán token / mật khẩu production vào chat; chỉ lưu trong GitHub Secrets / Worker secrets.
+> Deploy **không** tự ghi đè mật khẩu production bằng seed demo. Seed auth remote chỉ chạy chủ động: `npm run db:seed:auth:remote`.
 
 ---
 
-## Kho mã nguồn
+## Tài liệu
 
-Repository GitHub: cập nhật trên nhánh `main`.  
-Tài liệu kiến trúc dành cho lãnh đạo + kỹ thuật nằm trong thư mục `docs/`.
+| Tài liệu | Nội dung |
+| --- | --- |
+| [FOR_EXECUTIVES.md](docs/FOR_EXECUTIVES.md) | Tóm tắt CEO / CHRO / CFO |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Kiến trúc đầy đủ |
+| [OPERATIONS.md](docs/OPERATIONS.md) | Secrets, bảo mật, vận hành |
+| [LEGAL_PARAMETERS.md](docs/LEGAL_PARAMETERS.md) | Tham số BHXH / PIT |
+| [QA_INVENTORY.md](docs/QA_INVENTORY.md) | Inventory + bug log QA |
+| [ACCEPTANCE_BASELINE.md](docs/ACCEPTANCE_BASELINE.md) | Tiêu chí chấp nhận |
+
+---
+
+<p align="center">
+  <sub>Orange Cloud · HR Management Platform · <a href="https://hrm.orangecloud.vn">hrm.orangecloud.vn</a></sub>
+</p>

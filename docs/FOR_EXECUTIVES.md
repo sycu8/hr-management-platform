@@ -15,6 +15,28 @@
 4. **Sẵn sàng đám mây** — không phụ thuộc máy chủ trong văn phòng.  
 5. **Triển khai có kiểm soát** — mỗi bản phát hành qua GitHub (test → migrate → deploy).
 
+### Hình dung vòng đời nhân sự
+
+```mermaid
+flowchart LR
+  T[Tuyển dụng] --> O[Onboarding]
+  O --> V[Vận hành hàng ngày]
+  V --> L[Lương & BH]
+  V --> P[Hiệu suất / OKR]
+  P --> D[Đào tạo]
+  V --> C[Công tác phí]
+```
+
+### Số liệu demo khóa bằng test (tháng 09/2026)
+
+| Chỉ số | Giá trị |
+| --- | ---: |
+| Gross mẫu | 375.420.909 ₫ |
+| Net mẫu | 333.853.800 ₫ |
+| Công tác CT-2026-0001 | Dự toán 6.870.000 → Quyết toán 6.990.000 ₫ |
+
+Biểu đồ & bảng chi tiết: [README.md](../README.md#dữ-liệu-mẫu-dễ-đọc-golden--khóa-bằng-test).
+
 ---
 
 ## Kiến trúc “bằng ngôn ngữ đời thường”
