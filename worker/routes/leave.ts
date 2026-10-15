@@ -10,7 +10,18 @@ import { badRequest, forbidden, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
 import { resolveAuditActor } from '../lib/audit-actor.ts'
+import { dashSummaryCacheKey } from '../lib/kv-cache.ts'
 import { isElevated } from '../lib/scope.ts'
+
+async function bustDashboardCache(env: Env, orgId: string) {
+  if (!env.CACHE) return
+  const today = new Date().toISOString().slice(0, 10)
+  try {
+    await env.CACHE.delete(dashSummaryCacheKey(orgId, today))
+  } catch {
+    /* ignore */
+  }
+}
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import { requireModule } from '../middleware/rbac.ts'
 
@@ -151,6 +162,7 @@ leave.post('/requests', requireModule('leave', 1), async (c) => {
     }`,
   })
 
+  await bustDashboardCache(c.env, user.organizationId)
   return json(c, { id, working_days: workingDays, status: 'pending' }, 201)
 })
 
@@ -206,6 +218,7 @@ leave.patch('/requests/:id', requireModule('leave', 2), async (c) => {
     })
   }
 
+  await bustDashboardCache(c.env, user.organizationId)
   return json(c, { ok: true })
 })
 

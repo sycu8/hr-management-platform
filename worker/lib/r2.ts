@@ -65,6 +65,6 @@ export function r2ObjectResponse(
     'Content-Disposition',
     `${disposition}; filename*=UTF-8''${encodeURIComponent(fileName)}`,
   )
-  headers.set('Cache-Control', 'private, max-age=60')
+  headers.set('Cache-Control', 'private, max-age=300')
   return new Response(object.body, { headers })
 }

@@ -9,8 +9,29 @@ export type ApiErrorBody = {
   }
 }
 
-export function json<T>(c: Context, data: T, status: ContentfulStatusCode = 200) {
+export function json<T>(
+  c: Context,
+  data: T,
+  status: ContentfulStatusCode = 200,
+  headers?: Record<string, string>,
+) {
+  if (headers) {
+    for (const [k, v] of Object.entries(headers)) c.header(k, v)
+  }
   return c.json(data, status)
+}
+
+/** Private browser/CDN hint for authenticated JSON (short TTL). */
+export function privateCacheHeaders(
+  maxAgeSeconds: number,
+  opts?: { hit?: boolean },
+): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Cache-Control': `private, max-age=${Math.max(0, maxAgeSeconds)}`,
+    Vary: 'Cookie',
+  }
+  if (opts?.hit != null) headers['X-Cache'] = opts.hit ? 'HIT' : 'MISS'
+  return headers
 }
 
 export function apiError(
