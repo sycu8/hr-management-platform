@@ -18,6 +18,7 @@ import policies from './routes/policies.ts'
 import documents from './routes/documents.ts'
 import okr from './routes/okr.ts'
 import feedback360 from './routes/feedback360.ts'
+import search from './routes/search.ts'
 
 export type AppVariables = {
   user: AuthUser
@@ -55,6 +56,7 @@ export function createApp() {
   api.route('/documents', documents)
   api.route('/okr', okr)
   api.route('/feedback-360', feedback360)
+  api.route('/search', search)
 
   app.route('/api', api)
 

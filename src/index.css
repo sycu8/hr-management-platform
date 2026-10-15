@@ -1,4 +1,4 @@
-@import './styles/tokens.css';
+﻿@import './styles/tokens.css';
 @import './styles/login.css';
 
 *,
@@ -154,26 +154,68 @@ textarea {
 .top {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 10px 20px 12px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.top-row--main {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 24px;
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--line);
+  gap: 14px;
   flex-wrap: wrap;
+}
+
+.top-titles {
+  min-width: 140px;
+  flex: 0 1 220px;
 }
 
 .top h1 {
   margin: 0;
   font-family: var(--display);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  flex: 1;
-  min-width: 140px;
   line-height: 1.2;
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.crumbs a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.crumbs a:hover { color: var(--accent); }
+
+.crumbs-current { color: var(--ink); font-weight: 500; }
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
 }
 
 .burger {
@@ -432,7 +474,7 @@ tr.row-selected td {
 
 .dept-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.dept-list li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.dept-list li:last-child{border-bottom:0}.dept-list strong{font-variant-numeric:tabular-nums}
 
-/* —— Dashboard charts —— */
+/* â€”â€” Dashboard charts â€”â€” */
 .dash-title {
   margin: 0;
   font-family: var(--display);
@@ -501,7 +543,7 @@ tr.row-selected td {
 }
 .chart-legend .swatch.alt { background: var(--info); }
 
-/* Vertical bar (HTML) — readable value labels */
+/* Vertical bar (HTML) â€” readable value labels */
 .vbar {
   display: flex;
   flex-direction: column;
@@ -662,7 +704,7 @@ tr.row-selected td {
   font-size: 12px;
 }
 
-/* Funnel — full rows, big numbers on the right */
+/* Funnel â€” full rows, big numbers on the right */
 .funnel-list {
   list-style: none;
   margin: 0;
@@ -1141,9 +1183,9 @@ tr.row-selected td {
   background: color-mix(in srgb, #c45c26 12%, transparent);
 }
 
-⼊‪鞗传扮慯摲湩⁧档捥汫獩⁴慣摲⁳栨湡潤晦愠捣湥⁴㔣㐳䉁⤷霠ₗ⼪⸊湯潢牡楤杮瀭条⁥੻†ⴭ湯潢牡㩤⌠㌵愴㝢਻†ⴭ湯潢牡ⵤ潳瑦›潣潬⵲業⡸湩猠杲Ɫ⌠㌵愴㝢㈠┲‬牴湡灳牡湥⥴਻†ⴭ湯潢牡ⵤ湩㩫⌠晦㭦 搠獩汰祡›汦硥਻†汦硥搭物捥楴湯›潣畬湭਻†慧㩰ㄠ瀶㭸紊㨊潲瑯摛瑡ⵡ桴浥㵥搧牡❫⁝漮扮慯摲湩ⵧ慰敧ਬ爺潯孴慤慴琭敨敭✽祳瑳浥崧⸠湯潢牡楤杮瀭条⁥੻†ⴭ湯潢牡㩤⌠挷㐷づ਻†ⴭ湯潢牡ⵤ潳瑦›潣潬⵲業⡸湩猠杲Ɫ⌠挷㐷づ㈠┸‬牴湡灳牡湥⥴਻੽浀摥慩⠠牰晥牥⵳潣潬⵲捳敨敭›慤歲 ੻†爺潯㩴潮⡴摛瑡ⵡ桴浥㵥氧杩瑨崧 漮扮慯摲湩ⵧ慰敧笠 †ⴠ漭扮慯摲›㜣㝣攴㬰 †ⴠ漭扮慯摲猭景㩴挠汯牯洭硩椨⁮牳执‬㜣㝣攴‰㠲Ⱕ琠慲獮慰敲瑮㬩 素紊⸊湯潢牡楤杮瀭条彥桟慥⁤㉨笠 洠牡楧㩮〠〠㘠硰਻†潦瑮昭浡汩㩹瘠牡⴨搭獩汰祡㬩 映湯⵴楳敺›㈲硰਻†潦瑮眭楥桧㩴㜠〰਻†敬瑴牥猭慰楣杮›〭〮攲㭭紊⸊湯潢牡楤杮瀭条彥江慥⁤੻†慭杲湩›㬰 洠硡眭摩桴›㈶档਻†楬敮栭楥桧㩴ㄠ㔮਻†潦瑮猭穩㩥ㄠ⸳瀵㭸紊⸊湯潢牡楤杮札楲⁤੻†污杩⵮瑩浥㩳猠牴瑥档਻੽漮扮慯摲湩ⵧ慣摲笠 搠獩汰祡›汦硥਻†汦硥搭物捥楴湯›潣畬湭਻†慧㩰〠਻†慰摤湩㩧ㄠ瀶⁸㘱硰ㄠ瀲㭸 洠湩眭摩桴›㬰紊⸊湯潢牡楤杮挭牡ⵤ搭敵笠 戠牯敤⵲潣潬㩲挠汯牯洭硩椨⁮牳执‬慶⡲ⴭ慷湲 㔴Ⱕ瘠牡⴨氭湩⥥㬩紊⸊湯潢牡楤杮挭牡彤瑟灯笠 搠獩汰祡›汦硥਻†污杩⵮瑩浥㩳映敬⵸瑳牡㭴 朠灡›㈱硰਻੽漮扮慯摲湩ⵧ慣摲彟摩湥楴祴笠 映敬㩸ㄠ਻†業⵮楷瑤㩨〠਻੽漮扮慯摲湩ⵧ慣摲彟慮敭笠 洠牡楧㩮〠਻†潦瑮猭穩㩥ㄠ瀶㭸 映湯⵴敷杩瑨›〷㬰 氠瑥整⵲灳捡湩㩧ⴠ⸰㄰浥਻†潣潬㩲瘠牡⴨椭歮㬩紊⸊湯潢牡楤杮挭牡彤浟瑥⁡੻†慭杲湩›瀴⁸‰㬰 氠湩ⵥ敨杩瑨›⸱㔴਻੽漮扮慯摲湩ⵧ慣摲彟敲慭湩笠 挠汯牯›慶⡲ⴭ慷湲㬩 映湯⵴敷杩瑨›〶㬰紊⸊湯潢牡楤杮挭牡彤扟摡敧笠 映敬㩸渠湯㭥 眠摩桴›㐴硰਻†敨杩瑨›㐴硰਻†潢摲牥爭摡畩㩳㔠┰਻†潢摲牥›瀲⁸潳楬⁤挣愹㈲㬷 搠獩汰祡›牧摩਻†汰捡ⵥ瑩浥㩳挠湥整㭲 映湯⵴楳敺›㈱㔮硰਻†潦瑮眭楥桧㩴㜠〰਻†潦瑮瘭牡慩瑮渭浵牥捩›慴畢慬⵲畮獭਻†潣潬㩲瘠牡⴨椭歮㬩 戠捡杫潲湵㩤挠汯牯洭硩椨⁮牳执‬挣愹㈲‷㈱Ⱕ琠慲獮慰敲瑮㬩紊⸊湯潢牡楤杮挭牡彤扟摡敧椮⵳潤敮笠 戠牯敤⵲潣潬㩲瘠牡⴨札潯⥤਻†慢正牧畯摮›慶⡲ⴭ潧摯戭⥧਻†潣潬㩲瘠牡⴨札潯⥤਻੽漮扮慯摲湩ⵧ慣摲彟慢⁲੻†慭杲湩›㈱硰〠㐠硰਻†敨杩瑨›瀸㭸 戠牯敤⵲慲楤獵›瀴㭸 戠捡杫潲湵㩤瘠牡⴨漭扮慯摲猭景⥴਻†癯牥汦睯›楨摤湥਻੽漮扮慯摲湩ⵧ慣摲彟慢⁲‾⁩੻†楤灳慬㩹戠潬正਻†敨杩瑨›〱┰਻†潢摲牥爭摡畩㩳㐠硰਻†慢正牧畯摮›慶⡲ⴭ湯潢牡⥤਻†牴湡楳楴湯›楷瑤⁨⸰猲攠獡㭥紊⸊湯潢牡楤杮挭敨正楬瑳笠 氠獩⵴瑳汹㩥渠湯㭥 洠牡楧㩮〠਻†慰摤湩㩧〠਻੽漮扮慯摲湩ⵧ档捥汫獩⁴‾楬笠 戠牯敤⵲潢瑴浯›瀱⁸潳楬⁤慶⡲ⴭ楬敮㬩紊⸊湯潢牡楤杮挭敨正楬瑳㸠氠㩩慬瑳挭楨摬笠 戠牯敤⵲潢瑴浯›㬰紊⸊湯潢牡楤杮挭敨正笠 搠獩汰祡›汦硥਻†污杩⵮瑩浥㩳挠湥整㭲 朠灡›〱硰਻†慰摤湩㩧ㄠ瀰⁸㬰 挠牵潳㩲瀠楯瑮牥਻†獵牥猭汥捥㩴渠湯㭥紊⸊湯潢牡楤杮挭敨正椮⵳敲摡湯祬笠 挠牵潳㩲搠晥畡瑬਻੽漮扮慯摲湩ⵧ档捥⁫湩異⁴੻†潰楳楴湯›扡潳畬整਻†灯捡瑩㩹〠਻†楷瑤㩨ㄠ硰਻†敨杩瑨›瀱㭸 瀠楯瑮牥攭敶瑮㩳渠湯㭥紊⸊湯潢牡楤杮挭敨正彟潢⁸੻†汦硥›潮敮਻†楷瑤㩨ㄠ瀶㭸 栠楥桧㩴ㄠ瀶㭸 戠牯敤⵲慲楤獵›瀳㭸 戠牯敤㩲ㄠ㔮硰猠汯摩挠汯牯洭硩椨⁮牳执‬慶⡲ⴭ畭整⥤㔠┵‬慶⡲ⴭ楬敮⤩਻†慢正牧畯摮›牴湡灳牡湥㭴 瀠獯瑩潩㩮爠汥瑡癩㭥紊⸊湯潢牡楤杮挭敨正椠灮瑵挺敨正摥⬠⸠湯潢牡楤杮挭敨正彟潢⁸੻†慢正牧畯摮›慶⡲ⴭ湯潢牡⥤਻†潢摲牥挭汯牯›慶⡲ⴭ湯潢牡⥤਻੽漮扮慯摲湩ⵧ档捥⁫湩異㩴档捥敫⁤‫漮扮慯摲湩ⵧ档捥彫扟硯㨺晡整⁲੻†潣瑮湥㩴✠㬧 瀠獯瑩潩㩮愠獢汯瑵㭥 氠晥㩴㐠硰਻†潴㩰ㄠ硰਻†楷瑤㩨㔠硰਻†敨杩瑨›瀹㭸 戠牯敤㩲猠汯摩瘠牡⴨漭扮慯摲椭歮㬩 戠牯敤⵲楷瑤㩨〠㈠硰㈠硰〠਻†牴湡晳牯㩭爠瑯瑡⡥㔴敤⥧਻੽漮扮慯摲湩ⵧ档捥⁫湩異㩴潦畣⵳楶楳汢⁥‫漮扮慯摲湩ⵧ档捥彫扟硯笠 漠瑵楬敮›瀲⁸潳楬⁤慶⡲ⴭ湯潢牡⥤਻†畯汴湩ⵥ景獦瑥›瀲㭸紊⸊湯潢牡楤杮挭敨正彟慬敢⁬੻†汦硥›㬱 洠湩眭摩桴›㬰 挠汯牯›慶⡲ⴭ湩⥫਻†潦瑮猭穩㩥ㄠ⸳瀵㭸 氠湩ⵥ敨杩瑨›⸱㬴紊⸊湯潢牡楤杮挭敨正椮⵳潤敮⸠湯潢牡楤杮挭敨正彟慬敢⁬੻†潣潬㩲瘠牡⴨洭瑵摥㬩 漠慰楣祴›⸰㔸਻੽漮扮慯摲湩ⵧ慣摲彟捡楴湯⁳੻†楤灳慬㩹映敬㭸 映敬⵸牷灡›牷灡਻†慧㩰㠠硰਻†慭杲湩琭灯›〱硰਻†慰摤湩ⵧ潴㩰㠠硰਻†潢摲牥琭灯›瀱⁸慤桳摥瘠牡⴨氭湩⥥਻੽漮扮慯摲湩ⵧ潣癮牥整⁤੻†慭杲湩琭灯›瀴㭸紊⸊湯潢牡楤杮挭湯敶瑲摥㸠猠浵慭祲笠 挠牵潳㩲瀠楯瑮牥਻ൽ
+â¼Šâ€ªéž—ä¼ æ‰®æ…¯æ‘²æ¹©â§æ¡£æ¥æ±«ç©â´æ…£æ‘²â³æ ¨æ¹¡æ½¤æ™¦æ„ æ£æ¹¥â´ã”£ã³ä‰â¤·éœ â‚—â¼ªâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®ç€­æ¡â¥à©»â€ â´­æ¹¯æ½¢ç‰¡ã©¤âŒ ãŒµæ„´ã¢à¨»â€ â´­æ¹¯æ½¢ç‰¡âµ¤æ½³ç‘¦â€ºæ½£æ½¬âµ²æ¥­â¡¸æ¹©çŒ æ²â±¢âŒ ãŒµæ„´ã¢ãˆ â”²â€¬ç‰´æ¹¡ç³ç‰¡æ¹¥â¥´à¨»â€ â´­æ¹¯æ½¢ç‰¡âµ¤æ¹©ã©«âŒ æ™¦ã­¦â€Šæ ç©æ±°ç¥¡â€ºæ±¦ç¡¥à¨»â€ æ±¦ç¡¥æ­ç‰©æ¥æ¥´æ¹¯â€ºæ½£ç•¬æ¹­à¨»â€ æ…§ã©°ã„ ç€¶ã­¸ç´Šã¨Šæ½²ç‘¯æ‘›ç‘¡âµ¡æ¡´æµ¥ãµ¥æ§ç‰¡â«âæ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…°æ•§à¨¬çˆºæ½¯å­´æ…¤æ…´ç­æ•¨æ•­âœ½ç¥³ç‘³æµ¥å´§â¸ æ¹¯æ½¢ç‰¡æ¥¤æ®ç€­æ¡â¥à©»â€ â´­æ¹¯æ½¢ç‰¡ã©¤âŒ æŒ·ã·ã¥à¨»â€ â´­æ¹¯æ½¢ç‰¡âµ¤æ½³ç‘¦â€ºæ½£æ½¬âµ²æ¥­â¡¸æ¹©çŒ æ²â±¢âŒ æŒ·ã·ã¥ãˆ â”¸â€¬ç‰´æ¹¡ç³ç‰¡æ¹¥â¥´à¨»à©½æµ€æ‘¥æ…©â  ç‰°æ™¥ç‰¥âµ³æ½£æ½¬âµ²æ³æ•¨æ•­â€ºæ…¤æ­²â€©à©»â€ çˆºæ½¯ã©´æ½®â¡´æ‘›ç‘¡âµ¡æ¡´æµ¥ãµ¥æ°§æ©ç‘¨å´§â€©æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…°æ•§ç¬ â€Šâ€ â´ æ¼­æ‰®æ…¯æ‘²â€ºãœ£ã£æ”´ã¬°â€Šâ€ â´ æ¼­æ‰®æ…¯æ‘²çŒ­æ™¯ã©´æŒ æ±¯ç‰¯æ´­ç¡©æ¤¨â®ç‰³æ‰§â€¬ãœ£ã£æ”´â€°ã ²â°¥ç æ…²ç®æ…°æ•²ç‘®ã¬©â€Šç´ ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®ç€­æ¡å½¥æ¡Ÿæ…¥â¤ã‰¨ç¬ â€Šæ´ ç‰¡æ¥§ã©®ã€ ã€ ã˜ ç¡°à¨»â€ æ½¦ç‘®æ˜­æµ¡æ±©ã©¹ç˜ ç‰¡â´¨æ­ç©æ±°ç¥¡ã¬©â€Šæ˜ æ¹¯âµ´æ¥³æ•ºâ€ºãˆ²ç¡°à¨»â€ æ½¦ç‘®çœ­æ¥¥æ¡§ã©´ãœ ã€°à¨»â€ æ•¬ç‘´ç‰¥çŒ­æ…°æ¥£æ®â€ºã€­ã€®æ”²ã­­ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®ç€­æ¡å½¥æ±Ÿæ…¥â¤à©»â€ æ…­æ²æ¹©â€ºã¬°â€Šæ´ ç¡¡çœ­æ‘©æ¡´â€ºãˆ¶æ¡£à¨»â€ æ¥¬æ•®æ ­æ¥¥æ¡§ã©´ã„ ã”®à¨»â€ æ½¦ç‘®çŒ­ç©©ã©¥ã„ â¸³ç€µã­¸ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æœ­æ¥²â¤à©»â€ æ±¡æ©âµ®ç‘©æµ¥ã©³çŒ ç‰´ç‘¥æ¡£à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…£æ‘²ç¬ â€Šæ ç©æ±°ç¥¡â€ºæ±¦ç¡¥à¨»â€ æ±¦ç¡¥æ­ç‰©æ¥æ¥´æ¹¯â€ºæ½£ç•¬æ¹­à¨»â€ æ…§ã©°ã€ à¨»â€ æ…°æ‘¤æ¹©ã©§ã„ ç€¶â¸ã˜±ç¡°ã„ ç€²ã­¸â€Šæ´ æ¹©çœ­æ‘©æ¡´â€ºã¬°ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­ç‰¡âµ¤æ­æ•µç¬ â€Šæˆ ç‰¯æ•¤âµ²æ½£æ½¬ã©²æŒ æ±¯ç‰¯æ´­ç¡©æ¤¨â®ç‰³æ‰§â€¬æ…¶â¡²â´­æ…·æ¹²â€©ã”´â°¥ç˜ ç‰¡â´¨æ°­æ¹©â¥¥ã¬©ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­ç‰¡å½¤ç‘Ÿç¯ç¬ â€Šæ ç©æ±°ç¥¡â€ºæ±¦ç¡¥à¨»â€ æ±¡æ©âµ®ç‘©æµ¥ã©³æ˜ æ•¬âµ¸ç‘³ç‰¡ã­´â€Šæœ ç¡â€ºãˆ±ç¡°à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…£æ‘²å½Ÿæ‘©æ¹¥æ¥´ç¥´ç¬ â€Šæ˜ æ•¬ã©¸ã„ à¨»â€ æ¥­âµ®æ¥·ç‘¤ã©¨ã€ à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…£æ‘²å½Ÿæ…®æ•­ç¬ â€Šæ´ ç‰¡æ¥§ã©®ã€ à¨»â€ æ½¦ç‘®çŒ­ç©©ã©¥ã„ ç€¶ã­¸â€Šæ˜ æ¹¯âµ´æ•·æ©ç‘¨â€ºã€·ã¬°â€Šæ° ç‘¥æ•´âµ²ç³æ¡æ¹©ã©§â´ â¸°ã„°æµ¥à¨»â€ æ½£æ½¬ã©²ç˜ ç‰¡â´¨æ¤­æ­®ã¬©ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­ç‰¡å½¤æµŸç‘¥â¡à©»â€ æ…­æ²æ¹©â€ºç€´â¸â€°ã¬°â€Šæ° æ¹©âµ¥æ•¨æ©ç‘¨â€ºâ¸±ã”´à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…£æ‘²å½Ÿæ•²æ…­æ¹©ç¬ â€ŠæŒ æ±¯ç‰¯â€ºæ…¶â¡²â´­æ…·æ¹²ã¬©â€Šæ˜ æ¹¯âµ´æ•·æ©ç‘¨â€ºã€¶ã¬°ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­ç‰¡å½¤æ‰Ÿæ‘¡æ•§ç¬ â€Šæ˜ æ•¬ã©¸æ¸ æ¹¯ã­¥â€Šçœ æ‘©æ¡´â€ºã´ç¡°à¨»â€ æ•¨æ©ç‘¨â€ºã´ç¡°à¨»â€ æ½¢æ‘²ç‰¥çˆ­æ‘¡ç•©ã©³ã” â”°à¨»â€ æ½¢æ‘²ç‰¥â€ºç€²â¸æ½³æ¥¬â¤æŒ£æ„¹ãˆ²ã¬·â€Šæ ç©æ±°ç¥¡â€ºç‰§æ‘©à¨»â€ æ±°æ¡âµ¥ç‘©æµ¥ã©³æŒ æ¹¥æ•´ã­²â€Šæ˜ æ¹¯âµ´æ¥³æ•ºâ€ºãˆ±ã”®ç¡°à¨»â€ æ½¦ç‘®çœ­æ¥¥æ¡§ã©´ãœ ã€°à¨»â€ æ½¦ç‘®ç˜­ç‰¡æ…©ç‘®æ¸­æµµç‰¥æ©â€ºæ…´ç•¢æ…¬âµ²ç•®ç­à¨»â€ æ½£æ½¬ã©²ç˜ ç‰¡â´¨æ¤­æ­®ã¬©â€Šæˆ æ¡æ«æ½²æ¹µã©¤æŒ æ±¯ç‰¯æ´­ç¡©æ¤¨â®ç‰³æ‰§â€¬æŒ£æ„¹ãˆ²â€·ãˆ±â°¥ç æ…²ç®æ…°æ•²ç‘®ã¬©ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­ç‰¡å½¤æ‰Ÿæ‘¡æ•§æ¤®âµ³æ½¤æ•®ç¬ â€Šæˆ ç‰¯æ•¤âµ²æ½£æ½¬ã©²ç˜ ç‰¡â´¨æœ­æ½¯â¥¤à¨»â€ æ…¢æ­£ç‰§ç•¯æ‘®â€ºæ…¶â¡²â´­æ½§æ‘¯æˆ­â¥§à¨»â€ æ½£æ½¬ã©²ç˜ ç‰¡â´¨æœ­æ½¯â¥¤à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…£æ‘²å½Ÿæ…¢â²à©»â€ æ…­æ²æ¹©â€ºãˆ±ç¡°ã€ ã ç¡°à¨»â€ æ•¨æ©ç‘¨â€ºç€¸ã­¸â€Šæˆ ç‰¯æ•¤âµ²æ…²æ¥¤çµâ€ºç€´ã­¸â€Šæˆ æ¡æ«æ½²æ¹µã©¤ç˜ ç‰¡â´¨æ¼­æ‰®æ…¯æ‘²çŒ­æ™¯â¥´à¨»â€ ç™¯ç‰¥æ±¦ç¯â€ºæ¥¨æ‘¤æ¹¥à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…£æ‘²å½Ÿæ…¢â²â€¾â©à©»â€ æ¥¤ç³æ…¬ã©¹æˆ æ½¬æ­£à¨»â€ æ•¨æ©ç‘¨â€ºã€±â”°à¨»â€ æ½¢æ‘²ç‰¥çˆ­æ‘¡ç•©ã©³ã ç¡°à¨»â€ æ…¢æ­£ç‰§ç•¯æ‘®â€ºæ…¶â¡²â´­æ¹¯æ½¢ç‰¡â¥¤à¨»â€ ç‰´æ¹¡æ¥³æ¥´æ¹¯â€ºæ¥·ç‘¤â¨â¸°çŒ²æ” ç¡ã­¥ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£æ¥¬ç‘³ç¬ â€Šæ° ç©âµ´ç‘³æ±¹ã©¥æ¸ æ¹¯ã­¥â€Šæ´ ç‰¡æ¥§ã©®ã€ à¨»â€ æ…°æ‘¤æ¹©ã©§ã€ à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ¡£æ¥æ±«ç©â´â€¾æ¥¬ç¬ â€Šæˆ ç‰¯æ•¤âµ²æ½¢ç‘´æµ¯â€ºç€±â¸æ½³æ¥¬â¤æ…¶â¡²â´­æ¥¬æ•®ã¬©ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£æ¥¬ç‘³ã¸ æ° ã©©æ…¬ç‘³æŒ­æ¥¨æ‘¬ç¬ â€Šæˆ ç‰¯æ•¤âµ²æ½¢ç‘´æµ¯â€ºã¬°ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£ç¬ â€Šæ ç©æ±°ç¥¡â€ºæ±¦ç¡¥à¨»â€ æ±¡æ©âµ®ç‘©æµ¥ã©³æŒ æ¹¥æ•´ã­²â€Šæœ ç¡â€ºã€±ç¡°à¨»â€ æ…°æ‘¤æ¹©ã©§ã„ ç€°â¸ã¬°â€ŠæŒ ç‰µæ½³ã©²ç€ æ¥¯ç‘®ç‰¥à¨»â€ çµç‰¥çŒ­æ±¥æ¥ã©´æ¸ æ¹¯ã­¥ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£æ¤®âµ³æ•²æ‘¡æ¹¯ç¥¬ç¬ â€ŠæŒ ç‰µæ½³ã©²æ æ™¥ç•¡ç‘¬à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ¡£æ¥â«æ¹©ç•°â´à©»â€ æ½°æ¥³æ¥´æ¹¯â€ºæ‰¡æ½³ç•¬æ•´à¨»â€ ç¯æ¡ç‘©ã©¹ã€ à¨»â€ æ¥·ç‘¤ã©¨ã„ ç¡°à¨»â€ æ•¨æ©ç‘¨â€ºç€±ã­¸â€Šç€ æ¥¯ç‘®ç‰¥æ”­æ•¶ç‘®ã©³æ¸ æ¹¯ã­¥ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£å½Ÿæ½¢â¸à©»â€ æ±¦ç¡¥â€ºæ½®æ•®à¨»â€ æ¥·ç‘¤ã©¨ã„ ç€¶ã­¸â€Šæ  æ¥¥æ¡§ã©´ã„ ç€¶ã­¸â€Šæˆ ç‰¯æ•¤âµ²æ…²æ¥¤çµâ€ºç€³ã­¸â€Šæˆ ç‰¯æ•¤ã©²ã„ ã”®ç¡°çŒ æ±¯æ‘©æŒ æ±¯ç‰¯æ´­ç¡©æ¤¨â®ç‰³æ‰§â€¬æ…¶â¡²â´­ç•­æ•´â¥¤ã” â”µâ€¬æ…¶â¡²â´­æ¥¬æ•®â¤©à¨»â€ æ…¢æ­£ç‰§ç•¯æ‘®â€ºç‰´æ¹¡ç³ç‰¡æ¹¥ã­´â€Šç€ ç¯ç‘©æ½©ã©®çˆ æ±¥ç‘¡ç™©ã­¥ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£æ¤ ç®ç‘µæŒºæ•¨æ­£æ‘¥â¬ â¸ æ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£å½Ÿæ½¢â¸à©»â€ æ…¢æ­£ç‰§ç•¯æ‘®â€ºæ…¶â¡²â´­æ¹¯æ½¢ç‰¡â¥¤à¨»â€ æ½¢æ‘²ç‰¥æŒ­æ±¯ç‰¯â€ºæ…¶â¡²â´­æ¹¯æ½¢ç‰¡â¥¤à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ¡£æ¥â«æ¹©ç•°ã©´æ¡£æ¥æ•«â¤â€«æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ¡£æ¥å½«æ‰Ÿç¡¯ã¨ºæ™¡æ•´â²à©»â€ æ½£ç‘®æ¹¥ã©´âœ ã¬§â€Šç€ ç¯ç‘©æ½©ã©®æ„ ç¢æ±¯ç‘µã­¥â€Šæ° æ™¥ã©´ã ç¡°à¨»â€ æ½´ã©°ã„ ç¡°à¨»â€ æ¥·ç‘¤ã©¨ã” ç¡°à¨»â€ æ•¨æ©ç‘¨â€ºç€¹ã­¸â€Šæˆ ç‰¯æ•¤ã©²çŒ æ±¯æ‘©ç˜ ç‰¡â´¨æ¼­æ‰®æ…¯æ‘²æ¤­æ­®ã¬©â€Šæˆ ç‰¯æ•¤âµ²æ¥·ç‘¤ã©¨ã€ ãˆ ç¡°ãˆ ç¡°ã€ à¨»â€ ç‰´æ¹¡æ™³ç‰¯ã©­çˆ ç‘¯ç‘¡â¡¥ã”´æ•¤â¥§à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ¡£æ¥â«æ¹©ç•°ã©´æ½¦ç•£âµ³æ¥¶æ¥³æ±¢â¥â€«æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ¡£æ¥å½«æ‰Ÿç¡¯ç¬ â€Šæ¼ ç‘µæ¥¬æ•®â€ºç€²â¸æ½³æ¥¬â¤æ…¶â¡²â´­æ¹¯æ½¢ç‰¡â¥¤à¨»â€ ç•¯æ±´æ¹©âµ¥æ™¯ç¦ç‘¥â€ºç€²ã­¸ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£å½Ÿæ…¬æ•¢â¬à©»â€ æ±¦ç¡¥â€ºã¬±â€Šæ´ æ¹©çœ­æ‘©æ¡´â€ºã¬°â€ŠæŒ æ±¯ç‰¯â€ºæ…¶â¡²â´­æ¹©â¥«à¨»â€ æ½¦ç‘®çŒ­ç©©ã©¥ã„ â¸³ç€µã­¸â€Šæ° æ¹©âµ¥æ•¨æ©ç‘¨â€ºâ¸±ã¬´ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£æ¤®âµ³æ½¤æ•®â¸ æ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ•¨æ­£å½Ÿæ…¬æ•¢â¬à©»â€ æ½£æ½¬ã©²ç˜ ç‰¡â´¨æ´­ç‘µæ‘¥ã¬©â€Šæ¼ æ…°æ¥£ç¥´â€ºâ¸°ã”¸à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ…£æ‘²å½Ÿæ¡æ¥´æ¹¯â³à©»â€ æ¥¤ç³æ…¬ã©¹æ˜ æ•¬ã­¸â€Šæ˜ æ•¬âµ¸ç‰·ç¡â€ºç‰·ç¡à¨»â€ æ…§ã©°ã  ç¡°à¨»â€ æ…­æ²æ¹©ç­ç¯â€ºã€±ç¡°à¨»â€ æ…°æ‘¤æ¹©âµ§æ½´ã©°ã  ç¡°à¨»â€ æ½¢æ‘²ç‰¥ç­ç¯â€ºç€±â¸æ…¤æ¡³æ‘¥ç˜ ç‰¡â´¨æ°­æ¹©â¥¥à¨»à©½æ¼®æ‰®æ…¯æ‘²æ¹©âµ§æ½£ç™®ç‰¥æ•´â¤à©»â€ æ…­æ²æ¹©ç­ç¯â€ºç€´ã­¸ç´Šâ¸Šæ¹¯æ½¢ç‰¡æ¥¤æ®æŒ­æ¹¯æ•¶ç‘²æ‘¥ã¸ çŒ æµµæ…­ç¥²ç¬ â€ŠæŒ ç‰µæ½³ã©²ç€ æ¥¯ç‘®ç‰¥à¨»àµ½
 
-/* —— Onboarding checklist cards (handoff accent #534AB7) —— */
+/* â€”â€” Onboarding checklist cards (handoff accent #534AB7) â€”â€” */
 .onboarding-page {
   --onboard: #534ab7;
   --onboard-soft: color-mix(in srgb, #534ab7 22%, transparent);
@@ -1305,7 +1347,7 @@ tr.row-selected td {
 .onboarding-converted > summary { cursor: pointer; }
 
 
-/* —— Employee profile cards (manager view) —— */
+/* â€”â€” Employee profile cards (manager view) â€”â€” */
 .emp-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1455,7 +1497,7 @@ tr.row-selected td {
   }
 }
 
-/* —— OKR / KPI —— */
+/* â€”â€” OKR / KPI â€”â€” */
 .okr-card h3 { margin: 0; }
 .okr-progress-bar {
   height: 8px;
@@ -1523,7 +1565,7 @@ tr.row-selected td {
   align-items: center;
 }
 
-/* —— Feedback 360 —— */
+/* â€”â€” Feedback 360 â€”â€” */
 .f360-layout {
   display: grid;
   grid-template-columns: minmax(200px, 260px) 1fr;
@@ -1586,4 +1628,233 @@ tr.row-selected td {
 }
 @media (max-width: 900px) {
   .f360-layout { grid-template-columns: 1fr; }
+}
+
+/* —— Global search (Workday-style) —— */
+.gs {
+  position: relative;
+  flex: 1 1 280px;
+  min-width: 200px;
+  max-width: 520px;
+}
+.gs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 12px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.gs.is-open .gs-bar,
+.gs-bar:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+  background: var(--surface);
+}
+.gs-icon {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+.gs-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+.gs-kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 6px;
+  background: var(--surface);
+  white-space: nowrap;
+}
+.gs-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: min(70vh, 480px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--ink) 14%, transparent);
+  padding: 10px;
+}
+.gs-section-title {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 8px 6px;
+}
+.gs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 4px 4px;
+}
+.gs-chip {
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.gs-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.gs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.gs-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.gs-item:hover,
+.gs-item.is-active {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.gs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.gs-dot--rec {
+  background: var(--info);
+}
+.gs-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.gs-item-body strong {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.gs-item-body small {
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gs-kind {
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+.gs-empty {
+  margin: 0;
+  padding: 8px 10px 12px;
+  font-size: 13px;
+}
+
+/* —— Quick hub (Workday home) —— */
+.quick-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quick-hub__head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.quick-hub__head p { margin: 4px 0 0; }
+.quick-hub__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.quick-hub__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.quick-hub__card:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--ink) 8%, transparent);
+  text-decoration: none;
+}
+.quick-hub__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-bottom: 4px;
+}
+.quick-hub__title {
+  font-weight: 650;
+  font-size: 14px;
+}
+.quick-hub__blurb {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Workday-like density polish */
+.page {
+  max-width: 1280px;
+}
+.card {
+  border-radius: 14px;
+}
+.tile {
+  border-radius: 14px;
+}
+.side .grp summary {
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+.side .nav-i {
+  border-radius: 8px;
+}
+@media (max-width: 900px) {
+  .gs { max-width: none; flex-basis: 100%; order: 3; }
+  .gs-kbd { display: none; }
+  .user-chip-text { display: none; }
+  .top-titles { flex: 1; }
 }
