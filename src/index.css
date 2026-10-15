@@ -1522,3 +1522,68 @@ tr.row-selected td {
   gap: 10px;
   align-items: center;
 }
+
+/* —— Feedback 360 —— */
+.f360-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.f360-list h3 { margin-top: 0; }
+.f360-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 70vh;
+  overflow: auto;
+}
+.f360-nav button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: inherit;
+}
+.f360-nav button.is-active {
+  border-color: var(--accent, #534ab7);
+  background: color-mix(in srgb, var(--accent, #534ab7) 10%, transparent);
+}
+.radar-wrap { max-width: 420px; }
+.radar-label { font-family: var(--sans, inherit); }
+.f360-comp-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.f360-comp-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 40px;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.f360-ai-body {
+  white-space: pre-wrap;
+  font-family: var(--sans, inherit);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent, #534ab7) 6%, transparent);
+  border: 1px solid var(--line);
+}
+@media (max-width: 900px) {
+  .f360-layout { grid-template-columns: 1fr; }
+}

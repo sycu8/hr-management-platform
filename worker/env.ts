@@ -4,8 +4,12 @@
  */
 export type Env = Cloudflare.Env & {
   SESSION_SECRET?: string
-  /** Workers AI binding for policy document OCR (toMarkdown). */
+  /** Workers AI binding for policy document OCR (toMarkdown) and 360 analysis. */
   AI?: Ai
+  /** AI Gateway id (default auto-created gateway). */
+  AI_GATEWAY_ID?: string
+  /** Optional Workers AI model override for text analysis. */
+  AI_MODEL?: string
   /** Turnstile Siteverify secret (preferred binding). */
   TURNSTILE_SECRET?: string
   /** Alias if synced from GitHub Actions secret TURNSTILE_SECRET_KEY. */

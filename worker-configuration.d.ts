@@ -19,6 +19,8 @@ interface __BaseEnv_Env {
 	ACCESS_AUD: "REPLACE_WITH_ACCESS_APPLICATION_AUD";
 	TURNSTILE_SITE_KEY: "0x4AAAAAAFXVUItGMj42XMuY";
 	TURNSTILE_HOSTNAMES: "hrm.orangecloud.vn";
+	AI_GATEWAY_ID: "default";
+	AI_MODEL: "@cf/meta/llama-3.1-8b-instruct";
 	EMAIL_FROM: "hrm@example.com";
 	EMAIL_FROM_NAME: "HR Management Platform";
 	LEGAL_REVIEW_REQUIRED: "true";

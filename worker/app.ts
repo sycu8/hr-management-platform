@@ -17,6 +17,7 @@ import learning from './routes/learning.ts'
 import policies from './routes/policies.ts'
 import documents from './routes/documents.ts'
 import okr from './routes/okr.ts'
+import feedback360 from './routes/feedback360.ts'
 
 export type AppVariables = {
   user: AuthUser
@@ -53,6 +54,7 @@ export function createApp() {
   api.route('/policies', policies)
   api.route('/documents', documents)
   api.route('/okr', okr)
+  api.route('/feedback-360', feedback360)
 
   app.route('/api', api)
 

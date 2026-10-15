@@ -1589,14 +1589,14 @@ INSERT OR REPLACE INTO objectives (id, organization_id, employee_id, period, obj
  ('obj_q4_e8','org_demo','e8','2026-Q4','Đóng năm tài chính sạch','[{"kr":"Sổ lương 12/12 đúng hạn","progress":0.75},{"kr":"Audit payroll pass","progress":0.6}]'),
  ('obj_q4_e9','org_demo','e9','2026-Q4','Hoàn tất headcount năm','[{"kr":"Đóng mọi vị trí open","progress":0.5},{"kr":"Onboarding NPS >= 4.5","progress":0.4}]');
 
-INSERT OR REPLACE INTO feedback_360 (id, organization_id, employee_id, period, competencies_json, scores_json) VALUES
- ('fb1','org_demo','e1','2026-H1','["Giao tiếp","Làm việc nhóm","Chuyên môn","Chủ động"]','{"peer":4.1,"manager":4.3,"self":4.0}'),
- ('fb2','org_demo','e7','2026-H1','["Lãnh đạo","Chuyên môn","Mentoring","Giao tiếp"]','{"peer":4.4,"manager":4.5,"self":4.2}'),
- ('fb3','org_demo','e3','2026-H1','["Luật lao động","Giao tiếp","Công bằng","Lãnh đạo"]','{"peer":4.6,"manager":4.7,"self":4.4}'),
- ('fb4','org_demo','e24','2026-H1','["CSM","Đồng cảm","Giải quyết vấn đề","Làm việc nhóm"]','{"peer":4.2,"manager":4.0,"self":4.1}'),
- ('fb5','org_demo','e10','2026-H1','["Sáng tạo","Chiến lược","Giao tiếp","Quản lý nhóm"]','{"peer":3.9,"manager":4.1,"self":4.0}'),
- ('fb_h1','org_demo','e4','2026-H1','["Chuyên môn","Giao tiếp","Làm việc nhóm","Chủ động","Lãnh đạo"]','{"self":[4.5,4.4,4.2,4.6,4.6],"mgr":[4.6,4.2,4,4.5,4.4],"peer":[4.4,4,3.8,4.3,4.2],"report":[4.3,3.9,4.1,4.4,4]}'),
- ('fb_h2','org_demo','e7','2026-H2','["Chuyên môn","Giao tiếp","Làm việc nhóm","Chủ động","Lãnh đạo"]','{"self":[4.5,3.6,4.1,4.4,4],"mgr":[4.4,3.8,4.2,4.3,4.1],"peer":[4.5,3.7,4,4.2,3.9],"report":[4.6,4,4.3,4.2,4.2]}');
+INSERT OR REPLACE INTO feedback_360 (id, organization_id, employee_id, period, competencies_json, scores_json, comments_json) VALUES
+ ('fb1','org_demo','e1','2026-H1','["Giao tiếp","Làm việc nhóm","Chuyên môn","Chủ động"]','{"peer":4.1,"manager":4.3,"self":4.0}','{"self":"Tự tin với pipeline H1.","mgr":"Cần chủ động hơn khi xử lý objection.","peer":"Hỗ trợ đồng đội tốt."}'),
+ ('fb2','org_demo','e7','2026-H1','["Lãnh đạo","Chuyên môn","Mentoring","Giao tiếp"]','{"peer":4.4,"manager":4.5,"self":4.2}','{"mgr":"Tech lead vững, mentoring ổn định."}'),
+ ('fb3','org_demo','e3','2026-H1','["Luật lao động","Giao tiếp","Công bằng","Lãnh đạo"]','{"peer":4.6,"manager":4.7,"self":4.4}','{"peer":"HRBP đáng tin cậy."}'),
+ ('fb4','org_demo','e24','2026-H1','["CSM","Đồng cảm","Giải quyết vấn đề","Làm việc nhóm"]','{"peer":4.2,"manager":4.0,"self":4.1}','{"mgr":"Giữ CSAT tốt nhưng escalation còn chậm."}'),
+ ('fb5','org_demo','e10','2026-H1','["Sáng tạo","Chiến lược","Giao tiếp","Quản lý nhóm"]','{"peer":3.9,"manager":4.1,"self":4.0}','{"self":"Muốn thêm ngân sách thử nghiệm kênh mới."}'),
+ ('fb_h1','org_demo','e4','2026-H1','["Chuyên môn","Giao tiếp","Làm việc nhóm","Chủ động","Lãnh đạo"]','{"self":[4.5,4.4,4.2,4.6,4.6],"mgr":[4.6,4.2,4,4.5,4.4],"peer":[4.4,4,3.8,4.3,4.2],"report":[4.3,3.9,4.1,4.4,4]}','{"self":"Đạt chỉ tiêu doanh số H1.","mgr":"Lãnh đạo rõ, cần coaching giao tiếp nội bộ.","peer":"Phối hợp liên phòng tốt.","report":"Định hướng rõ ràng cho team."}'),
+ ('fb_h2','org_demo','e7','2026-H2','["Chuyên môn","Giao tiếp","Làm việc nhóm","Chủ động","Lãnh đạo"]','{"self":[4.5,3.6,4.1,4.4,4],"mgr":[4.4,3.8,4.2,4.3,4.1],"peer":[4.5,3.7,4,4.2,3.9],"report":[4.6,4,4.3,4.2,4.2]}','{"self":"Ưu tiên ổn định nền tảng H2.","mgr":"Chuyên môn cao; giao tiếp có thể rõ ràng hơn trong standup.","report":"Mentor tốt cho junior."}');
 
 INSERT OR REPLACE INTO courses (id, organization_id, code, title, course_type, hours, mandatory, skill, provider, description, level, delivery_mode, audience, status, start_date, end_date) VALUES
  ('course1','org_demo','DT-001','An toàn thông tin bắt buộc 2026','E-learning',4,1,'Bảo mật','Nội bộ','Khóa bắt buộc hàng năm cho toàn bộ nhân viên.','Cơ bản','E-learning','Toàn công ty','active','2026-01-01','2026-12-31'),
