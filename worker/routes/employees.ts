@@ -4,12 +4,25 @@ import type { Env } from '../env.ts'
 import { badRequest, json, notFound } from '../lib/http.ts'
 import { newId } from '../lib/ids.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
+import {
+  employeePhotoKey,
+  putDocumentBytes,
+  r2ObjectResponse,
+} from '../lib/r2.ts'
 import { requireAuth, type AuthUser } from '../middleware/auth.ts'
 import {
   getPermissionLevel,
   requireModule,
   requireSelfOrElevated,
 } from '../middleware/rbac.ts'
+
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024
+const PHOTO_MIME = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+])
 
 const dateStr = z
   .string()
@@ -67,6 +80,7 @@ type EmployeeListRow = {
   joined_on: string
   contract_type: string
   contract_end: string | null
+  photo_r2_key: string | null
 }
 
 type EmployeeDetailRow = EmployeeListRow & {
@@ -77,6 +91,9 @@ type EmployeeDetailRow = EmployeeListRow & {
   dependents: number
   base_salary: number
   skills_json: string
+  photo_file_name: string | null
+  photo_content_type: string | null
+  photo_size_bytes: number
 }
 
 const employees = new Hono<{
@@ -95,7 +112,7 @@ employees.get('/', requireModule('emp', 1), async (c) => {
 
   const { results } = await c.env.DB.prepare(
     `SELECT id, code, full_name, email, phone, gender, department, title, level,
-            status, manager_id, joined_on, contract_type, contract_end
+            status, manager_id, joined_on, contract_type, contract_end, photo_r2_key
      FROM employees
      WHERE organization_id = ?
        AND (? IS NULL OR status = ?)
@@ -105,7 +122,12 @@ employees.get('/', requireModule('emp', 1), async (c) => {
     .bind(user.organizationId, statusFilter, statusFilter, limit, offset)
     .all<EmployeeListRow>()
 
-  return json(c, { items: results ?? [], limit, offset })
+  const items = (results ?? []).map(({ photo_r2_key, ...rest }) => ({
+    ...rest,
+    has_photo: Boolean(photo_r2_key),
+  }))
+
+  return json(c, { items, limit, offset })
 })
 
 employees.get(
@@ -123,7 +145,8 @@ employees.get(
       `SELECT id, code, full_name, email, phone, gender, birth_date, address,
               department, title, level, status, manager_id, joined_on, left_on,
               contract_type, contract_start, contract_end, dependents,
-              base_salary, skills_json
+              base_salary, skills_json, photo_r2_key, photo_file_name,
+              photo_content_type, photo_size_bytes
        FROM employees
        WHERE organization_id = ? AND id = ?
        LIMIT 1`,
@@ -143,10 +166,22 @@ employees.get(
       skills = []
     }
 
-    const { base_salary, skills_json: _sj, ...rest } = row
+    const {
+      base_salary,
+      skills_json: _sj,
+      photo_r2_key,
+      photo_file_name,
+      photo_content_type,
+      photo_size_bytes,
+      ...rest
+    } = row
     const employee = {
       ...rest,
       skills,
+      has_photo: Boolean(photo_r2_key),
+      photo_file_name: photo_file_name ?? null,
+      photo_content_type: photo_content_type ?? null,
+      photo_size_bytes: photo_size_bytes ?? 0,
       // Salary only for write-capable HR (admin / elevated)
       ...(empLevel >= 2 ? { base_salary } : {}),
     }
@@ -154,6 +189,145 @@ employees.get(
     return json(c, { employee })
   },
 )
+
+/** Serve employee portrait from R2 (authenticated). */
+employees.get(
+  '/:id/photo',
+  requireSelfOrElevated({
+    moduleKey: 'emp',
+    getEmployeeId: (ctx) => ctx.req.param('id'),
+  }),
+  async (c) => {
+    const user = c.get('user')
+    const id = c.req.param('id')
+    const row = await c.env.DB.prepare(
+      `SELECT photo_r2_key, photo_file_name FROM employees
+       WHERE organization_id = ? AND id = ? LIMIT 1`,
+    )
+      .bind(user.organizationId, id)
+      .first<{ photo_r2_key: string | null; photo_file_name: string | null }>()
+
+    if (!row?.photo_r2_key) return notFound(c, 'Photo not found')
+    const object = await c.env.DOCUMENTS.get(row.photo_r2_key)
+    if (!object) return notFound(c, 'Photo missing in R2')
+
+    return r2ObjectResponse(
+      object,
+      row.photo_file_name || 'photo.jpg',
+      'inline',
+    )
+  },
+)
+
+/** Upload / replace employee portrait → R2; D1 keeps metadata only. */
+employees.post('/:id/photo', requireModule('emp', 2), async (c) => {
+  const user = c.get('user')
+  const id = c.req.param('id')
+  const existing = await c.env.DB.prepare(
+    `SELECT id, photo_r2_key FROM employees
+     WHERE organization_id = ? AND id = ? LIMIT 1`,
+  )
+    .bind(user.organizationId, id)
+    .first<{ id: string; photo_r2_key: string | null }>()
+  if (!existing) return notFound(c, 'Employee not found')
+
+  const form = await c.req.parseBody({ all: true })
+  const raw = form['file']
+  const file = Array.isArray(raw) ? raw[0] : raw
+  if (!(file instanceof File)) {
+    return badRequest(c, 'Missing multipart field "file"')
+  }
+  if (file.size <= 0) return badRequest(c, 'Empty file')
+  if (file.size > MAX_PHOTO_BYTES) {
+    return badRequest(c, `Ảnh tối đa ${MAX_PHOTO_BYTES / (1024 * 1024)}MB`)
+  }
+  const contentType = file.type || 'application/octet-stream'
+  if (!PHOTO_MIME.has(contentType)) {
+    return badRequest(c, 'Chỉ chấp nhận JPEG, PNG, WebP hoặc GIF')
+  }
+
+  const photoId = newId()
+  const fileName = file.name || 'photo.jpg'
+  const r2Key = employeePhotoKey(
+    user.organizationId,
+    id,
+    photoId,
+    fileName,
+  )
+  const bytes = await file.arrayBuffer()
+  await putDocumentBytes(c.env.DOCUMENTS, r2Key, bytes, contentType)
+
+  if (existing.photo_r2_key) {
+    try {
+      await c.env.DOCUMENTS.delete(existing.photo_r2_key)
+    } catch (err) {
+      console.warn('photo_r2_delete_failed', existing.photo_r2_key, err)
+    }
+  }
+
+  await c.env.DB.prepare(
+    `UPDATE employees
+     SET photo_r2_key = ?, photo_file_name = ?, photo_content_type = ?,
+         photo_size_bytes = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+     WHERE id = ? AND organization_id = ?`,
+  )
+    .bind(r2Key, fileName, contentType, file.size, id, user.organizationId)
+    .run()
+
+  await writeAuditEvent(c.env.DB, {
+    organizationId: user.organizationId,
+    actorUserId: user.id,
+    actorRole: user.accountType,
+    actorEmail: user.email,
+    action: 'employee.photo.upload',
+    entityType: 'employee',
+    entityId: id,
+    detail: `Uploaded photo ${fileName} (${r2Key})`,
+  })
+
+  return json(c, { ok: true, has_photo: true, file_name: fileName })
+})
+
+employees.delete('/:id/photo', requireModule('emp', 2), async (c) => {
+  const user = c.get('user')
+  const id = c.req.param('id')
+  const existing = await c.env.DB.prepare(
+    `SELECT photo_r2_key FROM employees
+     WHERE organization_id = ? AND id = ? LIMIT 1`,
+  )
+    .bind(user.organizationId, id)
+    .first<{ photo_r2_key: string | null }>()
+  if (!existing) return notFound(c, 'Employee not found')
+  if (!existing.photo_r2_key) return json(c, { ok: true })
+
+  try {
+    await c.env.DOCUMENTS.delete(existing.photo_r2_key)
+  } catch (err) {
+    console.warn('photo_r2_delete_failed', existing.photo_r2_key, err)
+  }
+
+  await c.env.DB.prepare(
+    `UPDATE employees
+     SET photo_r2_key = NULL, photo_file_name = NULL, photo_content_type = NULL,
+         photo_size_bytes = 0, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+     WHERE id = ? AND organization_id = ?`,
+  )
+    .bind(id, user.organizationId)
+    .run()
+
+  await writeAuditEvent(c.env.DB, {
+    organizationId: user.organizationId,
+    actorUserId: user.id,
+    actorRole: user.accountType,
+    actorEmail: user.email,
+    action: 'employee.photo.delete',
+    entityType: 'employee',
+    entityId: id,
+    detail: 'Removed employee photo',
+  })
+
+  return json(c, { ok: true })
+})
 
 /** Create employee — Admin / Super Admin (emp write). */
 employees.post('/', requireModule('emp', 2), async (c) => {

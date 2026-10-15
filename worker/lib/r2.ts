@@ -21,6 +21,16 @@ export function employeeDocumentKey(
   return `${organizationId}/docs/${employeeId}/${safeFileName(fileName)}`
 }
 
+/** Profile portrait: `{orgId}/docs/{employeeId}/photo/{photoId}/{safeFileName}` */
+export function employeePhotoKey(
+  organizationId: string,
+  employeeId: string,
+  photoId: string,
+  fileName: string,
+): string {
+  return `${organizationId}/docs/${employeeId}/photo/${photoId}/${safeFileName(fileName)}`
+}
+
 export function policyAttachmentKey(
   organizationId: string,
   policyId: string,

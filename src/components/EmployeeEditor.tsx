@@ -30,6 +30,9 @@ export type EmployeeForm = {
   contract_start: string | null
   contract_end: string | null
   skills: string[]
+  has_photo?: boolean
+  /** Client-only: image file to upload after create/update. */
+  pendingPhotoFile?: File | null
 }
 
 export type ManagerOption = { id: string; code: string; full_name: string }
@@ -79,8 +82,14 @@ export function EmployeeEditor({
     ...initial,
     skills: initial?.skills ?? [],
     email: initial?.email ?? '',
+    pendingPhotoFile: null,
   }))
   const [skillDraft, setSkillDraft] = useState('')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(() =>
+    initial?.id && initial.has_photo
+      ? `/api/employees/${initial.id}/photo`
+      : null,
+  )
 
   const title = useMemo(
     () =>
@@ -92,6 +101,23 @@ export function EmployeeEditor({
 
   function set<K extends keyof EmployeeForm>(key: K, value: EmployeeForm[K]) {
     setForm((f) => ({ ...f, [key]: value }))
+  }
+
+  function onPickPhoto(file: File | null) {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    if (!file) {
+      set('pendingPhotoFile', null)
+      setPreviewUrl(
+        form.id && form.has_photo
+          ? `/api/employees/${form.id}/photo`
+          : null,
+      )
+      return
+    }
+    set('pendingPhotoFile', file)
+    setPreviewUrl(URL.createObjectURL(file))
   }
 
   async function submit(e: React.FormEvent) {
@@ -114,12 +140,47 @@ export function EmployeeEditor({
     <div className="card">
       <h2>{title}</h2>
       <p className="muted">
-        Hồ sơ theo chuẩn HR: thông tin cá nhân, công việc, hợp đồng, đãi ngộ cơ
-        bản. Chỉ Admin / Super Admin được lưu.
+        Hồ sơ theo chuẩn HR: ảnh chân dung (R2), thông tin cá nhân, công việc,
+        hợp đồng. Chỉ Admin / Super Admin được lưu.
       </p>
       {error ? <p className="warn-text">{error}</p> : null}
 
       <form className="hr-form" onSubmit={(e) => void submit(e)}>
+        <fieldset>
+          <legend>0. Ảnh nhân viên</legend>
+          <div className="emp-photo-editor">
+            <div className="emp-photo-editor__preview">
+              {previewUrl ? (
+                <img src={previewUrl} alt="" />
+              ) : (
+                <div className="emp-photo-editor__empty">Chưa có ảnh</div>
+              )}
+            </div>
+            <div className="emp-photo-editor__controls">
+              <p className="muted small">
+                JPEG / PNG / WebP / GIF · tối đa 5MB. File lưu trên R2; CSDL
+                chỉ giữ metadata.
+              </p>
+              <label className="btn ghost emp-photo-editor__pick">
+                Chọn ảnh…
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  hidden
+                  onChange={(e) =>
+                    onPickPhoto(e.target.files?.[0] ?? null)
+                  }
+                />
+              </label>
+              {form.pendingPhotoFile ? (
+                <p className="muted small">
+                  Sẽ tải lên khi lưu: {form.pendingPhotoFile.name}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </fieldset>
+
         <fieldset>
           <legend>1. Thông tin cá nhân</legend>
           <div className="form-grid">

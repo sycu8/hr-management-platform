@@ -23,12 +23,24 @@ type EmployeeListItem = {
   joined_on: string
   contract_type: string
   contract_end: string | null
+  has_photo: boolean
 }
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'ok'; items: EmployeeListItem[] }
   | { status: 'error'; message: string }
+
+function photoUrl(id: string, hasPhoto: boolean) {
+  return hasPhoto ? `/api/employees/${id}/photo` : null
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
+  return `${parts[0]![0] ?? ''}${parts[parts.length - 1]![0] ?? ''}`.toUpperCase()
+}
 
 export function EmployeeProfilesPage() {
   const { user } = useAuth()
@@ -114,6 +126,7 @@ export function EmployeeProfilesPage() {
         address: null,
         left_on: null,
         contract_start: null,
+        has_photo: row.has_photo,
       })
     }
   }
@@ -122,17 +135,48 @@ export function EmployeeProfilesPage() {
     setSaving(true)
     setErr(null)
     try {
+      const {
+        id: formId,
+        pendingPhotoFile,
+        has_photo: _hasPhoto,
+        ...fields
+      } = form
       if (mode === 'create') {
-        await fetchJson('/api/employees', {
+        const created = await fetchJson<{ id: string }>('/api/employees', {
           method: 'POST',
-          body: JSON.stringify(form),
+          body: JSON.stringify(fields),
         })
-      } else if (form.id) {
-        const { id: _id, ...payload } = form
-        await fetchJson(`/api/employees/${form.id}`, {
+        if (pendingPhotoFile && created.id) {
+          const body = new FormData()
+          body.append('file', pendingPhotoFile)
+          const r = await fetch(`/api/employees/${created.id}/photo`, {
+            method: 'POST',
+            body,
+            credentials: 'same-origin',
+          })
+          if (!r.ok) {
+            const t = await r.text()
+            throw new Error(t || 'Không tải được ảnh')
+          }
+        }
+      } else if (formId) {
+        await fetchJson(`/api/employees/${formId}`, {
           method: 'PATCH',
-          body: JSON.stringify(payload),
+          body: JSON.stringify(fields),
         })
+        if (pendingPhotoFile) {
+          const body = new FormData()
+          body.append('file', pendingPhotoFile)
+          const r = await fetch(`/api/employees/${formId}/photo`, {
+            method: 'POST',
+            body,
+            credentials: 'same-origin',
+          })
+          if (!r.ok) {
+            const t = await r.text()
+            throw new Error(t || 'Không tải được ảnh')
+          }
+        }
       }
       setMode('idle')
       setDraft(null)
@@ -180,8 +224,8 @@ export function EmployeeProfilesPage() {
               <h2>Hồ sơ cá nhân ({visible.length})</h2>
               <p className="muted">
                 {canEdit
-                  ? 'Admin / Super Admin: thêm & sửa đầy đủ thông tin nhân sự.'
-                  : 'Chỉ xem. Liên hệ HR để cập nhật hồ sơ.'}
+                  ? 'Card hồ sơ kèm ảnh. Admin / Super Admin: thêm, sửa và tải ảnh chân dung (R2).'
+                  : 'Xem dạng card — thông tin và ảnh nhân viên trong một khung.'}
               </p>
             </div>
             {canEdit ? (
@@ -221,68 +265,100 @@ export function EmployeeProfilesPage() {
           {visible.length === 0 ? (
             <p>Không có dữ liệu</p>
           ) : (
-            <div className="table-wrap">
-              <table className="data">
-                <thead>
-                  <tr>
-                    <th>Mã</th>
-                    <th>Họ tên</th>
-                    <th>GT</th>
-                    <th>Phòng ban</th>
-                    <th>Chức danh</th>
-                    <th>Cấp</th>
-                    <th>QL trực tiếp</th>
-                    <th>Vào làm</th>
-                    <th>HĐ / HHĐ</th>
-                    <th>TT</th>
-                    {canEdit ? <th /> : null}
-                  </tr>
-                </thead>
-                <tbody>
-                  {visible.map((emp) => (
-                    <tr key={emp.id}>
-                      <td className="mono">{emp.code}</td>
-                      <td>
-                        <div>{emp.full_name}</div>
-                        <div className="muted small">
-                          {emp.email ?? emp.phone ?? '—'}
+            <div className="emp-card-grid">
+              {visible.map((emp) => {
+                const src = photoUrl(emp.id, emp.has_photo)
+                const levelLabel =
+                  LEVEL_OPTIONS.find((l) => l.value === emp.level)
+                    ?.label.split('—')[0]
+                    ?.trim() ?? String(emp.level)
+                const statusLabel =
+                  EMP_STATUS.find((s) => s.value === emp.status)?.label ??
+                  emp.status
+                return (
+                  <article key={emp.id} className="emp-profile-card">
+                    <div className="emp-profile-card__media">
+                      {src ? (
+                        <img
+                          src={src}
+                          alt=""
+                          className="emp-profile-card__photo"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div
+                          className="emp-profile-card__placeholder"
+                          aria-hidden
+                        >
+                          {initials(emp.full_name)}
                         </div>
-                      </td>
-                      <td>{emp.gender ?? '—'}</td>
-                      <td>{emp.department}</td>
-                      <td>{emp.title}</td>
-                      <td className="mono">
-                        {LEVEL_OPTIONS.find((l) => l.value === emp.level)
-                          ?.label.split('—')[0]
-                          ?.trim() ?? emp.level}
-                      </td>
-                      <td>{managerName(emp.manager_id)}</td>
-                      <td>{emp.joined_on}</td>
-                      <td>
-                        <div>{emp.contract_type}</div>
-                        <div className="muted small">
-                          HHĐ: {emp.contract_end ?? 'Không thời hạn'}
+                      )}
+                      <span
+                        className={`emp-profile-card__status emp-profile-card__status--${emp.status}`}
+                      >
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <div className="emp-profile-card__body">
+                      <div className="emp-profile-card__code mono">
+                        {emp.code}
+                      </div>
+                      <h3 className="emp-profile-card__name">{emp.full_name}</h3>
+                      <p className="emp-profile-card__title">
+                        {emp.title}
+                        <span className="muted"> · {levelLabel}</span>
+                      </p>
+                      <dl className="emp-profile-card__meta">
+                        <div>
+                          <dt>Phòng ban</dt>
+                          <dd>{emp.department}</dd>
                         </div>
-                      </td>
-                      <td>
-                        {EMP_STATUS.find((s) => s.value === emp.status)?.label ??
-                          emp.status}
-                      </td>
+                        <div>
+                          <dt>QL trực tiếp</dt>
+                          <dd>{managerName(emp.manager_id)}</dd>
+                        </div>
+                        <div>
+                          <dt>Vào làm</dt>
+                          <dd>{emp.joined_on}</dd>
+                        </div>
+                        <div>
+                          <dt>Hợp đồng</dt>
+                          <dd>
+                            {emp.contract_type}
+                            <span className="muted small">
+                              {' '}
+                              · HHĐ {emp.contract_end ?? 'KTH'}
+                            </span>
+                          </dd>
+                        </div>
+                        <div className="emp-profile-card__contact">
+                          <dt>Liên hệ</dt>
+                          <dd>
+                            {emp.email ?? emp.phone ?? '—'}
+                            {emp.gender ? (
+                              <span className="muted small">
+                                {' '}
+                                · {emp.gender}
+                              </span>
+                            ) : null}
+                          </dd>
+                        </div>
+                      </dl>
                       {canEdit ? (
-                        <td>
+                        <div className="emp-profile-card__actions">
                           <button
                             type="button"
                             className="btn ghost"
                             onClick={() => void openEdit(emp)}
                           >
-                            Sửa
+                            Sửa hồ sơ / ảnh
                           </button>
-                        </td>
+                        </div>
                       ) : null}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </div>
+                  </article>
+                )
+              })}
             </div>
           )}
         </div>
