@@ -198,7 +198,7 @@ lists.get('/job-profiles', requireModule('emp', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
     `SELECT id, code, full_name, department, title, contract_type,
-            contract_start, contract_end, joined_on, status, manager_id
+            contract_start, contract_end, joined_on, status, manager_id, level
      FROM employees
      WHERE organization_id = ? AND status = 'active'
      ORDER BY contract_end IS NULL, contract_end, code`,

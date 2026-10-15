@@ -396,3 +396,77 @@ textarea {
   .form-grid { grid-template-columns: 1fr; }
 }
 
+.hr-form fieldset {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin: 0 0 14px;
+  padding: 12px 14px 16px;
+}
+.hr-form legend {
+  padding: 0 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.hr-form select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.field-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.skill-row {
+  display: flex;
+  gap: 8px;
+}
+.skill-row input { flex: 1; }
+.skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.toolbar.filters {
+  margin-bottom: 14px;
+}
+.search {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.toolbar select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.row-warn td {
+  background: color-mix(in srgb, #c45c26 12%, transparent);
+}
+

@@ -51,8 +51,8 @@ Tổng quan repo: [README.md](../README.md).
 
 | Vai trò | Được làm | Không được |
 | --- | --- | --- |
-| **Admin (HR)** | Sửa hồ sơ nhân sự, quản lý / khóa tài khoản user | Cấu hình **tích hợp nguồn dữ liệu** (máy chấm công, kế toán, SSO…) |
-| **Super Admin** | Toàn quyền + **bật/tắt / thêm nguồn dữ liệu** | — (vẫn nên hạn chế số người) |
+| **Admin (HR)** | Thêm/sửa hồ sơ NV đầy đủ (cá nhân, công việc, HĐLĐ, lương CB, phụ thuộc, kỹ năng); khóa tài khoản user | Cấu hình **tích hợp nguồn dữ liệu** |
+| **Super Admin** | Giống Admin + **bật/tắt / thêm nguồn dữ liệu** | — (hạn chế số người) |
 | **User** | Theo module được cấp | Sửa dữ liệu hệ thống / tích hợp |
 
 ## Quyết định lãnh đạo cần nắm
