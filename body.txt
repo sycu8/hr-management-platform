@@ -1,1 +1,0 @@
-{"ok":true,"name":"HR Management Platform","locale":"vi-VN","timezone":"Asia/Ho_Chi_Minh"}
