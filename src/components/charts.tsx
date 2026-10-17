@@ -268,6 +268,103 @@ export function DonutChart({
   )
 }
 
+/**
+ * Line chart for scores over labeled cycles (fixed Y domain, point labels).
+ * Defaults to score scale 1–5 when yMin/yMax omitted.
+ */
+export function LineChart({
+  data,
+  height = 220,
+  yMin = 1,
+  yMax = 5,
+  valueFormat = (n) => String(Math.round(n * 10) / 10),
+}: {
+  data: Point[]
+  height?: number
+  yMin?: number
+  yMax?: number
+  valueFormat?: (n: number) => string
+}) {
+  const points = data.filter((d) => Number.isFinite(d.value))
+  if (points.length === 0) return <p className="empty">Không có dữ liệu</p>
+
+  const padL = 36
+  const padR = 16
+  const padT = 28
+  const padB = 36
+  const width = Math.max(280, points.length * 120)
+  const plotW = width - padL - padR
+  const plotH = height - padT - padB
+  const range = yMax - yMin || 1
+
+  const coords = points.map((d, i) => {
+    const x =
+      points.length === 1
+        ? padL + plotW / 2
+        : padL + (i / (points.length - 1)) * plotW
+    const y = padT + (1 - (d.value - yMin) / range) * plotH
+    return { ...d, x, y }
+  })
+
+  const path = coords
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+    .join(' ')
+
+  const ticks = [yMin, yMin + range / 2, yMax].map((v) => Math.round(v * 10) / 10)
+
+  return (
+    <div className="line-chart" style={{ minHeight: height }}>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        width="100%"
+        height={height}
+        role="img"
+        aria-label="Biểu đồ điểm theo chu kỳ"
+      >
+        {ticks.map((t) => {
+          const y = padT + (1 - (t - yMin) / range) * plotH
+          return (
+            <g key={`t-${t}`}>
+              <line
+                x1={padL}
+                x2={width - padR}
+                y1={y}
+                y2={y}
+                className="line-chart-grid"
+              />
+              <text x={padL - 8} y={y + 4} textAnchor="end" className="line-chart-tick">
+                {t}
+              </text>
+            </g>
+          )
+        })}
+        <path d={path} className="line-chart-path" fill="none" />
+        {coords.map((p) => (
+          <g key={p.label}>
+            <circle cx={p.x} cy={p.y} r={5} className="line-chart-dot" />
+            <text
+              x={p.x}
+              y={p.y - 12}
+              textAnchor="middle"
+              className="line-chart-val"
+            >
+              {valueFormat(p.value)}
+            </text>
+            <text
+              x={p.x}
+              y={height - 12}
+              textAnchor="middle"
+              className="line-chart-xlabel"
+            >
+              {p.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
 /** Recruitment funnel — ordered stages, full-width rows, large numbers. */
 export function FunnelChart({ data }: { data: Point[] }) {
   if (data.length === 0) return <p className="empty">Không có dữ liệu</p>
