@@ -125,6 +125,18 @@ const PAGE_EXTRA: Record<
     keywords: ['bảo hiểm', 'bhxh', 'bhyt', 'bhtn', 'insurance'],
     blurb: 'Đóng BHXH / BHYT / BHTN',
   },
+  payparams: {
+    keywords: [
+      'tham số tính lương',
+      'tham số lương',
+      'payroll params',
+      'pit',
+      'giảm trừ',
+      'lương cơ sở',
+      'paypol',
+    ],
+    blurb: 'Tham số BHXH / PIT / trần ăn ca',
+  },
   cycles: {
     keywords: ['chu kỳ đánh giá', 'review cycle', 'appraisal'],
     blurb: 'Chu kỳ đánh giá hiệu suất',

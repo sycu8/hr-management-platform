@@ -303,6 +303,9 @@ export function PayrollPage() {
         <Link className="btn ghost" to={`/payroll/insurance?ym=${ym}`}>
           Bảo hiểm
         </Link>
+        <Link className="btn ghost" to="/payroll/params">
+          Tham số tính lương
+        </Link>
       </div>
 
       <div className="grid g4">

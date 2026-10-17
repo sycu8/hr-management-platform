@@ -80,6 +80,11 @@ export const NAV_MAP: NavModule[] = [
       { id: 'payslip', title: 'Phiếu lương điện tử', path: '/payroll/payslips' },
       { id: 'allow', title: 'Phụ cấp & thưởng', path: '/payroll/allowances' },
       { id: 'ins', title: 'Bảo hiểm XH/YT', path: '/payroll/insurance' },
+      {
+        id: 'payparams',
+        title: 'Tham số tính lương',
+        path: '/payroll/params',
+      },
     ],
   },
   {

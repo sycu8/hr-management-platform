@@ -96,6 +96,11 @@ const InsurancePage = lazy(() =>
     default: m.InsurancePage,
   })),
 )
+const ParamsPage = lazy(() =>
+  import('./pages/payroll/ParamsPage').then((m) => ({
+    default: m.ParamsPage,
+  })),
+)
 const PayrollPage = lazy(() =>
   import('./pages/payroll/PayrollPage').then((m) => ({
     default: m.PayrollPage,
@@ -257,6 +262,7 @@ export default function App() {
                 <Route path="payroll/payslips" element={<PayslipsPage />} />
                 <Route path="payroll/allowances" element={<AllowancesPage />} />
                 <Route path="payroll/insurance" element={<InsurancePage />} />
+                <Route path="payroll/params" element={<ParamsPage />} />
                 <Route path="performance/cycles" element={<CyclesPage />} />
                 <Route path="performance/okr" element={<OkrPage />} />
                 <Route path="performance/360" element={<Review360Page />} />

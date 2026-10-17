@@ -1,5 +1,13 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
+import {
+  bhxhCeiling,
+  bhtnCeiling,
+  payParamsMatchCatalog,
+  type PayParams,
+  VN_PAY_POLICY_CATALOG,
+  VN_PAY_POLICY_CITATIONS,
+} from '../../shared/domain/payroll.ts'
 import type { Env } from '../env.ts'
 import { writeAuditEvent } from '../lib/audit.ts'
 import { badRequest, forbidden, json, notFound } from '../lib/http.ts'
@@ -71,6 +79,8 @@ export type PayslipSnapshot = {
   dependents?: number
   prob?: boolean
   bhBase?: number
+  /** Cơ sở đóng BHTN (có thể cao hơn bhBase khi lương vượt trần BHXH/BHYT). */
+  bhtnBase?: number
   trip?: number
   ents?: Array<{ type?: string; kind?: string; amount?: number; title?: string }>
 }
@@ -128,6 +138,7 @@ function enrichPayslip(row: PayslipRow) {
     bhyt_er: er.bhyt ?? null,
     bhtn_er: er.bhtn ?? null,
     bh_base: snap.bhBase ?? null,
+    bhtn_base: snap.bhtnBase ?? snap.bhBase ?? null,
     taxable: snap.taxable ?? null,
     dependents: snap.dependents ?? null,
     probation: snap.prob ?? false,
@@ -388,6 +399,7 @@ payroll.get('/insurance', requireModule('pay', 1), async (c) => {
       department: p.department,
       probation: p.probation,
       bh_base: p.bh_base,
+      bhtn_base: p.bhtn_base,
       bhxh_emp: p.bhxh_emp,
       bhyt_emp: p.bhyt_emp,
       bhtn_emp: p.bhtn_emp,
@@ -580,5 +592,281 @@ payroll.delete('/earnings/:id', requireModule('pay', 2), async (c) => {
 
   return json(c, { ok: true })
 })
+
+
+const payParamsSchema = z.object({
+  ref: z.number().positive(),
+  capMult: z.number().positive(),
+  bhtnRegionMin: z.number().positive().optional(),
+  bhtnCapMult: z.number().positive().optional(),
+  bhEmp: z.object({
+    bhxh: z.number().min(0).max(1),
+    bhyt: z.number().min(0).max(1),
+    bhtn: z.number().min(0).max(1),
+  }),
+  bhEr: z.object({
+    bhxh: z.number().min(0).max(1),
+    om: z.number().min(0).max(1),
+    tnld: z.number().min(0).max(1),
+    bhyt: z.number().min(0).max(1),
+    bhtn: z.number().min(0).max(1),
+  }),
+  selfDed: z.number().nonnegative(),
+  depDed: z.number().nonnegative(),
+  mealExempt: z.number().nonnegative(),
+  brackets: z
+    .array(z.tuple([z.number().positive(), z.number().min(0).max(1)]))
+    .min(1),
+})
+
+type PolicyVersionRow = {
+  id: string
+  version: number
+  effective_from: string
+  effective_to: string | null
+  policy_json: string
+  source_citations_json: string
+  legal_review_status: string
+  legal_reviewed_by: string | null
+  legal_reviewed_at: string | null
+  created_at: string
+}
+
+function enrichPolicyVersion(row: PolicyVersionRow) {
+  const policy = parseJson<PayParams>(row.policy_json, VN_PAY_POLICY_CATALOG.params)
+  const citations = parseJson<unknown[]>(row.source_citations_json, [])
+  return {
+    id: row.id,
+    version: row.version,
+    effective_from: row.effective_from,
+    effective_to: row.effective_to,
+    policy,
+    citations,
+    legal_review_status: row.legal_review_status,
+    legal_reviewed_by: row.legal_reviewed_by,
+    legal_reviewed_at: row.legal_reviewed_at,
+    created_at: row.created_at,
+    bhxh_ceiling: bhxhCeiling(policy),
+    bhtn_ceiling: bhtnCeiling(policy),
+    matches_catalog: payParamsMatchCatalog(policy),
+    is_current: row.effective_to == null,
+  }
+}
+
+/** Shipped statutory catalog (code + Pháp lý seed) — not a live scrape. */
+payroll.get('/policy-catalog', requireModule('pay', 1), async (c) => {
+  const params = VN_PAY_POLICY_CATALOG.params
+  return json(c, {
+    catalog: {
+      id: VN_PAY_POLICY_CATALOG.id,
+      label: VN_PAY_POLICY_CATALOG.label,
+      effectiveFrom: VN_PAY_POLICY_CATALOG.effectiveFrom,
+      params,
+      citations: VN_PAY_POLICY_CITATIONS,
+      legalLibraryNote: VN_PAY_POLICY_CATALOG.legalLibraryNote,
+      bhxh_ceiling: bhxhCeiling(params),
+      bhtn_ceiling: bhtnCeiling(params),
+    },
+  })
+})
+
+payroll.get('/policy-versions', requireModule('pay', 1), async (c) => {
+  const user = c.get('user')
+  const { results } = await c.env.DB.prepare(
+    `SELECT id, version, effective_from, effective_to, policy_json,
+            source_citations_json, legal_review_status,
+            legal_reviewed_by, legal_reviewed_at, created_at
+     FROM payroll_policy_versions
+     WHERE organization_id = ?
+     ORDER BY version DESC`,
+  )
+    .bind(user.organizationId)
+    .all<PolicyVersionRow>()
+
+  const items = (results ?? []).map(enrichPolicyVersion)
+  const current = items.find((x) => x.is_current) ?? items[0] ?? null
+  return json(c, {
+    items,
+    current,
+    catalogId: VN_PAY_POLICY_CATALOG.id,
+    driftFromCatalog: current ? !current.matches_catalog : false,
+  })
+})
+
+payroll.get('/policy-versions/:id', requireModule('pay', 1), async (c) => {
+  const user = c.get('user')
+  const id = c.req.param('id')
+  const row = await c.env.DB.prepare(
+    `SELECT id, version, effective_from, effective_to, policy_json,
+            source_citations_json, legal_review_status,
+            legal_reviewed_by, legal_reviewed_at, created_at
+     FROM payroll_policy_versions
+     WHERE organization_id = ? AND id = ?
+     LIMIT 1`,
+  )
+    .bind(user.organizationId, id)
+    .first<PolicyVersionRow>()
+  if (!row) return notFound(c, 'Policy version not found')
+  return json(c, { item: enrichPolicyVersion(row) })
+})
+
+/**
+ * Update editable params on the current (open) policy version.
+ * Resets legal_review_status → pending so a reviewer must re-approve before close.
+ */
+payroll.patch('/policy-versions/:id', requireModule('pay', 2), async (c) => {
+  const user = c.get('user')
+  if (!isHrAdmin(user)) {
+    return forbidden(c, 'Chỉ Admin / Super Admin được sửa tham số tính lương')
+  }
+
+  const id = c.req.param('id')
+  let body: z.infer<typeof payParamsSchema>
+  try {
+    body = payParamsSchema.parse(await c.req.json())
+  } catch {
+    return badRequest(c, 'Invalid pay params payload')
+  }
+
+  const row = await c.env.DB.prepare(
+    `SELECT id, version, effective_from, effective_to, policy_json,
+            source_citations_json, legal_review_status,
+            legal_reviewed_by, legal_reviewed_at, created_at
+     FROM payroll_policy_versions
+     WHERE organization_id = ? AND id = ?
+     LIMIT 1`,
+  )
+    .bind(user.organizationId, id)
+    .first<PolicyVersionRow>()
+  if (!row) return notFound(c, 'Policy version not found')
+  if (row.effective_to != null) {
+    return badRequest(
+      c,
+      'Chỉ sửa được phiên bản đang hiệu lực (effective_to trống). Tạo phiên bản mới nếu cần lịch sử.',
+    )
+  }
+
+  const policy: PayParams = {
+    ...body,
+    brackets: body.brackets.map(([cap, rate]) => [cap, rate] as const),
+  }
+
+  await c.env.DB.prepare(
+    `UPDATE payroll_policy_versions SET
+       policy_json = ?,
+       legal_review_status = 'pending',
+       legal_reviewed_by = NULL,
+       legal_reviewed_at = NULL
+     WHERE id = ? AND organization_id = ?`,
+  )
+    .bind(JSON.stringify(policy), id, user.organizationId)
+    .run()
+
+  await writeAuditEvent(c.env.DB, {
+    organizationId: user.organizationId,
+    actorUserId: user.effectiveUserId,
+    actorRole: user.accountType,
+    actorEmail: user.email,
+    action: 'payroll_policy.update',
+    entityType: 'payroll_policy_version',
+    entityId: id,
+    detail: `Sửa tham số tính lương ${id} (chờ duyệt lại)`,
+  })
+
+  const updated = await c.env.DB.prepare(
+    `SELECT id, version, effective_from, effective_to, policy_json,
+            source_citations_json, legal_review_status,
+            legal_reviewed_by, legal_reviewed_at, created_at
+     FROM payroll_policy_versions
+     WHERE organization_id = ? AND id = ?`,
+  )
+    .bind(user.organizationId, id)
+    .first<PolicyVersionRow>()
+
+  return json(c, { item: enrichPolicyVersion(updated!) })
+})
+
+/**
+ * Apply shipped catalog `VN_PAY_POLICY_2026_07` (+ Pháp lý citations) onto the
+ * current open policy version. Practical “auto update when law changes”:
+ * numbers ship in platform code / legal library seed; this action copies them
+ * into the org’s active `payroll_policy_versions` row.
+ */
+payroll.post(
+  '/policy-versions/:id/sync-catalog',
+  requireModule('pay', 2),
+  async (c) => {
+    const user = c.get('user')
+    if (!isHrAdmin(user)) {
+      return forbidden(c, 'Chỉ Admin / Super Admin được đồng bộ tham số pháp lý')
+    }
+
+    const id = c.req.param('id')
+    const row = await c.env.DB.prepare(
+      `SELECT id, version, effective_from, effective_to, policy_json,
+              source_citations_json, legal_review_status,
+              legal_reviewed_by, legal_reviewed_at, created_at
+       FROM payroll_policy_versions
+       WHERE organization_id = ? AND id = ?
+       LIMIT 1`,
+    )
+      .bind(user.organizationId, id)
+      .first<PolicyVersionRow>()
+    if (!row) return notFound(c, 'Policy version not found')
+    if (row.effective_to != null) {
+      return badRequest(
+        c,
+        'Chỉ đồng bộ được phiên bản đang hiệu lực (effective_to trống).',
+      )
+    }
+
+    const policy = VN_PAY_POLICY_CATALOG.params
+    const citations = [...VN_PAY_POLICY_CITATIONS]
+
+    await c.env.DB.prepare(
+      `UPDATE payroll_policy_versions SET
+         policy_json = ?,
+         source_citations_json = ?,
+         legal_review_status = 'pending',
+         legal_reviewed_by = NULL,
+         legal_reviewed_at = NULL
+       WHERE id = ? AND organization_id = ?`,
+    )
+      .bind(
+        JSON.stringify(policy),
+        JSON.stringify(citations),
+        id,
+        user.organizationId,
+      )
+      .run()
+
+    await writeAuditEvent(c.env.DB, {
+      organizationId: user.organizationId,
+      actorUserId: user.effectiveUserId,
+      actorRole: user.accountType,
+      actorEmail: user.email,
+      action: 'payroll_policy.sync_catalog',
+      entityType: 'payroll_policy_version',
+      entityId: id,
+      detail: `Đồng bộ ${VN_PAY_POLICY_CATALOG.id} → ${id}`,
+    })
+
+    const updated = await c.env.DB.prepare(
+      `SELECT id, version, effective_from, effective_to, policy_json,
+              source_citations_json, legal_review_status,
+              legal_reviewed_by, legal_reviewed_at, created_at
+       FROM payroll_policy_versions
+       WHERE organization_id = ? AND id = ?`,
+    )
+      .bind(user.organizationId, id)
+      .first<PolicyVersionRow>()
+
+    return json(c, {
+      item: enrichPolicyVersion(updated!),
+      catalogId: VN_PAY_POLICY_CATALOG.id,
+      note: VN_PAY_POLICY_CATALOG.legalLibraryNote,
+    })
+  },
+)
 
 export default payroll

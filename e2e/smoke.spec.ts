@@ -28,6 +28,7 @@ const ADMIN_ROUTES = [
   '/payroll/payslips',
   '/payroll/allowances',
   '/payroll/insurance',
+  '/payroll/params',
   '/performance/cycles',
   '/performance/okr',
   '/performance/360',

@@ -53,20 +53,26 @@ export const GOLDEN_TRAVEL_POLICY: TravelPolicy = {
   settleDays: 7,
 }
 
-/** Legacy `S.pay`. */
+/**
+ * Pay params for Sep 2026 golden cohort — policy effective 01/07/2026:
+ * NĐ 161/2026 (lương cơ sở 2.53tr), NĐ 253/2026 (ăn ca miễn thuế 1.2tr),
+ * NĐ 293/2025 (LTT vùng I 5.31tr → trần BHTN), Luật BHXH 2024 tỷ lệ đóng.
+ */
 export const GOLDEN_PAY: PayParams = {
-  ref: 2340000,
+  ref: 2_530_000,
   capMult: 20,
+  bhtnRegionMin: 5_310_000,
+  bhtnCapMult: 20,
   bhEmp: { bhxh: 0.08, bhyt: 0.015, bhtn: 0.01 },
   bhEr: { bhxh: 0.14, om: 0.03, tnld: 0.005, bhyt: 0.03, bhtn: 0.01 },
-  selfDed: 15500000,
-  depDed: 6200000,
-  mealExempt: 730000,
+  selfDed: 15_500_000,
+  depDed: 6_200_000,
+  mealExempt: 1_200_000,
   brackets: [
-    [10000000, 0.05],
-    [30000000, 0.1],
-    [60000000, 0.2],
-    [100000000, 0.3],
+    [10_000_000, 0.05],
+    [30_000_000, 0.1],
+    [60_000_000, 0.2],
+    [100_000_000, 0.3],
     [1e15, 0.35],
   ],
 }
@@ -135,13 +141,14 @@ export const GOLDEN_PAYROLL_SEP = {
   employees: {
     e1: { paid: 22, gross: 24730000, bhEmp: 1890000, pit: 20500, net: 22819500 },
     e4: { paid: 21, gross: 64184545, bhEmp: 4725000, pit: 2665909, net: 56793636 },
-    e5: { paid: 22, gross: 86530000, bhEmp: 4914000, pit: 7097200, net: 74518800 },
+    /** e5 over BHXH ceiling — uses 50.6tr BHXH/BHYT + 85tr BHTN (vùng I). */
+    e5: { paid: 22, gross: 86530000, bhEmp: 5657000, pit: 6948600, net: 73924400 },
     e11: { paid: 22, gross: 12730000, bhEmp: 0, pit: 0, net: 12730000 },
   },
   company: {
     gross: 375420909,
-    pit: 11978109,
-    net: 333853800,
+    pit: 11829509,
+    net: 333259400,
   },
 } as const
 

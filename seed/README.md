@@ -35,7 +35,10 @@ Mật khẩu mặc định xem README gốc / `auth_users.sql`.
 - ~42 đơn nghỉ phép, ~800+ chấm công T9–T10/2026
 - 12 chuyến công tác gồm **CT-2026-0001** (golden)
 - Tuyển dụng, onboarding, đánh giá, đào tạo, chính sách
-- Thu nhập T9/2026 (golden a1–a12); chưa đóng bảng lương (tránh lệch golden khi tăng headcount)
+- Thư viện **Pháp lý doanh nghiệp** (`pol_h9`–`pol_h20`): BLLĐ, BHXH, BHYT, Việc làm/BHTN, TNCN, LTT vùng, lương cơ sở — đồng bộ `paypol_v2`
+- Thu nhập T9/2026 (golden); bảng lương Aug/Sep đóng theo paypol_v2
 - Audit + hàng đợi email mẫu
+
+Sau `demo.sql`, chạy thêm `policies_enrich.sql` (hoặc `npm run db:seed:policies:local`) để làm giàu `content_text` pháp lý.
 
 Tái tạo: `node scripts/generate-demo-seed.mjs`

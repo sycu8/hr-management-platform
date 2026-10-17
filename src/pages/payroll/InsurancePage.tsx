@@ -10,6 +10,7 @@ type InsRow = {
   department: string
   probation: boolean
   bh_base: number | null
+  bhtn_base: number | null
   bhxh_emp: number | null
   bhyt_emp: number | null
   bhtn_emp: number | null
@@ -110,6 +111,26 @@ export function InsurancePage() {
         BHXH đính kèm là tài liệu hỗ trợ, không thay bảng đóng.
       </p>
 
+      <div className="card policy-card">
+        <h2>Chính sách đóng (từ 01/07/2026)</h2>
+        <ul className="plain-list">
+          <li>
+            Tỷ lệ: NLĐ <b>10,5%</b> · DN <b>21,5%</b> (BHXH 14% + ốm đau 3% +
+            TNLĐ 0,5% + BHYT 3% + BHTN 1%) — Luật BHXH 2024, NĐ 188/2025, Luật
+            Việc làm 2025
+          </li>
+          <li>
+            Trần BHXH/BHYT: <b>20 × 2.530.000 ₫ = 50.600.000 ₫</b> (NĐ
+            161/2026/NĐ-CP — mức lương cơ sở)
+          </li>
+          <li>
+            Trần BHTN: <b>20 × lương tối thiểu vùng</b> — demo vùng I{' '}
+            <b>5.310.000 ₫ → 106.200.000 ₫</b> (Luật Việc làm 2025 + NĐ
+            293/2025/NĐ-CP) — xem thư viện Pháp lý
+          </li>
+        </ul>
+      </div>
+
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
         {(months.length ? months : [ym]).map((m) => (
           <button
@@ -152,7 +173,8 @@ export function InsurancePage() {
             <thead>
               <tr>
                 <th>Nhân viên</th>
-                <th>Lương đóng BH</th>
+                <th>Cơ sở BHXH/BHYT</th>
+                <th>Cơ sở BHTN</th>
                 <th>BHXH 8%</th>
                 <th>BHYT 1,5%</th>
                 <th>BHTN 1%</th>
@@ -166,7 +188,7 @@ export function InsurancePage() {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="muted">
+                  <td colSpan={11} className="muted">
                     Không có dữ liệu bảo hiểm kỳ này (kỳ nháp có thể chưa tính).
                   </td>
                 </tr>
@@ -185,6 +207,9 @@ export function InsurancePage() {
                       ) : null}
                     </td>
                     <td className="mono">{vnd(r.bh_base)}</td>
+                    <td className="mono">
+                      {vnd(r.bhtn_base ?? r.bh_base)}
+                    </td>
                     <td className="mono">{vnd(r.bhxh_emp)}</td>
                     <td className="mono">{vnd(r.bhyt_emp)}</td>
                     <td className="mono">{vnd(r.bhtn_emp)}</td>
@@ -206,10 +231,8 @@ export function InsurancePage() {
       </div>
 
       <p className="muted small">
-        Tỷ lệ đóng mẫu: NLĐ 10,5%, DN 21,5% (BHXH 14% + ốm đau 3% + TNLĐ 0,5% +
-        BHYT 3% + BHTN 1%), tổng 32%. Trần đóng = 20 × mức tham chiếu
-        2.340.000 ₫. BHTN thực tế theo lương tối thiểu vùng — bản demo dùng chung
-        một mức trần.
+        Tổng đóng 32% trên cơ sở tính. BHXH/BHYT và BHTN có thể khác cơ sở khi
+        lương vượt trần BHXH/BHYT nhưng còn dưới trần BHTN theo vùng.
       </p>
 
       <div className="card">

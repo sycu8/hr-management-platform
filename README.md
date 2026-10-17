@@ -148,24 +148,24 @@ Số liệu dưới đây lấy từ seed demo tháng **09/2026** và chuyến c
 ```mermaid
 pie showData
   title Cơ cấu chi phí lương mẫu (₫)
-  "Thực nhận · net" : 333853800
-  "BH NLĐ + PIT + khác" : 41567109
+  "Thực nhận · net" : 333259400
+  "BH NLĐ + PIT + khác" : 42161509
 ```
 
 | Chỉ số | Giá trị | Ý nghĩa |
 | --- | --- | --- |
 | **Gross** | **375.420.909 ₫** | Tổng thu nhập trước khấu trừ |
-| **Net** | **333.853.800 ₫** | Thực nhận nhân viên |
-| Chênh lệch | ~41,6 triệu ₫ | BH + PIT (và phần còn lại trong snapshot) |
+| **Net** | **333.259.400 ₫** | Thực nhận nhân viên |
+| Chênh lệch | ~42,2 triệu ₫ | BH + PIT (và phần còn lại trong snapshot) |
 | Headcount mẫu | 31 | Cohort golden e1–e12 mở rộng |
 
-Ví dụ phiếu cá nhân (đã khóa test):
+Ví dụ phiếu cá nhân (đã khóa test; chính sách từ 01/07/2026):
 
 | NV | Ngày công | Gross | BH NLĐ | PIT | Net |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | e1 | 22 | 24.730.000 | 1.890.000 | 20.500 | 22.819.500 |
 | e4 | 21 | 64.184.545 | 4.725.000 | 2.665.909 | 56.793.636 |
-| e5 | 22 | 86.530.000 | 4.914.000 | 7.097.200 | 74.518.800 |
+| e5 | 22 | 86.530.000 | 5.657.000 | 6.948.600 | 73.924.400 |
 
 ### Công tác phí — chuyến `CT-2026-0001`
 
