@@ -201,7 +201,7 @@ policies.get(
       .first<{ id: string; file_name: string; r2_key: string }>()
     if (!row) return notFound(c, 'Attachment not found')
     const object = await c.env.DOCUMENTS.get(row.r2_key)
-    if (!object) return notFound(c, 'File missing in R2')
+    if (!object) return notFound(c, 'Không tìm thấy tệp')
     const disposition =
       c.req.query('disposition') === 'attachment' ? 'attachment' : 'inline'
     return r2ObjectResponse(object, row.file_name, disposition)
@@ -307,9 +307,9 @@ policies.post(
         `UPDATE policy_attachments SET ocr_status = 'failed', ocr_error = ?
          WHERE id = ?`,
       )
-        .bind('File missing in R2', attachmentId)
+        .bind('Không tìm thấy tệp', attachmentId)
         .run()
-      return notFound(c, 'File missing in R2')
+      return notFound(c, 'Không tìm thấy tệp')
     }
 
     const mime =
@@ -455,7 +455,7 @@ policies.get('/:id/file', requireModule('pol', 1), async (c) => {
   const row = await loadPolicy(c.env.DB, user.organizationId, c.req.param('id'))
   if (!row?.r2_key) return notFound(c, 'No primary file')
   const object = await c.env.DOCUMENTS.get(row.r2_key)
-  if (!object) return notFound(c, 'File missing in R2')
+  if (!object) return notFound(c, 'Không tìm thấy tệp')
   const disposition =
     c.req.query('disposition') === 'attachment' ? 'attachment' : 'inline'
   return r2ObjectResponse(object, row.file_name || 'document', disposition)

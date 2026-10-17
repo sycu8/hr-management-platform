@@ -237,7 +237,7 @@ export function EmployeeProfilesPage() {
               <h2>Hồ sơ cá nhân ({visible.length})</h2>
               <p className="muted">
                 {canEdit
-                  ? 'Card hồ sơ kèm ảnh. Admin / Super Admin: thêm, sửa và tải ảnh chân dung (R2).'
+                  ? 'Hồ sơ kèm ảnh. Admin / Super Admin: thêm, sửa và tải ảnh chân dung.'
                   : 'Xem dạng card — thông tin và ảnh nhân viên trong một khung.'}
               </p>
             </div>

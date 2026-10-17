@@ -279,7 +279,7 @@ export function PoliciesCategoryPage({
 
   async function removePolicy() {
     if (!editId) return
-    if (!window.confirm('Xóa văn bản và toàn bộ tệp đính kèm trên R2?')) return
+    if (!window.confirm('Xóa văn bản và toàn bộ tệp đính kèm?')) return
     setSaving(true)
     setMsg(null)
     try {
@@ -375,9 +375,9 @@ export function PoliciesCategoryPage({
 
     const bits = [
       `OCR: ${res.method}`,
-      res.ai_available === false ? 'AI chưa bind' : null,
+      res.ai_available === false ? 'AI chưa sẵn sàng' : null,
       res.note,
-      'Xem trước form — bấm «Xác nhận lưu» để ghi vào DB.',
+      'Xem trước — bấm «Xác nhận lưu» để ghi.',
     ].filter(Boolean)
     setMsg(bits.join(' · '))
   }
@@ -410,7 +410,7 @@ export function PoliciesCategoryPage({
       const policyId = await ensureDraftId(form)
       const att = await uploadFile(file, policyId)
       setAttachments((prev) => [att, ...prev])
-      setMsg(`Đã lưu lên R2: ${att.file_name}`)
+      setMsg(`Đã lưu tệp: ${att.file_name}`)
       load()
     } catch (ex: unknown) {
       setMsg(ex instanceof Error ? ex.message : 'Upload thất bại')
@@ -434,11 +434,11 @@ export function PoliciesCategoryPage({
       sectionsText: sectionsToText(sections),
       summary: form.summary || pasteText.split('\n').find((l) => l.trim().length > 20)?.slice(0, 280) || form.summary,
     })
-    setMsg('Đã áp dụng văn bản dán thủ công vào form — kiểm tra rồi xác nhận lưu.')
+    setMsg('Đã áp dụng văn bản. Kiểm tra rồi xác nhận lưu.')
   }
 
   async function removeAttachment(attachmentId: string) {
-    if (!window.confirm('Xóa tệp khỏi R2 và metadata D1?')) return
+    if (!window.confirm('Xóa tệp đính kèm?')) return
     setMsg(null)
     try {
       await fetchJson(`/api/policies/attachments/${attachmentId}`, {
@@ -456,8 +456,7 @@ export function PoliciesCategoryPage({
       <div className="card">
         <h2>{editId ? `Sửa: ${form.code || title}` : `Thêm — ${title}`}</h2>
         <p className="muted">
-          File lưu trên R2 (DOCUMENTS). OCR dùng Workers AI khi có binding; nếu
-          không, vẫn upload được và điền/dán thủ công.
+          Tải tệp lên; OCR tự trích chữ khi có. Không được thì dán thủ công.
         </p>
         {msg ? <p className="warn-text">{msg}</p> : null}
 
@@ -489,7 +488,7 @@ export function PoliciesCategoryPage({
               disabled={ocrBusy || uploading}
               onClick={() => ocrFileRef.current?.click()}
             >
-              {ocrBusy ? 'Đang OCR…' : 'Upload & OCR'}
+              {ocrBusy ? 'Đang OCR…' : 'Tải lên & OCR'}
             </button>
             <button
               type="button"
@@ -649,16 +648,16 @@ export function PoliciesCategoryPage({
                   rows={4}
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder="Khi AI không trích được chữ — dán nội dung tại đây rồi «Áp dụng văn bản»."
+                  placeholder="AI không trích được chữ — dán nội dung rồi «Áp dụng văn bản»."
                 />
               </label>
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>File đính kèm (R2)</legend>
+            <legend>File đính kèm</legend>
             {attachments.length === 0 ? (
-              <p className="muted">Chưa có tệp — dùng Upload & OCR hoặc Chỉ đính kèm.</p>
+              <p className="muted">Chưa có tệp — dùng Tải lên & OCR hoặc Chỉ đính kèm.</p>
             ) : (
               <div className="table-wrap">
                 <table className="data">
@@ -790,7 +789,7 @@ export function PoliciesCategoryPage({
           <p className="page-lead muted">{description}</p>
           <p className="table-meta muted">
             <strong>{items.length}</strong> bản ghi
-            {canEdit ? ' · Admin: thêm / Upload & OCR' : ' · Chỉ xem'}
+            {canEdit ? ' · Admin: thêm / Tải lên & OCR' : ' · Chỉ xem'}
           </p>
         </div>
         {canEdit ? (

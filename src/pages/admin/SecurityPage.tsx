@@ -85,9 +85,8 @@ export function SecurityPage() {
   return (
     <div className="stack">
       <p className="page-lead muted">
-        Chính sách bảo vệ dữ liệu nhân sự của tổ chức. Chỉ Super Admin / Admin hệ
-        thống được xem. «Che lương» đang là cờ cấu hình — chưa áp dụng tự động lên
-        API hồ sơ/phiếu lương (sẽ gắn serializer ở bản sau).
+        Chính sách bảo vệ dữ liệu nhân sự. Chỉ Super Admin / Admin được xem. «Che
+        lương» là cấu hình — chưa áp dụng tự động.
       </p>
       <div className="grid g2">
         {rows.map((r) => (

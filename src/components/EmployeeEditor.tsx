@@ -140,8 +140,8 @@ export function EmployeeEditor({
     <div className="card">
       <h2>{title}</h2>
       <p className="muted">
-        Hồ sơ theo chuẩn HR: ảnh chân dung (R2), thông tin cá nhân, công việc,
-        hợp đồng. Chỉ Admin / Super Admin được lưu.
+        Hồ sơ HR: ảnh, thông tin cá nhân, công việc, hợp đồng. Chỉ Admin / Super
+        Admin được lưu.
       </p>
       {error ? <p className="warn-text">{error}</p> : null}
 
@@ -158,8 +158,7 @@ export function EmployeeEditor({
             </div>
             <div className="emp-photo-editor__controls">
               <p className="muted small">
-                JPEG / PNG / WebP / GIF · tối đa 5MB. File lưu trên R2; CSDL
-                chỉ giữ metadata.
+                JPEG / PNG / WebP / GIF · tối đa 5MB.
               </p>
               <label className="btn ghost emp-photo-editor__pick">
                 Chọn ảnh…

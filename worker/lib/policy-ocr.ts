@@ -165,7 +165,7 @@ export async function extractMarkdownFromR2Object(
       markdown: '',
       method: 'unavailable',
       note:
-        'Workers AI chưa khả dụng. File đã lưu trên R2 — dán văn bản OCR thủ công hoặc điền form.',
+        'AI chưa khả dụng. File đã lưu — dán văn bản OCR thủ công hoặc điền form.',
     }
   }
 
@@ -201,7 +201,7 @@ export async function extractMarkdownFromR2Object(
     return {
       markdown: '',
       method: 'unavailable',
-      note: `OCR lỗi: ${message}. File vẫn trên R2 — điền form hoặc dán text.`,
+      note: `OCR lỗi: ${message}. File vẫn còn — điền form hoặc dán text.`,
     }
   }
 }

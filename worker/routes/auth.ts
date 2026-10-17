@@ -57,7 +57,7 @@ function isSecureRequest(c: { req: { url: string } }): boolean {
 auth.get('/turnstile', (c) => {
   const siteKey = c.env.TURNSTILE_SITE_KEY
   if (!siteKey || siteKey.startsWith('REPLACE_')) {
-    return apiError(c, 503, 'misconfigured', 'Turnstile site key missing')
+    return apiError(c, 503, 'misconfigured', 'Thiếu cấu hình xác minh bảo mật')
   }
   return json(c, { siteKey, action: LOGIN_TURNSTILE_ACTION })
 })
