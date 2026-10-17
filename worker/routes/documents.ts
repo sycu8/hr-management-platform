@@ -40,7 +40,7 @@ documents.get('/:id/download', requireModule('emp', 1), async (c) => {
   }
 
   const object = await c.env.DOCUMENTS.get(row.r2_key)
-  if (!object) return notFound(c, 'File missing in R2')
+  if (!object) return notFound(c, 'Không tìm thấy tệp')
 
   const disposition =
     c.req.query('disposition') === 'attachment' ? 'attachment' : 'inline'

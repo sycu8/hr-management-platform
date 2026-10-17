@@ -148,11 +148,11 @@ test.describe('360 feedback', () => {
     if (await first.count()) {
       await first.click()
       await expect(page.getByText(/Radar năng lực/i)).toBeVisible({ timeout: 10_000 })
-      await page.getByRole('button', { name: /Phân tích AI/i }).click()
-      // Local may lack Workers AI — accept either analysis text or graceful error
+      await page.getByRole('button', { name: /Phân tích bằng AI/i }).click()
+      // Local may lack AI — accept either analysis text or graceful error
       await expect(
         page
-          .getByText(/Phân tích AI|Workers AI|không phản hồi|503|AI không|thất bại|Đang phân tích/i)
+          .getByText(/Phân tích|AI chưa|không phản hồi|503|AI không|thất bại|Đang phân tích/i)
           .first(),
       ).toBeVisible({ timeout: 20_000 })
       await expectNoCrash(page)

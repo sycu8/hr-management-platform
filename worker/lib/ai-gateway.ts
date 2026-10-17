@@ -23,7 +23,7 @@ export async function runWorkersAiViaGateway(
   opts?: { model?: string; skipCache?: boolean; metadata?: Record<string, string> },
 ): Promise<{ text: string; model: string; gatewayId: string }> {
   if (!env.AI || typeof env.AI.run !== 'function') {
-    throw new Error('Workers AI binding unavailable')
+    throw new Error('AI chưa khả dụng')
   }
 
   const gatewayId = (env.AI_GATEWAY_ID || 'default').trim() || 'default'

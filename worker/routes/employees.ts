@@ -234,7 +234,7 @@ employees.get(
 
     if (!row?.photo_r2_key) return notFound(c, 'Photo not found')
     const object = await c.env.DOCUMENTS.get(row.photo_r2_key)
-    if (!object) return notFound(c, 'Photo missing in R2')
+    if (!object) return notFound(c, 'Không tìm thấy ảnh')
 
     return r2ObjectResponse(
       object,

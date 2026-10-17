@@ -69,6 +69,6 @@ export async function fetchTurnstileConfig(): Promise<{
   action: string
 }> {
   const res = await fetch('/api/auth/turnstile', { credentials: 'same-origin' })
-  if (!res.ok) throw new Error('Không tải được cấu hình Turnstile')
+  if (!res.ok) throw new Error('Không tải được cấu hình xác minh')
   return (await res.json()) as { siteKey: string; action: string }
 }

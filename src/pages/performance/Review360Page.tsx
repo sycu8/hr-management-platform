@@ -147,7 +147,7 @@ export function Review360Page() {
         ),
       )
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Phân tích AI thất bại')
+      setError(e instanceof Error ? e.message : 'Phân tích thất bại')
     } finally {
       setAnalyzing(false)
     }
@@ -206,8 +206,7 @@ export function Review360Page() {
   return (
     <div className="stack">
       <p className="page-lead muted">
-        Đánh giá đa chiều — radar theo năng lực, chèn điểm/nhận xét, phân tích AI
-        qua Workers AI + AI Gateway.
+        Đánh giá đa chiều — radar năng lực, nhận xét và phân tích bằng AI.
       </p>
 
       {error ? <p className="warn-text">{error}</p> : null}
@@ -407,7 +406,7 @@ export function Review360Page() {
                     disabled={analyzing}
                     onClick={() => void runAi()}
                   >
-                    {analyzing ? 'Đang phân tích…' : 'Phân tích AI'}
+                    {analyzing ? 'Đang phân tích…' : 'Phân tích bằng AI'}
                   </button>
                 </div>
               </div>
@@ -500,7 +499,7 @@ export function Review360Page() {
 
             <div className="card f360-ai">
               <div className="toolbar">
-                <h3 style={{ margin: 0 }}>Phân tích AI (Workers AI + Gateway)</h3>
+                <h3 style={{ margin: 0 }}>Phân tích</h3>
                 {selected.ai_analyzed_at ? (
                   <span className="muted small">
                     Lúc {selected.ai_analyzed_at.slice(0, 19).replace('T', ' ')}
@@ -511,8 +510,8 @@ export function Review360Page() {
                 <pre className="f360-ai-body">{selected.ai_analysis}</pre>
               ) : (
                 <p className="muted">
-                  Chưa có phân tích. Bấm <b>Phân tích AI</b> để chạy model qua AI
-                  Gateway (<code>default</code>).
+                  Chưa có phân tích. Bấm &quot;Phân tích bằng AI&quot; để hệ thống
+                  ra kết quả
                 </p>
               )}
             </div>
