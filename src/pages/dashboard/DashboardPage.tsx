@@ -246,10 +246,12 @@ export function DashboardPage() {
                     <div className="feed-body">
                       <strong>{a.title}</strong>
                       <div className="muted small">{a.detail}</div>
-                      {a.action ? (
-                        <span className="feed-action">{a.action} →</span>
-                      ) : null}
                     </div>
+                    {a.action ? (
+                      <span className="feed-action">{a.action} →</span>
+                    ) : (
+                      <span className="feed-action feed-action--spacer" aria-hidden />
+                    )}
                   </>
                 )
                 return (
@@ -259,7 +261,7 @@ export function DashboardPage() {
                         {body}
                       </Link>
                     ) : (
-                      body
+                      <div className="feed-link feed-link--static">{body}</div>
                     )}
                   </li>
                 )
@@ -281,6 +283,7 @@ export function DashboardPage() {
                       <strong>{u.title}</strong>
                       <div className="muted small">{u.detail}</div>
                     </div>
+                    <span className="feed-action feed-action--spacer" aria-hidden />
                   </>
                 )
                 return (
@@ -290,7 +293,7 @@ export function DashboardPage() {
                         {body}
                       </Link>
                     ) : (
-                      body
+                      <div className="feed-link feed-link--static">{body}</div>
                     )}
                   </li>
                 )
