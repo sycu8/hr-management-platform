@@ -201,6 +201,7 @@ textarea {
 .main {
   flex: 1;
   min-width: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -363,8 +364,10 @@ textarea {
 .page {
   flex: 1;
   width: 100%;
-  max-width: 1280px;
-  padding-inline: clamp(12px, 2.2vw, 24px);
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
+  padding-inline: clamp(12px, 2.2vw, 28px);
   padding-block: clamp(12px, 1.6vw, 18px) clamp(28px, 4vw, 40px);
 }
 
@@ -397,14 +400,18 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 100%;
+  min-width: 0;
 }
 
 .grid {
   display: grid;
   gap: 14px;
+  width: 100%;
+  min-width: 0;
 }
 
-/* Fluid columns: wrap by available width, not fixed breakpoints */
+/* Fluid columns: wrap by available width, stretch evenly with 1fr tracks */
 .grid.g2 {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
 }
@@ -2108,6 +2115,8 @@ tr.row-selected td {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 .quick-hub__head h2 {
   margin: 0;
@@ -2116,6 +2125,7 @@ tr.row-selected td {
 .quick-hub__head p { margin: 4px 0 0; }
 .quick-hub__grid {
   display: grid;
+  width: 100%;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
   gap: 10px;
 }
@@ -2161,6 +2171,8 @@ tr.row-selected td {
 }
 .chart-card {
   overflow: hidden;
+  width: 100%;
+  min-width: 0;
 }
 .side .grp summary {
   font-weight: 650;
