@@ -1,6 +1,7 @@
 import type { Env } from '../env.ts'
 
-const DEFAULT_MODEL = '@cf/meta/llama-3.1-8b-instruct'
+/** Cheapest active multilingual text model (Workers AI pricing). */
+const DEFAULT_MODEL = '@cf/meta/llama-3.2-1b-instruct'
 
 type GatewayOptions = {
   id: string

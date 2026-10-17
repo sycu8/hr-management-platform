@@ -29,7 +29,7 @@ Worker auth prefers `ctx.access.getIdentity()` when Access matched the request, 
 | `TURNSTILE_SECRET` | secret | Siteverify secret (synced from GitHub `TURNSTILE_SECRET_KEY`) |
 | `AI` | binding | Workers AI (`wrangler.jsonc` → `"ai": { "binding": "AI" }`) |
 | `AI_GATEWAY_ID` | var | AI Gateway id (`default` auto-creates on first request) |
-| `AI_MODEL` | var | Model for 360 analysis (default `@cf/meta/llama-3.1-8b-instruct`) |
+| `AI_MODEL` | var | Model for 360 analysis (default `@cf/meta/llama-3.2-1b-instruct` — cost-optimized; was deprecated llama-3.1-8b-instruct) |
 | `EMAIL_FROM` | var | Address on an Email Sending–enabled domain |
 | `EMAIL_FROM_NAME` | var | Display name |
 
