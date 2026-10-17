@@ -119,10 +119,12 @@ export function AlertsPage() {
                       <strong>{a.title}</strong>
                     </div>
                     <div className="muted small">{a.detail}</div>
-                    {a.action ? (
-                      <span className="feed-action">{a.action} →</span>
-                    ) : null}
                   </div>
+                  {a.action ? (
+                    <span className="feed-action">{a.action} →</span>
+                  ) : (
+                    <span className="feed-action feed-action--spacer" aria-hidden />
+                  )}
                 </>
               )
               return (
@@ -132,7 +134,7 @@ export function AlertsPage() {
                       {body}
                     </Link>
                   ) : (
-                    body
+                    <div className="feed-link feed-link--static">{body}</div>
                   )}
                 </li>
               )
