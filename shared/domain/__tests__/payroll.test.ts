@@ -19,6 +19,8 @@ import {
   payEmployees,
   pit,
   VN_PAY_POLICY_2026_07,
+  payParamsMatchCatalog,
+  VN_PAY_POLICY_CATALOG,
 } from '../payroll.ts'
 
 function attCtx() {
@@ -55,6 +57,17 @@ describe('VN pay policy ceilings (01/07/2026)', () => {
 
   it('BHTN ceiling = 20 × LTT vùng I 5.310.000', () => {
     expect(bhtnCeiling(VN_PAY_POLICY_2026_07)).toBe(106_200_000)
+  })
+
+  it('catalog matches VN_PAY_POLICY_2026_07 fingerprint', () => {
+    expect(VN_PAY_POLICY_CATALOG.id).toBe('VN_PAY_POLICY_2026_07')
+    expect(payParamsMatchCatalog(VN_PAY_POLICY_CATALOG.params)).toBe(true)
+    expect(
+      payParamsMatchCatalog({
+        ...VN_PAY_POLICY_2026_07,
+        mealExempt: 730_000,
+      }),
+    ).toBe(false)
   })
 })
 

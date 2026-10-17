@@ -41,7 +41,9 @@ Seed library: `policy_documents` category **Pháp lý** (`pol_h9`–`pol_h20`). 
 | `pol_h19` | 188/2025/NĐ-CP | Hướng dẫn Luật BHYT | BHYT 1.5% / 3% |
 | `pol_h20` | 51/2024/QH15 | Luật BHYT sửa đổi 2024 | Khung BHYT |
 
-UI: **Chính sách → Pháp lý** (`/policies/legal`).
+UI:
+- **Lương & phúc lợi → Tham số tính lương** (`/payroll/params`) — form + biểu PIT + trần BHXH/BHTN tách riêng; đồng bộ catalog
+- **Chính sách → Pháp lý** (`/policies/legal`) — thư viện văn bản `pol_h9`–`pol_h20`
 
 ### Policy versioning in seed
 
@@ -50,13 +52,30 @@ UI: **Chính sách → Pháp lý** (`/policies/legal`).
 | `paypol_v1` | 2026-01-01 → 2026-06-30 | Legacy (ref 2.34tr, meal 730k, single ceiling) |
 | `paypol_v2` | 2026-07-01 → | Current; citations → `pol_h11`–`pol_h19`; Aug/Sep/Oct runs |
 
+### Auto-update when the law changes (practical)
+
+The product does **not** scrape government websites. Statutory numbers ship as:
+
+1. Code constant `VN_PAY_POLICY_2026_07` / catalog id `VN_PAY_POLICY_2026_07` in `shared/domain/payroll.ts`
+2. Seed rows Pháp lý (`pol_h11`–`pol_h20`) + `paypol_v2.policy_json`
+
+When a decree changes:
+
+1. Update the constant + citations + seed legal docs in a release  
+2. Org admins open **Tham số tính lương** — UI flags drift if active `policy_json` ≠ catalog  
+3. **Đồng bộ từ thư viện pháp lý** calls `POST /api/payroll/policy-versions/:id/sync-catalog`, which copies catalog params + citations into the open policy version and sets `legal_review_status = pending`  
+4. Legal reviewer re-approves before payroll close (when `LEGAL_REVIEW_REQUIRED=true`)
+
+API: `GET /api/payroll/policy-catalog`, `GET|PATCH /api/payroll/policy-versions/:id`, `POST .../sync-catalog`.
+
 ## Production controls
 
 1. Store every change in `payroll_policy_versions` with `effective_from` / `effective_to`.  
 2. Closed payroll runs reference a specific policy version and immutable `payroll_items` snapshots.  
 3. Require named reviewer, timestamp, and citation links (`policyId`) before approval.  
 4. Set `bhtnRegionMin` per workplace region (I–IV under NĐ 293/2025); do not reuse the BHXH reference wage for the UI ceiling.  
-5. Add 10% provisional tax for probation under 3 months only after legal confirmation — not enabled in compatibility mode.
+5. Add 10% provisional tax for probation under 3 months only after legal confirmation — not enabled in compatibility mode.  
+6. Prefer syncing from catalog over hand-editing ceilings when a new NĐ lands.
 
 ## Reviewer checklist
 

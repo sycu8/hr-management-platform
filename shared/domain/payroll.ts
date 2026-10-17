@@ -206,3 +206,90 @@ export const VN_PAY_POLICY_2026_07: PayParams = {
     [1e15, 0.35],
   ],
 }
+
+/** Catalog id — bump when shipping a new statutory snapshot (e.g. next NĐ). */
+export const VN_PAY_POLICY_CATALOG_ID = 'VN_PAY_POLICY_2026_07' as const
+
+export type PayPolicyCitation = {
+  code: string
+  policyId: string
+  note: string
+}
+
+/**
+ * Source citations for the shipped catalog — map to `policy_documents` Pháp lý rows.
+ * Sync action writes these into `payroll_policy_versions.source_citations_json`.
+ */
+export const VN_PAY_POLICY_CITATIONS: readonly PayPolicyCitation[] = [
+  {
+    code: '161/2026/NĐ-CP',
+    policyId: 'pol_h14',
+    note: 'Lương cơ sở 2.530.000₫ từ 01/07/2026 → trần BHXH/BHYT 50.600.000₫',
+  },
+  {
+    code: '293/2025/NĐ-CP',
+    policyId: 'pol_h15',
+    note: 'LTT vùng I 5.310.000₫ → trần BHTN 106.200.000₫',
+  },
+  {
+    code: '253/2026/NĐ-CP',
+    policyId: 'pol_h16',
+    note: 'Ăn ca chi tiền miễn thuế TNCN đến 1.200.000₫/tháng từ 01/07/2026',
+  },
+  {
+    code: '109/2025/QH15',
+    policyId: 'pol_h17',
+    note: 'Luật Thuế TNCN — biểu 5 bậc 5/10/20/30/35%',
+  },
+  {
+    code: '110/2025/NQ-UBTVQH',
+    policyId: 'pol_h12',
+    note: 'Giảm trừ bản thân 15,5tr / phụ thuộc 6,2tr',
+  },
+  {
+    code: '41/2024/QH15',
+    policyId: 'pol_h11',
+    note: 'Luật BHXH 2024 — tỷ lệ NLĐ 8% + DN 14%+3%+0,5%; trần 20× lương cơ sở',
+  },
+  {
+    code: '74/2025/QH15',
+    policyId: 'pol_h18',
+    note: 'Luật Việc làm 2025 — BHTN 1%+1%; trần 20× LTT vùng',
+  },
+  {
+    code: '188/2025/NĐ-CP',
+    policyId: 'pol_h19',
+    note: 'BHYT 4,5% (NLĐ 1,5% / DN 3%)',
+  },
+]
+
+/** Canonical catalog entry used by API sync (not live government scraping). */
+export const VN_PAY_POLICY_CATALOG = {
+  id: VN_PAY_POLICY_CATALOG_ID,
+  label: 'Chính sách lương VN từ 01/07/2026',
+  effectiveFrom: '2026-07-01',
+  params: VN_PAY_POLICY_2026_07,
+  citations: VN_PAY_POLICY_CITATIONS,
+  legalLibraryNote:
+    'Số liệu lấy từ hằng số platform + thư viện Pháp lý (pol_h11–pol_h20). Cập nhật khi phát hành phiên bản catalog mới trong mã nguồn / seed — không crawl site nhà nước.',
+} as const
+
+/** Stable JSON compare for drift detection vs catalog. */
+export function payParamsFingerprint(p: PayParams): string {
+  return JSON.stringify({
+    ref: p.ref,
+    capMult: p.capMult,
+    bhtnRegionMin: p.bhtnRegionMin ?? null,
+    bhtnCapMult: p.bhtnCapMult ?? null,
+    bhEmp: p.bhEmp,
+    bhEr: p.bhEr,
+    selfDed: p.selfDed,
+    depDed: p.depDed,
+    mealExempt: p.mealExempt,
+    brackets: p.brackets,
+  })
+}
+
+export function payParamsMatchCatalog(p: PayParams): boolean {
+  return payParamsFingerprint(p) === payParamsFingerprint(VN_PAY_POLICY_2026_07)
+}
