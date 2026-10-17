@@ -12,7 +12,14 @@ import {
   GOLDEN_TRIPS,
 } from '../../fixtures/golden.ts'
 import { attMonth } from '../attendance.ts'
-import { calcPay, payEmployees, pit } from '../payroll.ts'
+import {
+  bhxhCeiling,
+  bhtnCeiling,
+  calcPay,
+  payEmployees,
+  pit,
+  VN_PAY_POLICY_2026_07,
+} from '../payroll.ts'
 
 function attCtx() {
   return {
@@ -39,6 +46,18 @@ describe('pit — progressive brackets', () => {
   }
 })
 
+describe('VN pay policy ceilings (01/07/2026)', () => {
+  it('BHXH/BHYT ceiling = 20 × 2.530.000', () => {
+    expect(bhxhCeiling(VN_PAY_POLICY_2026_07)).toBe(50_600_000)
+    expect(GOLDEN_PAY.ref).toBe(2_530_000)
+    expect(GOLDEN_PAY.mealExempt).toBe(1_200_000)
+  })
+
+  it('BHTN ceiling = 20 × LTT vùng I 5.310.000', () => {
+    expect(bhtnCeiling(VN_PAY_POLICY_2026_07)).toBe(106_200_000)
+  })
+})
+
 describe('calcPay — Sep 2026 golden employees', () => {
   it('e1 net 22.819.500', () => {
     const c = payFor('e1')
@@ -61,10 +80,12 @@ describe('calcPay — Sep 2026 golden employees', () => {
     expect(c.net).toBe(g.net)
   })
 
-  it('e5 net 74.518.800', () => {
+  it('e5 over BHXH ceiling — net 73.924.400', () => {
     const c = payFor('e5')
     const g = GOLDEN_PAYROLL_SEP.employees.e5
     expect(c.at.paid).toBe(g.paid)
+    expect(c.bhBase).toBe(50_600_000)
+    expect(c.bhtnBase).toBe(85_000_000)
     expect(c.gross).toBe(g.gross)
     expect(c.bhEmp).toBe(g.bhEmp)
     expect(c.pit).toBe(g.pit)

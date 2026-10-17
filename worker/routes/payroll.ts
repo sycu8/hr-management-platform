@@ -71,6 +71,8 @@ export type PayslipSnapshot = {
   dependents?: number
   prob?: boolean
   bhBase?: number
+  /** Cơ sở đóng BHTN (có thể cao hơn bhBase khi lương vượt trần BHXH/BHYT). */
+  bhtnBase?: number
   trip?: number
   ents?: Array<{ type?: string; kind?: string; amount?: number; title?: string }>
 }
@@ -128,6 +130,7 @@ function enrichPayslip(row: PayslipRow) {
     bhyt_er: er.bhyt ?? null,
     bhtn_er: er.bhtn ?? null,
     bh_base: snap.bhBase ?? null,
+    bhtn_base: snap.bhtnBase ?? snap.bhBase ?? null,
     taxable: snap.taxable ?? null,
     dependents: snap.dependents ?? null,
     probation: snap.prob ?? false,
@@ -388,6 +391,7 @@ payroll.get('/insurance', requireModule('pay', 1), async (c) => {
       department: p.department,
       probation: p.probation,
       bh_base: p.bh_base,
+      bhtn_base: p.bhtn_base,
       bhxh_emp: p.bhxh_emp,
       bhyt_emp: p.bhyt_emp,
       bhtn_emp: p.bhtn_emp,

@@ -146,6 +146,21 @@ export function AllowancesPage() {
         lương.
       </p>
 
+      <div className="card policy-card">
+        <h2>Miễn thuế TNCN — tiền ăn giữa ca / ăn trưa</h2>
+        <p>
+          Từ <b>01/07/2026</b>, khoản tiền ăn giữa ca / ăn trưa chi{' '}
+          <b>bằng tiền</b> được miễn thuế TNCN đến{' '}
+          <b>1.200.000 ₫/người/tháng</b> (NĐ 253/2026/NĐ-CP Đ.8(2)(g)). Phần vượt
+          mức tính vào thu nhập chịu thuế. Nếu DN tổ chức bữa ăn (nấu / suất ăn /
+          phiếu ăn) thì không tính vào thu nhập chịu thuế.
+        </p>
+        <p className="muted small">
+          Demo hiện chi phụ cấp «Ăn trưa» 730.000 ₫ — dưới trần miễn thuế mới;
+          khi tăng mức chi, công thức lương đã dùng trần 1.200.000 ₫.
+        </p>
+      </div>
+
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
         {(
           [
