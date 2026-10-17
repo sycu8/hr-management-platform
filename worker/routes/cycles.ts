@@ -306,28 +306,45 @@ cycles.get('/:id/ratings', requireModule('perf', 1), async (c) => {
   }
 
   const scope = await resolveEmployeeScope(c.env.DB, user)
-  const sc = scopeSqlClause(scope, 'e.id')
-  if (sc.empty) {
+  const scEmp = scopeSqlClause(scope, 'e.id')
+  const scRating = scopeSqlClause(scope, 'r.employee_id')
+  if (scEmp.empty || scRating.empty) {
     const counts = await cycleCounts(c.env, user.organizationId, id)
     return json(c, { cycle: enrichCycle(cycle, counts), items: [] })
   }
 
-  const { results } = await c.env.DB.prepare(
-    `SELECT r.id AS id, e.id AS employee_id, e.code AS employee_code,
-            e.full_name AS employee_name, e.department, e.title,
-            r.self_score, r.manager_score, r.final_score
-     FROM employees e
-     LEFT JOIN ratings r
-       ON r.employee_id = e.id
-      AND r.cycle_id = ?
-      AND r.organization_id = ?
-     WHERE e.organization_id = ?
-       AND (e.status = 'active' OR r.id IS NOT NULL)
-       ${sc.sql}
-     ORDER BY e.code`,
-  )
-    .bind(id, user.organizationId, user.organizationId, ...sc.binds)
-    .all<RatingRow>()
+  // Open: all in-scope active employees. Closed: only existing rating rows.
+  const { results } =
+    cycle.status === 'open'
+      ? await c.env.DB.prepare(
+          `SELECT r.id AS id, e.id AS employee_id, e.code AS employee_code,
+                  e.full_name AS employee_name, e.department, e.title,
+                  r.self_score, r.manager_score, r.final_score
+           FROM employees e
+           LEFT JOIN ratings r
+             ON r.employee_id = e.id
+            AND r.cycle_id = ?
+            AND r.organization_id = ?
+           WHERE e.organization_id = ?
+             AND (e.status = 'active' OR r.id IS NOT NULL)
+             ${scEmp.sql}
+           ORDER BY e.code`,
+        )
+          .bind(id, user.organizationId, user.organizationId, ...scEmp.binds)
+          .all<RatingRow>()
+      : await c.env.DB.prepare(
+          `SELECT r.id AS id, e.id AS employee_id, e.code AS employee_code,
+                  e.full_name AS employee_name, e.department, e.title,
+                  r.self_score, r.manager_score, r.final_score
+           FROM ratings r
+           JOIN employees e ON e.id = r.employee_id
+           WHERE r.organization_id = ?
+             AND r.cycle_id = ?
+             ${scRating.sql}
+           ORDER BY e.code`,
+        )
+          .bind(user.organizationId, id, ...scRating.binds)
+          .all<RatingRow>()
 
   const counts = await cycleCounts(c.env, user.organizationId, id)
   return json(c, {
