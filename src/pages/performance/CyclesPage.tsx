@@ -206,9 +206,11 @@ export function CyclesPage() {
     return !!user?.employeeId && user.employeeId === employeeId
   }
 
-  function canEditManager(): boolean {
+  function canEditManager(employeeId: string): boolean {
     if (!selected || selected.status !== 'open') return false
-    return canManage
+    if (canManage) return true
+    // Direct managers see reports in the scoped list (not themselves).
+    return !!user?.employeeId && user.employeeId !== employeeId
   }
 
   async function saveRating(employeeId: string) {
@@ -226,7 +228,7 @@ export function CyclesPage() {
 
     const payload: Record<string, unknown> = { employee_id: employeeId }
     if (canEditSelf(employeeId)) payload.self_score = self
-    if (canEditManager()) {
+    if (canEditManager(employeeId)) {
       payload.manager_score = mgr
       payload.final_score = fin
     }
@@ -398,7 +400,7 @@ export function CyclesPage() {
                     final_score: '',
                   }
                   const editableSelf = canEditSelf(r.employee_id)
-                  const editableMgr = canEditManager()
+                  const editableMgr = canEditManager(r.employee_id)
                   const showEdit =
                     selected.status === 'open' && (editableSelf || editableMgr)
                   return (
