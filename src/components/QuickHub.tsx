@@ -66,7 +66,6 @@ export function QuickHub() {
     <section className="quick-hub" aria-label="Thao tác nhanh">
       <div className="quick-hub__head">
         <h2>Thao tác nhanh</h2>
-        <p className="muted">Lối tắt thường dùng — kiểu Workday home.</p>
       </div>
       <div className="quick-hub__grid">
         {items.map((a) => (

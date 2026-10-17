@@ -122,11 +122,6 @@ export function DashboardPage() {
 
   return (
     <div className="stack dash">
-      <p className="page-lead muted">
-        Hub nhân sự kiểu Workday — tìm nhanh (Ctrl+K), thao tác thường dùng và
-        số liệu vận hành realtime.
-      </p>
-
       <QuickHub />
 
       <div className="grid g4">
