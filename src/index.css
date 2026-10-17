@@ -992,6 +992,13 @@ tr.row-selected td {
   border-bottom: 0;
   padding-bottom: 0;
 }
+/* Legacy rows without .feed-link wrapper */
+.feed-list li:not(:has(.feed-link)) {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: start;
+}
 .feed-link {
   display: grid;
   grid-template-columns: 88px minmax(0, 1fr) auto;
