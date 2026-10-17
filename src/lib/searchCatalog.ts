@@ -30,8 +30,16 @@ const PAGE_EXTRA: Record<
     blurb: 'Việc đến hạn cần hành động',
   },
   events: {
-    keywords: ['sự kiện', 'sinh nhật', 'lịch', 'calendar events'],
-    blurb: 'Sự kiện HR sắp tới',
+    keywords: [
+      'sự kiện',
+      'sinh nhật',
+      'lịch',
+      'calendar',
+      'nghỉ phép',
+      'công tác',
+      '45 ngày',
+    ],
+    blurb: 'Lịch 45 ngày — nghỉ phép, công tác, sự kiện công ty',
   },
   emp: {
     keywords: ['nhân viên', 'hồ sơ', 'profile', 'directory', 'danh bạ', 'worker'],

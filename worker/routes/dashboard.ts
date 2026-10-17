@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { Env } from '../env.ts'
 import { json, privateCacheHeaders } from '../lib/http.ts'
 import {
+  dashEventsCacheKey,
   dashSummaryCacheKey,
   dashTravelCacheKey,
   kvGetJson,
@@ -16,6 +17,44 @@ type DaysRow = { ym: string; days: number }
 
 const SUMMARY_TTL = 45
 const TRAVEL_TTL = 60
+const EVENTS_TTL = 60
+const EVENTS_HORIZON_DAYS = 45
+
+function addDaysIso(iso: string, days: number): string {
+  const d = new Date(`${iso}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+function eachDateInclusive(from: string, to: string): string[] {
+  const out: string[] = []
+  let cur = from
+  while (cur <= to) {
+    out.push(cur)
+    cur = addDaysIso(cur, 1)
+  }
+  return out
+}
+
+function dateInRange(day: string, from: string, to: string): boolean {
+  return day >= from && day <= to
+}
+
+function birthdayIsoInWindow(
+  birthDate: string,
+  from: string,
+  to: string,
+): string | null {
+  const md = birthDate.slice(5, 10) // MM-DD
+  if (!/^\d{2}-\d{2}$/.test(md)) return null
+  const y0 = Number(from.slice(0, 4))
+  const y1 = Number(to.slice(0, 4))
+  for (const y of y0 === y1 ? [y0] : [y0, y1]) {
+    const cand = `${y}-${md}`
+    if (dateInRange(cand, from, to)) return cand
+  }
+  return null
+}
 
 const dashboard = new Hono<{
   Bindings: Env
@@ -643,6 +682,349 @@ dashboard.get('/travel', requireModule('trip', 1), async (c) => {
 
   kvPutJsonBackground(c.env, c.executionCtx, cacheKey, payload, TRAVEL_TTL)
   return json(c, payload, 200, privateCacheHeaders(TRAVEL_TTL, { hit: false }))
+})
+
+type CalEvent = {
+  id: string
+  kind:
+    | 'leave'
+    | 'trip'
+    | 'interview'
+    | 'birthday'
+    | 'onboard'
+    | 'learning'
+    | 'contract'
+    | 'review'
+  date: string
+  endDate?: string
+  title: string
+  detail: string
+  href?: string
+  person?: string
+}
+
+/** Company calendar: next 45 days — leave/trips + milestones. */
+dashboard.get('/events', requireModule('dash', 1), async (c) => {
+  const user = c.get('user')
+  const org = user.organizationId
+  const today = new Date().toISOString().slice(0, 10)
+  const daysParam = Number(c.req.query('days') ?? EVENTS_HORIZON_DAYS)
+  const horizonDays = Math.min(90, Math.max(14, daysParam || EVENTS_HORIZON_DAYS))
+  const to = addDaysIso(today, horizonDays - 1)
+  const cacheKey = dashEventsCacheKey(org, `${today}:${horizonDays}`)
+
+  const cached = await kvGetJson<Record<string, unknown>>(c.env, cacheKey)
+  if (cached) {
+    return json(c, cached, 200, privateCacheHeaders(EVENTS_TTL, { hit: true }))
+  }
+
+  const db = c.env.DB
+  const batch = await db.batch([
+    db
+      .prepare(
+        `SELECT l.id, e.full_name AS name, l.start_date, l.end_date, l.leave_type,
+                l.working_days
+         FROM leave_requests l
+         JOIN employees e ON e.id = l.employee_id
+         WHERE l.organization_id = ? AND l.status = 'approved'
+           AND l.start_date <= ? AND l.end_date >= ?
+         ORDER BY l.start_date, e.full_name`,
+      )
+      .bind(org, to, today),
+    db
+      .prepare(
+        `SELECT t.id, t.code, e.full_name AS name, t.destination, t.purpose,
+                substr(t.start_at, 1, 10) AS start_date,
+                substr(t.end_at, 1, 10) AS end_date
+         FROM trips t
+         JOIN employees e ON e.id = t.employee_id
+         WHERE t.organization_id = ? AND t.status NOT IN ('rj','draft')
+           AND substr(t.start_at, 1, 10) <= ? AND substr(t.end_at, 1, 10) >= ?
+         ORDER BY t.start_at, e.full_name`,
+      )
+      .bind(org, to, today),
+    db
+      .prepare(
+        `SELECT id, full_name AS name, department, birth_date, title, joined_on,
+                contract_end, contract_type
+         FROM employees
+         WHERE organization_id = ? AND status = 'active'`,
+      )
+      .bind(org),
+    db
+      .prepare(
+        `SELECT id, full_name AS name, interview_at, stage, job_id
+         FROM candidates
+         WHERE organization_id = ?
+           AND interview_at IS NOT NULL
+           AND substr(interview_at, 1, 10) >= ?
+           AND substr(interview_at, 1, 10) <= ?
+         ORDER BY interview_at
+         LIMIT 40`,
+      )
+      .bind(org, today, to),
+    db
+      .prepare(
+        `SELECT en.id, e.full_name AS name, c.title AS course, en.due_on
+         FROM enrollments en
+         JOIN employees e ON e.id = en.employee_id
+         JOIN courses c ON c.id = en.course_id
+         WHERE en.organization_id = ?
+           AND en.due_on IS NOT NULL
+           AND en.due_on >= ? AND en.due_on <= ?
+           AND COALESCE(en.progress, 0) < 100
+         ORDER BY en.due_on
+         LIMIT 40`,
+      )
+      .bind(org, today, to),
+    db
+      .prepare(
+        `SELECT id, name, start_date, end_date, status
+         FROM review_cycles
+         WHERE organization_id = ?
+           AND start_date <= ? AND end_date >= ?
+         ORDER BY start_date
+         LIMIT 10`,
+      )
+      .bind(org, to, today),
+    db
+      .prepare(
+        `SELECT id, full_name AS name, role_title, department, start_date
+         FROM onboarding_plans
+         WHERE organization_id = ?
+           AND start_date >= ? AND start_date <= ?
+         ORDER BY start_date
+         LIMIT 30`,
+      )
+      .bind(org, today, to),
+  ])
+
+  const leaves = (batch[0]!.results ?? []) as {
+    id: string
+    name: string
+    start_date: string
+    end_date: string
+    leave_type: string
+    working_days: number
+  }[]
+  const trips = (batch[1]!.results ?? []) as {
+    id: string
+    code: string
+    name: string
+    destination: string
+    purpose: string
+    start_date: string
+    end_date: string
+  }[]
+  const employees = (batch[2]!.results ?? []) as {
+    id: string
+    name: string
+    department: string
+    birth_date: string | null
+    title: string
+    joined_on: string
+    contract_end: string | null
+    contract_type: string | null
+  }[]
+  const interviews = (batch[3]!.results ?? []) as {
+    id: string
+    name: string
+    interview_at: string
+    stage: string
+  }[]
+  const learning = (batch[4]!.results ?? []) as {
+    id: string
+    name: string
+    course: string
+    due_on: string
+  }[]
+  const reviews = (batch[5]!.results ?? []) as {
+    id: string
+    name: string
+    start_date: string
+    end_date: string
+    status: string
+  }[]
+  const onboardings = (batch[6]!.results ?? []) as {
+    id: string
+    name: string
+    role_title: string | null
+    department: string | null
+    start_date: string
+  }[]
+
+  const events: CalEvent[] = []
+
+  for (const l of leaves) {
+    events.push({
+      id: `leave-${l.id}`,
+      kind: 'leave',
+      date: l.start_date,
+      endDate: l.end_date,
+      title: l.name,
+      person: l.name,
+      detail: `${l.leave_type} · ${l.start_date} – ${l.end_date} (${l.working_days} ngày)`,
+      href: '/leave/calendar',
+    })
+  }
+  for (const t of trips) {
+    events.push({
+      id: `trip-${t.id}`,
+      kind: 'trip',
+      date: t.start_date,
+      endDate: t.end_date,
+      title: t.name,
+      person: t.name,
+      detail: `${t.destination} · ${t.code}`,
+      href: '/travel/trips',
+    })
+  }
+  for (const iv of interviews) {
+    const day = iv.interview_at.slice(0, 10)
+    const time = iv.interview_at.includes('T')
+      ? iv.interview_at.slice(11, 16)
+      : ''
+    events.push({
+      id: `iv-${iv.id}`,
+      kind: 'interview',
+      date: day,
+      title: iv.name,
+      detail: time ? `Phỏng vấn lúc ${time}` : `Phỏng vấn · ${iv.stage}`,
+      href: '/recruitment/candidates',
+    })
+  }
+  for (const en of learning) {
+    events.push({
+      id: `learn-${en.id}`,
+      kind: 'learning',
+      date: en.due_on,
+      title: en.name,
+      person: en.name,
+      detail: `Hạn học «${en.course}»`,
+      href: '/learning/courses',
+    })
+  }
+  for (const rc of reviews) {
+    if (dateInRange(rc.start_date, today, to)) {
+      events.push({
+        id: `rev-${rc.id}`,
+        kind: 'review',
+        date: rc.start_date,
+        endDate: rc.end_date,
+        title: rc.name,
+        detail: `Mở chu kỳ «${rc.name}»`,
+        href: '/performance/cycles',
+      })
+    }
+  }
+  for (const ob of onboardings) {
+    events.push({
+      id: `ob-${ob.id}`,
+      kind: 'onboard',
+      date: ob.start_date,
+      title: ob.name,
+      person: ob.name,
+      detail: `Nhận việc · ${ob.role_title ?? ob.department ?? ''}`.trim(),
+      href: '/recruitment/onboarding',
+    })
+  }
+  for (const e of employees) {
+    if (e.birth_date) {
+      const bday = birthdayIsoInWindow(e.birth_date, today, to)
+      if (bday) {
+        events.push({
+          id: `bday-${e.id}-${bday}`,
+          kind: 'birthday',
+          date: bday,
+          title: e.name,
+          person: e.name,
+          detail: `Sinh nhật · ${e.department}`,
+          href: '/employees',
+        })
+      }
+    }
+    if (e.contract_end && dateInRange(e.contract_end, today, to)) {
+      const probation =
+        e.contract_type?.toLowerCase().includes('thử') ||
+        e.contract_type === 'probation'
+      events.push({
+        id: `contract-${e.id}`,
+        kind: 'contract',
+        date: e.contract_end,
+        title: e.name,
+        person: e.name,
+        detail: probation
+          ? `Hết hạn thử việc`
+          : `Hết hạn HĐ · ${e.contract_type ?? ''}`.trim(),
+        href: '/employees/jobs',
+      })
+    }
+  }
+
+  events.sort(
+    (a, b) => a.date.localeCompare(b.date) || a.kind.localeCompare(b.kind),
+  )
+
+  const dayKeys = eachDateInclusive(today, to)
+  const dayMap = new Map(
+    dayKeys.map((d) => [
+      d,
+      {
+        date: d,
+        leaveCount: 0,
+        tripCount: 0,
+        leaveNames: [] as string[],
+        tripNames: [] as string[],
+      },
+    ]),
+  )
+
+  const leavePeople = new Set<string>()
+  const tripPeople = new Set<string>()
+
+  for (const l of leaves) {
+    leavePeople.add(l.name)
+    for (const d of eachDateInclusive(
+      l.start_date < today ? today : l.start_date,
+      l.end_date > to ? to : l.end_date,
+    )) {
+      const cell = dayMap.get(d)
+      if (!cell) continue
+      cell.leaveCount += 1
+      if (cell.leaveNames.length < 6) cell.leaveNames.push(l.name)
+    }
+  }
+  for (const t of trips) {
+    tripPeople.add(t.name)
+    for (const d of eachDateInclusive(
+      t.start_date < today ? today : t.start_date,
+      t.end_date > to ? to : t.end_date,
+    )) {
+      const cell = dayMap.get(d)
+      if (!cell) continue
+      cell.tripCount += 1
+      if (cell.tripNames.length < 6) cell.tripNames.push(t.name)
+    }
+  }
+
+  const todayCell = dayMap.get(today)
+  const payload = {
+    from: today,
+    to,
+    days: horizonDays,
+    summary: {
+      peopleOnLeave: leavePeople.size,
+      peopleOnTrip: tripPeople.size,
+      leaveToday: todayCell?.leaveCount ?? 0,
+      tripToday: todayCell?.tripCount ?? 0,
+      eventCount: events.length,
+    },
+    dayStats: [...dayMap.values()],
+    events,
+  }
+
+  kvPutJsonBackground(c.env, c.executionCtx, cacheKey, payload, EVENTS_TTL)
+  return json(c, payload, 200, privateCacheHeaders(EVENTS_TTL, { hit: false }))
 })
 
 export default dashboard

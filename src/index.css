@@ -2205,3 +2205,238 @@ tr.row-selected td {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
   }
 }
+
+/* —— Events calendar (Google Calendar–style) —— */
+.events-page .events-summary .tile .v {
+  font-variant-numeric: tabular-nums;
+}
+.gcal-card {
+  overflow: hidden;
+}
+.gcal-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+.gcal-toolbar h2 {
+  margin: 0;
+}
+.gcal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.gcal-leg {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.gcal-leg--leave {
+  background: color-mix(in srgb, #2a7a4b 16%, transparent);
+  border-color: color-mix(in srgb, #2a7a4b 35%, var(--line));
+  color: #1f6b40;
+}
+.gcal-leg--trip {
+  background: color-mix(in srgb, #2f5f9e 16%, transparent);
+  border-color: color-mix(in srgb, #2f5f9e 35%, var(--line));
+  color: #234f88;
+}
+.gcal-leg--other {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+}
+.gcal-months {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 20px;
+}
+.gcal-month-title {
+  font-weight: 650;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.gcal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.gcal-wd {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.gcal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.gcal-day {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--panel, var(--surface));
+  border-radius: 10px;
+  min-height: 72px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.gcal-day:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+.gcal-day--pad {
+  visibility: hidden;
+  pointer-events: none;
+  border: 0;
+  background: transparent;
+  min-height: 0;
+}
+.gcal-day--out {
+  opacity: 0.38;
+  cursor: default;
+}
+.gcal-day--today {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.gcal-day--selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.gcal-dom {
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.gcal-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.gcal-chip {
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 2px 5px;
+  border-radius: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+.gcal-chip--leave {
+  background: color-mix(in srgb, #2a7a4b 22%, transparent);
+  color: #1a5c36;
+}
+.gcal-chip--trip {
+  background: color-mix(in srgb, #2f5f9e 22%, transparent);
+  color: #1e4475;
+}
+.gcal-chip--other {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+.gcal-day-panel h2 {
+  margin-top: 0;
+}
+.gcal-day-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.gcal-kind {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  white-space: nowrap;
+}
+.gcal-kind--leave {
+  color: #1a5c36;
+  border-color: color-mix(in srgb, #2a7a4b 40%, var(--line));
+  background: color-mix(in srgb, #2a7a4b 14%, transparent);
+}
+.gcal-kind--trip {
+  color: #1e4475;
+  border-color: color-mix(in srgb, #2f5f9e 40%, var(--line));
+  background: color-mix(in srgb, #2f5f9e 14%, transparent);
+}
+.gcal-kind--interview,
+.gcal-kind--birthday,
+.gcal-kind--onboard,
+.gcal-kind--learning,
+.gcal-kind--contract,
+.gcal-kind--review {
+  color: var(--ink);
+}
+.events-feed .feed-body strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.events-feed .feed-link {
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .gcal-day {
+    min-height: 58px;
+    padding: 4px;
+    border-radius: 8px;
+  }
+  .gcal-chip {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+  .gcal-dom {
+    font-size: 12px;
+  }
+}
+
+/* Dark theme: keep leave/trip chips readable */
+:root[data-theme='dark'] .gcal-chip--leave,
+[data-theme='dark'] .gcal-chip--leave,
+.theme-dark .gcal-chip--leave {
+  color: #8fd4a8;
+}
+:root[data-theme='dark'] .gcal-chip--trip,
+[data-theme='dark'] .gcal-chip--trip,
+.theme-dark .gcal-chip--trip {
+  color: #9bb8e0;
+}
+:root[data-theme='dark'] .gcal-kind--leave,
+[data-theme='dark'] .gcal-kind--leave,
+.theme-dark .gcal-kind--leave {
+  color: #8fd4a8;
+}
+:root[data-theme='dark'] .gcal-kind--trip,
+[data-theme='dark'] .gcal-kind--trip,
+.theme-dark .gcal-kind--trip {
+  color: #9bb8e0;
+}
+:root[data-theme='dark'] .gcal-leg--leave,
+[data-theme='dark'] .gcal-leg--leave {
+  color: #8fd4a8;
+}
+:root[data-theme='dark'] .gcal-leg--trip,
+[data-theme='dark'] .gcal-leg--trip {
+  color: #9bb8e0;
+}

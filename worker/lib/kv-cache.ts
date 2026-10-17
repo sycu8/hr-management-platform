@@ -52,3 +52,7 @@ export function dashSummaryCacheKey(orgId: string, dayIso: string): string {
 export function dashTravelCacheKey(orgId: string): string {
   return `dash:travel:v2:${orgId}`
 }
+
+export function dashEventsCacheKey(orgId: string, dayIso: string): string {
+  return `dash:events:v1:${orgId}:${dayIso}`
+}
