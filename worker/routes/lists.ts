@@ -202,10 +202,16 @@ lists.get('/certificates', requireModule('learn', 1), async (c) => {
 lists.get('/cycles', requireModule('perf', 1), async (c) => {
   const user = c.get('user')
   const { results } = await c.env.DB.prepare(
-    `SELECT id, name, start_date, end_date, status
-     FROM review_cycles
-     WHERE organization_id = ?
-     ORDER BY start_date DESC`,
+    `SELECT c.id, c.name, c.start_date, c.end_date, c.status,
+            COALESCE(COUNT(r.id), 0) AS total_count,
+            COALESCE(SUM(CASE WHEN r.final_score IS NOT NULL THEN 1 ELSE 0 END), 0)
+              AS completed_count
+     FROM review_cycles c
+     LEFT JOIN ratings r
+       ON r.cycle_id = c.id AND r.organization_id = c.organization_id
+     WHERE c.organization_id = ?
+     GROUP BY c.id
+     ORDER BY c.start_date DESC`,
   )
     .bind(user.organizationId)
     .all()

@@ -33,6 +33,12 @@ export const EARNING_KIND: Record<string, string> = {
   bonus: 'Thưởng',
 }
 
+export const CYCLE_STATUS: Record<string, string> = {
+  planned: 'Sắp mở',
+  open: 'Đang mở',
+  closed: 'Đã đóng',
+}
+
 export function labelOf(
   map: Record<string, string>,
   code: string | null | undefined,

@@ -2467,3 +2467,112 @@ tr.row-selected td {
 [data-theme='dark'] .gcal-leg--trip {
   color: #9bb8e0;
 }
+
+/* —— Performance review cycles —— */
+.cycle-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x proximity;
+}
+
+.cycle-card {
+  flex: 0 0 min(280px, 82vw);
+  scroll-snap-align: start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 148px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cycle-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.cycle-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.cycle-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cycle-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cycle-card__name {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.cycle-card__dates {
+  font-size: 13px;
+}
+
+.cycle-card__meta {
+  font-size: 12.5px;
+}
+
+.cycle-card__hint {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.cycle-card__actions {
+  margin-top: auto;
+}
+
+.cycle-card .okr-progress-bar {
+  margin: 4px 0 0;
+}
+
+.cycle-empty {
+  min-height: min(200px, 32vh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted);
+  padding: 28px 16px;
+}
+
+.cycle-empty p {
+  margin: 0;
+  max-width: 46ch;
+}
+
+.score-input {
+  width: 4.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .cycle-card {
+    flex-basis: min(260px, 88vw);
+  }
+  .score-input {
+    min-height: 40px;
+    width: 5rem;
+  }
+}

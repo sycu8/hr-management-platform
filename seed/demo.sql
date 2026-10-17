@@ -1534,7 +1534,7 @@ INSERT OR REPLACE INTO onboarding_plans (
 INSERT OR REPLACE INTO review_cycles (id, organization_id, name, start_date, end_date, status) VALUES
  ('rc1','org_demo','Đánh giá năm 2025','2025-12-01','2026-01-31','closed'),
  ('rc2','org_demo','Đánh giá giữa năm 2026','2026-06-01','2026-07-15','closed'),
- ('rc3','org_demo','Đánh giá cuối năm 2026','2026-11-01','2026-12-20','planned');
+ ('rc3','org_demo','Đánh giá năm 2026','2026-11-15','2026-12-31','planned');
 
 INSERT OR REPLACE INTO ratings (id, organization_id, cycle_id, employee_id, self_score, manager_score, final_score) VALUES
  ('rt1','org_demo','rc1','e1',3.9,4.1,4.0),
@@ -1561,12 +1561,9 @@ INSERT OR REPLACE INTO ratings (id, organization_id, cycle_id, employee_id, self
  ('rt22','org_demo','rc2','e8',3.6,3.8,3.7),
  ('rt23','org_demo','rc2','e9',4.3,3.1,3.7),
  ('rt24','org_demo','rc2','e10',3.5,4.2,3.9),
- ('rt25','org_demo','rc2','e14',4.2,3.5,3.9),
- ('rt26','org_demo','rc2','e15',3.4,4.6,4.0),
- ('rt27','org_demo','rc2','e17',4.1,3.9,4.0),
- ('rt28','org_demo','rc2','e20',3.3,3.2,3.3),
- ('rt29','org_demo','rc2','e24',4.0,4.3,4.2),
- ('rt30','org_demo','rc2','e25',3.2,3.6,3.4);
+ ('rt25','org_demo','rc2','e14',4.2,3.5,3.9)
+ ('rt27','org_demo','rc2','e17',4.1,3.9,4.0)
+ ('rt29','org_demo','rc2','e24',4.0,4.3,4.2)
 
 INSERT OR REPLACE INTO objectives (id, organization_id, employee_id, period, objective, key_results_json) VALUES
  ('obj1','org_demo','e1','2026-H2','Đạt tiền doanh số cá nhân 2,4 tỷ','[{"kr":"Chốt 8 hợp đồng mới","progress":0.6},{"kr":"Upsell 5 khách hiện hữu","progress":0.4}]'),
