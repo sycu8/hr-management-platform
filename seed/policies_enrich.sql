@@ -110,6 +110,63 @@ UPDATE policy_documents SET
   last_reviewed_at = COALESCE(last_reviewed_at, effective_from)
 WHERE organization_id = 'org_demo' AND category = 'Pháp lý';
 
+-- Nguồn pháp lý doanh nghiệp → nội dung đầy đủ (đồng bộ paypol_v2)
+UPDATE policy_documents SET
+  content_text = 'Bộ luật Lao động 2019 (45/2019/QH14). Phép năm tối thiểu 12 ngày + 1 ngày/5 năm thâm niên. Tiền lương ≥ LTT vùng (NĐ 293/2025). Căn cứ nội quy QD-NS-01 và nghỉ phép QD-NS-02.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h9' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'Luật BHXH 2024 (41/2024/QH15). NLĐ đóng BHXH 8%; DN 14% (hưu trí–tử tuất) + 3% (ốm đau–thai sản) + 0,5% (TNLĐ-BNN). Trần lương đóng = 20 × lương cơ sở (từ 01/07/2026: 50.600.000₫ theo NĐ 161/2026). Map: paypol_v2.bhEmp.bhxh / bhEr.* / bhBase.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h11' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'NQ 110/2025/NQ-UBTVQH: giảm trừ bản thân 15.500.000₫/tháng; phụ thuộc 6.200.000₫/tháng. Kỳ thuế từ 2026. Map: paypol_v2.selfDed / depDed.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h12' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'NĐ 161/2026/NĐ-CP: lương cơ sở 2.530.000₫/tháng từ 01/07/2026. Trần BHXH/BHYT = 20× = 50.600.000₫. Map: paypol_v2.ref=2530000, capMult=20.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h14' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'NĐ 293/2025/NĐ-CP (01/01/2026): LTT vùng I 5.310.000 · II 4.730.000 · III 4.140.000 · IV 3.700.000₫. Trần BHTN = 20×LTT vùng (Luật Việc làm 2025). Demo vùng I → 106.200.000₫. Map: bhtnRegionMin=5310000.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h15' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'NĐ 253/2026/NĐ-CP Đ.8(2)(g): tiền ăn giữa ca/ăn trưa chi bằng tiền miễn thuế TNCN đến 1.200.000₫/người/tháng từ 01/07/2026. Tổ chức bữa ăn (nấu/suất/phiếu) không tính vào TNCT. Map: mealExempt=1200000.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h16' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'Luật TNCN 109/2025/QH15: biểu 5 bậc tháng 5%/10%/20%/30%/35% (ngưỡng 10/30/60/100 triệu). Tiền lương–tiền công áp dụng từ kỳ thuế 2026. Map: paypol_v2.brackets.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h17' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'Luật Việc làm 2025 (74/2025/QH15) Đ.33–34: BHTN NLĐ≤1%, DN≤1%; trần căn cứ = 20×LTT vùng (không dùng lương cơ sở). Map: bhEmp.bhtn / bhEr.bhtn / bhtnBase.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h18' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'NĐ 188/2025/NĐ-CP: BHYT 4,5% tiền lương căn cứ BHXH — DN 3%, NLĐ 1,5%. Map: bhEmp.bhyt=0.015, bhEr.bhyt=0.03.',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h19' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'Luật BHYT sửa đổi 2024 (51/2024/QH15). Chi tiết mức đóng doanh nghiệp: NĐ 188/2025 (pol_h19).',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol_h20' AND organization_id = 'org_demo';
+
+UPDATE policy_documents SET
+  content_text = 'QT-LUONG-01 v1.3: khóa công → tính theo paypol_v2 (NĐ 161/253/2026, 293/2025, Luật BHXH 2024, Việc làm 2025, TNCN 109/2025) → duyệt → chi trước ngày 5. Thư viện Pháp lý pol_h11–pol_h20. Chỉ chi khi legal_review_status=approved.',
+  version = 'v1.3',
+  last_reviewed_at = '2026-10-01', updated_at = '2026-10-01T04:00:00Z'
+WHERE id = 'pol4' AND organization_id = 'org_demo';
+
 -- Additional Orange Cloud sample policies
 INSERT OR REPLACE INTO policy_documents (
   id, organization_id, category, code, title, version, effective_from, summary, body_json,

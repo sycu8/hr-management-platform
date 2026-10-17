@@ -5,45 +5,66 @@ Mode: configurable and effective-dated; payroll close is blocked until `legal_re
 
 These values are the platform’s **current Vietnam sample policy** (`paypol_v2` / `VN_PAY_POLICY_2026_07`). Organization reviewers must still confirm workplace region codes and citations before real payment.
 
+Seed library: `policy_documents` category **Pháp lý** (`pol_h9`–`pol_h20`). Payroll citations in `payroll_policy_versions.source_citations_json` point at those rows via `policyId`.
+
 ## Current values (effective 01/07/2026)
 
-| Parameter | Value | Source |
+| Parameter | Value | Source document (seed) |
 | --- | --- | --- |
-| Personal deduction | 15,500,000 ₫/month | UBTVQH family-circumstance deductions (handoff cites 110/2025/NQ-UBTVQH) |
+| Personal deduction | 15,500,000 ₫/month | `pol_h12` — 110/2025/NQ-UBTVQH |
 | Dependent deduction | 6,200,000 ₫/month | Same |
-| Meal exemption cap (cash) | **1,200,000 ₫/month** | Nghị định **253/2026/NĐ-CP** Đ.8(2)(g) — tiền ăn giữa ca / ăn trưa chi bằng tiền; áp dụng từ 01/07/2026 |
-| PIT brackets | 5% / 10% / 20% / 30% / 35% | Progressive monthly PIT schedule |
-| Employee SI/HI/UI | **10.5%** (BHXH 8% + BHYT 1.5% + BHTN 1%) | Luật BHXH 2024 contribution rates |
-| Employer SI/HI/UI | **21.5%** (BHXH 14% + ốm đau 3% + TNLĐ-BNN 0.5% + BHYT 3% + BHTN 1%) | Same |
-| BHXH / BHYT reference wage | **2,530,000 ₫** | Nghị định **161/2026/NĐ-CP** — mức lương cơ sở từ 01/07/2026 |
-| BHXH / BHYT ceiling | **50,600,000 ₫** (= 20 × 2,530,000) | Luật BHXH 2024 ceiling rule |
-| Regional minimum (vùng I) | **5,310,000 ₫** | Nghị định **293/2025/NĐ-CP** — hiệu lực 01/01/2026 (Hà Nội / TP.HCM demo) |
-| BHTN ceiling | **106,200,000 ₫** (= 20 × lương tối thiểu vùng) | Luật BHXH 2024 — trần BHTN theo vùng, **không** dùng lương cơ sở |
-| Annual leave | 12 days + 1 per 5 years tenure | Labor Code 2019 |
-| Probation insurance | Not contributed in sample | Confirm against contract practice and BHXH registration |
+| Meal exemption cap (cash) | **1,200,000 ₫/month** | `pol_h16` — 253/2026/NĐ-CP Đ.8(2)(g) |
+| PIT brackets | 5% / 10% / 20% / 30% / 35% | `pol_h17` — 109/2025/QH15 |
+| Employee SI/HI/UI | **10.5%** (8 + 1.5 + 1) | `pol_h11` + `pol_h19` + `pol_h18` |
+| Employer SI/HI/UI | **21.5%** (14 + 3 + 0.5 + 3 + 1) | Same |
+| BHXH / BHYT reference wage | **2,530,000 ₫** | `pol_h14` — 161/2026/NĐ-CP |
+| BHXH / BHYT ceiling | **50,600,000 ₫** (= 20 × ref) | `pol_h11` + `pol_h14` |
+| Regional minimum (vùng I) | **5,310,000 ₫** | `pol_h15` — 293/2025/NĐ-CP |
+| BHTN ceiling | **106,200,000 ₫** (= 20 × LTT vùng) | `pol_h18` — 74/2025/QH15 Đ.34 |
+| Annual leave | 12 days + 1 per 5 years | `pol_h9` — 45/2019/QH14 |
+| Probation insurance | Not contributed in sample | Confirm vs BHXH registration |
+
+## Enterprise legal library (Pháp lý)
+
+| ID | Code | Title | Drives |
+| --- | --- | --- | --- |
+| `pol_h9` | 45/2019/QH14 | Bộ luật Lao động 2019 | Leave, nội quy |
+| `pol_h10` | 145/2020/NĐ-CP | Hướng dẫn Bộ luật Lao động | Nội quy / phụ cấp |
+| `pol_h11` | 41/2024/QH15 | Luật BHXH 2024 | Tỷ lệ BHXH + trần 20× lương cơ sở |
+| `pol_h12` | 110/2025/NQ-UBTVQH | Giảm trừ gia cảnh | selfDed / depDed |
+| `pol_h13` | 40/2017/TT-BTC | Công tác phí (NSNN — tham khảo) | Travel (company rates) |
+| `pol_h14` | 161/2026/NĐ-CP | Lương cơ sở 2.530.000 | `ref` |
+| `pol_h15` | 293/2025/NĐ-CP | Lương tối thiểu vùng | `bhtnRegionMin` |
+| `pol_h16` | 253/2026/NĐ-CP | Hướng dẫn Luật TNCN | `mealExempt` |
+| `pol_h17` | 109/2025/QH15 | Luật Thuế TNCN | `brackets` |
+| `pol_h18` | 74/2025/QH15 | Luật Việc làm 2025 | BHTN 1% + trần theo vùng |
+| `pol_h19` | 188/2025/NĐ-CP | Hướng dẫn Luật BHYT | BHYT 1.5% / 3% |
+| `pol_h20` | 51/2024/QH15 | Luật BHYT sửa đổi 2024 | Khung BHYT |
+
+UI: **Chính sách → Pháp lý** (`/policies/legal`).
 
 ### Policy versioning in seed
 
 | Version | Effective | Notes |
 | --- | --- | --- |
-| `paypol_v1` | 2026-01-01 → 2026-06-30 | Legacy compatibility (ref 2.34tr, meal exempt 730k, single ceiling) |
-| `paypol_v2` | 2026-07-01 → | Current policy above; Aug/Sep/Oct 2026 demo runs reference this |
+| `paypol_v1` | 2026-01-01 → 2026-06-30 | Legacy (ref 2.34tr, meal 730k, single ceiling) |
+| `paypol_v2` | 2026-07-01 → | Current; citations → `pol_h11`–`pol_h19`; Aug/Sep/Oct runs |
 
 ## Production controls
 
 1. Store every change in `payroll_policy_versions` with `effective_from` / `effective_to`.  
 2. Closed payroll runs reference a specific policy version and immutable `payroll_items` snapshots.  
-3. Require named reviewer, timestamp, and citation links before approval.  
+3. Require named reviewer, timestamp, and citation links (`policyId`) before approval.  
 4. Set `bhtnRegionMin` per workplace region (I–IV under NĐ 293/2025); do not reuse the BHXH reference wage for the UI ceiling.  
 5. Add 10% provisional tax for probation under 3 months only after legal confirmation — not enabled in compatibility mode.
 
 ## Reviewer checklist
 
-- [ ] Confirm personal/dependent deductions for the active tax year  
-- [ ] Confirm PIT brackets  
-- [ ] Confirm BHXH/BHYT/BHTN rates and ceilings (20 × lương cơ sở vs 20 × LTT vùng)  
-- [ ] Confirm regional minimum wages for each workplace  
-- [ ] Confirm meal cash exemption vs organized meal practice (NĐ 253/2026)  
-- [ ] Confirm leave entitlements against company policy + Labor Code  
-- [ ] Confirm travel-policy rates are company regulations, not state-agency mandatory rates  
+- [ ] Confirm personal/dependent deductions for the active tax year (`pol_h12`)  
+- [ ] Confirm PIT brackets (`pol_h17`)  
+- [ ] Confirm BHXH/BHYT/BHTN rates and ceilings (`pol_h11`, `pol_h14`, `pol_h18`, `pol_h19`)  
+- [ ] Confirm regional minimum wages for each workplace (`pol_h15`)  
+- [ ] Confirm meal cash exemption vs organized meal practice (`pol_h16`)  
+- [ ] Confirm leave entitlements against company policy + Labor Code (`pol_h9`)  
+- [ ] Confirm travel-policy rates are company regulations, not state-agency mandatory rates (`pol_h13`)  
 - [ ] Sign-off stored in system with name and date

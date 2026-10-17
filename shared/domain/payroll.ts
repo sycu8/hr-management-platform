@@ -95,8 +95,8 @@ export function pit(x: number, brackets: readonly PayBracket[]): number {
  * Exact legacy `H.calcPay` formulas as a pure function.
  * Attendance month and trip note total are injected (no global state).
  *
- * BHXH/BHYT base capped at 20× mức tham chiếu; BHTN base capped at
- * 20× lương tối thiểu vùng (NĐ-CP lương tối thiểu vùng + Luật BHXH 2024).
+ * BHXH/BHYT base capped at 20× mức tham chiếu (Luật BHXH 2024 + NĐ 161/2026);
+ * BHTN base capped at 20× lương tối thiểu vùng (Luật Việc làm 2025 + NĐ 293/2025).
  */
 export function calcPay(
   e: CalcPayEmployee,
@@ -182,7 +182,11 @@ export function payEmployees<T extends { joined: string; leftDate?: string }>(
   )
 }
 
-/** Policy snapshot in force from 01/07/2026 (NĐ 161/2026, NĐ 253/2026, NĐ 293/2025). */
+/**
+ * Policy snapshot in force from 01/07/2026.
+ * Citations: NĐ 161/2026, 253/2026, 293/2025; Luật BHXH 2024, Việc làm 2025,
+ * TNCN 109/2025, NQ 110/2025 — see docs/LEGAL_PARAMETERS.md + seed pol_h11–pol_h20.
+ */
 export const VN_PAY_POLICY_2026_07: PayParams = {
   ref: 2_530_000,
   capMult: 20,

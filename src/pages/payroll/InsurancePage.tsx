@@ -116,7 +116,8 @@ export function InsurancePage() {
         <ul className="plain-list">
           <li>
             Tỷ lệ: NLĐ <b>10,5%</b> · DN <b>21,5%</b> (BHXH 14% + ốm đau 3% +
-            TNLĐ 0,5% + BHYT 3% + BHTN 1%) — Luật BHXH 2024
+            TNLĐ 0,5% + BHYT 3% + BHTN 1%) — Luật BHXH 2024, NĐ 188/2025, Luật
+            Việc làm 2025
           </li>
           <li>
             Trần BHXH/BHYT: <b>20 × 2.530.000 ₫ = 50.600.000 ₫</b> (NĐ
@@ -124,7 +125,8 @@ export function InsurancePage() {
           </li>
           <li>
             Trần BHTN: <b>20 × lương tối thiểu vùng</b> — demo vùng I{' '}
-            <b>5.310.000 ₫ → 106.200.000 ₫</b> (NĐ 293/2025/NĐ-CP)
+            <b>5.310.000 ₫ → 106.200.000 ₫</b> (Luật Việc làm 2025 + NĐ
+            293/2025/NĐ-CP) — xem thư viện Pháp lý
           </li>
         </ul>
       </div>
